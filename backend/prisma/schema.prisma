@@ -34,7 +34,9 @@ model SysTenant {
 model SysNumberSequence {
   id        String   @id @default(uuid()) @db.Char(36)
   tenantId  String   @db.Char(36)
+  module    String   @default("purchase") @db.VarChar(20)
   docType   String   @db.VarChar(20) // PO, PRQ, GRN …
+  name      String   @default("") @db.VarChar(60) // "Purchase order", shown on Document types
   prefix    String   @db.VarChar(20) // "PO-"
   digits    Int      @default(4)
   nextValue Int      @default(1)
@@ -185,6 +187,46 @@ model SysAttachment {
   @@map("sys_attachment")
 }
 
+/// One edge in a document chain, always from the earlier document to the later one:
+/// PRQ-0001 → RFQ-0001 → PO-0001 → GRN-0001 → PI-0001. Powers Document flow and Linked documents.
+/// Ids are null for documents outside this system (e.g. a sales order before Sales exists).
+model SysDocLink {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  fromType  String   @db.VarChar(40)
+  fromId    String?  @db.Char(36)
+  fromNo    String   @db.VarChar(30)
+  toType    String   @db.VarChar(40)
+  toId      String?  @db.Char(36)
+  toNo      String   @db.VarChar(30)
+  linkType  String   @db.VarChar(30) // CONVERTED, AWARDED, RECEIVED, BILLED, RETURNED, CANCELLED, DEBITED, DRAFTED_FROM
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  @@index([tenantId, fromType, fromId])
+  @@index([tenantId, toType, toId])
+  @@map("sys_doc_link")
+}
+
+/// Emails are not sent in phase 1: they are written here and the UI shows "Sent".
+model SysEmailLog {
+  id          String   @id @default(uuid()) @db.Char(36)
+  tenantId    String   @db.Char(36)
+  entityType  String?  @db.VarChar(40)
+  entityId    String?  @db.Char(36)
+  docNo       String?  @db.VarChar(30)
+  templateKey String?  @db.VarChar(50)
+  toAddress   String   @db.VarChar(500)
+  ccAddress   String?  @db.VarChar(500)
+  subject     String   @db.VarChar(300)
+  body        String   @db.Text
+  sentByCode  String   @db.VarChar(20)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, templateKey, createdAt])
+  @@map("sys_email_log")
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // mdm_ · master data (local seed tables, phase 1). Only MasterDataPort reads these.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -217,4 +259,1131 @@ model MdmUser {
 
   @@unique([tenantId, code])
   @@map("mdm_user")
+}
+
+enum MdmRecordStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum MdmItemStatus {
+  ACTIVE
+  BLOCKED
+  DISCONTINUED
+}
+
+enum MdmItemType {
+  STOCK
+  NON_STOCK
+  SERVICE
+  ASSET
+}
+
+model MdmWarehouse {
+  id         String   @id @default(uuid()) @db.Char(36)
+  tenantId   String   @db.Char(36)
+  code       String   @db.VarChar(20) // HQ-MAIN
+  name       String   @db.VarChar(100)
+  branchCode String   @db.VarChar(10)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+  updatedAt  DateTime @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, code])
+  @@map("mdm_warehouse")
+}
+
+/// Rack / bin. Codes must match WMS location codes (HQ-MAIN/B-03).
+model MdmLocation {
+  id            String   @id @default(uuid()) @db.Char(36)
+  tenantId      String   @db.Char(36)
+  warehouseCode String   @db.VarChar(20)
+  code          String   @db.VarChar(30)
+  name          String   @db.VarChar(100)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now()) @db.DateTime(3)
+  updatedAt     DateTime @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, warehouseCode])
+  @@map("mdm_location")
+}
+
+model MdmUom {
+  id       String  @id @default(uuid()) @db.Char(36)
+  tenantId String  @db.Char(36)
+  code     String  @db.VarChar(10)
+  name     String  @db.VarChar(50)
+  decimals Int     @default(0)
+  isActive Boolean @default(true)
+
+  @@unique([tenantId, code])
+  @@map("mdm_uom")
+}
+
+model MdmUomConversion {
+  id       String  @id @default(uuid()) @db.Char(36)
+  tenantId String  @db.Char(36)
+  itemCode String  @db.VarChar(30)
+  fromUom  String  @db.VarChar(10)
+  toUom    String  @db.VarChar(10)
+  factor   Decimal @db.Decimal(18, 6)
+
+  @@unique([tenantId, itemCode, fromUom, toUom])
+  @@map("mdm_uom_conversion")
+}
+
+model MdmTaxCode {
+  id        String    @id @default(uuid()) @db.Char(36)
+  tenantId  String    @db.Char(36)
+  code      String    @db.VarChar(20) // SST10, SVC8, EXEMPT
+  name      String    @db.VarChar(60) // "SST 10%", the label screens show
+  rate      Decimal   @db.Decimal(7, 4) // fraction: 0.1000 = 10%
+  country   String    @default("MY") @db.Char(2)
+  validFrom DateTime  @db.Date
+  validTo   DateTime? @db.Date
+  isActive  Boolean   @default(true)
+
+  @@unique([tenantId, code])
+  @@map("mdm_tax_code")
+}
+
+model MdmSupplier {
+  id              String          @id @default(uuid()) @db.Char(36)
+  tenantId        String          @db.Char(36)
+  code            String          @db.VarChar(20) // S-0021
+  name            String          @db.VarChar(150)
+  shortName       String?         @db.VarChar(60) // "Kilang Kain Jaya" in compact lists
+  category        String?         @db.VarChar(100) // what they supply
+  regNo           String?         @db.VarChar(30)
+  tin             String?         @db.VarChar(30)
+  sstNo           String?         @db.VarChar(30) // null = not SST registered
+  paymentTermDays Int             @default(30)
+  currency        String          @default("MYR") @db.Char(3)
+  contactName     String?         @db.VarChar(100)
+  email           String?         @db.VarChar(150)
+  phone           String?         @db.VarChar(30)
+  address         String?         @db.VarChar(300)
+  isWalkIn        Boolean         @default(false) // shops used for cash purchases
+  status          MdmRecordStatus @default(ACTIVE)
+  createdAt       DateTime        @default(now()) @db.DateTime(3)
+  updatedAt       DateTime        @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@map("mdm_supplier")
+}
+
+model MdmItem {
+  id                    String        @id @default(uuid()) @db.Char(36)
+  tenantId              String        @db.Char(36)
+  code                  String        @db.VarChar(30) // FB-OAK-01
+  name                  String        @db.VarChar(150)
+  itemGroup             String        @db.VarChar(50)
+  type                  MdmItemType
+  baseUom               String        @db.VarChar(10)
+  purchaseUom           String?       @db.VarChar(10)
+  salesUom              String?       @db.VarChar(10)
+  isPurchasable         Boolean       @default(true)
+  isSellable            Boolean       @default(false)
+  isBuyToOrder          Boolean       @default(false) // bought only against a sales order
+  purchaseTaxCode       String        @db.VarChar(20)
+  salesTaxCode          String?       @db.VarChar(20)
+  preferredSupplierCode String?       @db.VarChar(20)
+  reorderLevel          Decimal?      @db.Decimal(18, 4)
+  packSize              Decimal       @default(1) @db.Decimal(18, 4)
+  status                MdmItemStatus @default(ACTIVE)
+  createdAt             DateTime      @default(now()) @db.DateTime(3)
+  updatedAt             DateTime      @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, isPurchasable, status])
+  @@map("mdm_item")
+}
+
+/// A price agreed with a supplier for a period. Items with a contract price skip the RFQ (rule 4).
+model MdmContractPrice {
+  id           String    @id @default(uuid()) @db.Char(36)
+  tenantId     String    @db.Char(36)
+  itemCode     String    @db.VarChar(30)
+  supplierCode String    @db.VarChar(20)
+  unitPrice    Decimal   @db.Decimal(18, 4)
+  validFrom    DateTime  @db.Date
+  validTo      DateTime? @db.Date
+
+  @@index([tenantId, itemCode])
+  @@map("mdm_contract_price")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// inv_ / sal_ · read-only stubs until Inventory and Sales are connected
+// ─────────────────────────────────────────────────────────────────────────────
+
+model InvStockSnapshot {
+  id             String   @id @default(uuid()) @db.Char(36)
+  tenantId       String   @db.Char(36)
+  warehouseCode  String   @db.VarChar(20)
+  itemCode       String   @db.VarChar(30)
+  onHand         Decimal  @db.Decimal(18, 4)
+  usedLast30Days Decimal  @default(0) @db.Decimal(18, 4)
+  asOf           DateTime @db.DateTime(3)
+
+  @@unique([tenantId, warehouseCode, itemCode])
+  @@map("inv_stock_snapshot")
+}
+
+enum SalDemandKind {
+  DIRECT // the sales line sells this item: counts in the demand list
+  COMPONENT // the item is used to make what is sold: shown for information only
+}
+
+/// Open sales-order needs, until the Sales module publishes them.
+model SalDemandStub {
+  id           String        @id @default(uuid()) @db.Char(36)
+  tenantId     String        @db.Char(36)
+  branchCode   String        @db.VarChar(10)
+  soNo         String        @db.VarChar(30)
+  soDate       DateTime      @db.Date
+  customerName String        @db.VarChar(150)
+  soTotal      Decimal       @db.Decimal(18, 2)
+  itemCode     String        @db.VarChar(30)
+  qty          Decimal       @db.Decimal(18, 4)
+  kind         SalDemandKind @default(DIRECT)
+  isBuyToOrder Boolean       @default(false)
+  neededBy     DateTime?     @db.Date
+
+  @@index([tenantId, itemCode])
+  @@index([tenantId, soNo])
+  @@map("sal_demand_stub")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// pur_ · purchase
+// Every document: docNo (unique per tenant), docDate, status, branchCode, remarks, version, created/updated
+// at+by, isMigrated. Lines keep the item reference AND a snapshot (code, name, uom, tax, price).
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum PurRequestStatus {
+  DRAFT
+  SUBMITTED
+  CONVERTED
+  REJECTED
+}
+
+enum PurRequestPriority {
+  NORMAL
+  URGENT
+}
+
+enum PurRequestSource {
+  DEMAND
+  STAFF
+  SALES_ORDER
+}
+
+model PurRequest {
+  id              String             @id @default(uuid()) @db.Char(36)
+  tenantId        String             @db.Char(36)
+  docNo           String             @db.VarChar(30)
+  docDate         DateTime           @db.Date
+  status          PurRequestStatus   @default(DRAFT)
+  branchCode      String             @db.VarChar(10)
+  requestedByCode String             @db.VarChar(20)
+  requestedByName String             @db.VarChar(100)
+  department      String?            @db.VarChar(50)
+  neededBy        DateTime?          @db.Date
+  priority        PurRequestPriority @default(NORMAL)
+  source          PurRequestSource   @default(STAFF)
+  reason          String?            @db.Text
+  summary         String?            @db.VarChar(200) // "Wood screws ×20, lacquer ×8" for the list
+  estValue        Decimal            @default(0) @db.Decimal(18, 2)
+  rejectReason    String?            @db.VarChar(500)
+  submittedAt     DateTime?          @db.DateTime(3)
+  decidedAt       DateTime?          @db.DateTime(3) // converted or rejected
+  decidedByCode   String?            @db.VarChar(20)
+  remarks         String?            @db.Text
+  version         Int                @default(1)
+  isMigrated      Boolean            @default(false)
+  createdAt       DateTime           @default(now()) @db.DateTime(3)
+  createdBy       String             @db.VarChar(20)
+  updatedAt       DateTime           @updatedAt @db.DateTime(3)
+  updatedBy       String             @db.VarChar(20)
+  lines           PurRequestLine[]
+  rfqs            PurRfq[]
+  orders          PurPurchaseOrder[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("pur_request")
+}
+
+model PurRequestLine {
+  id                    String     @id @default(uuid()) @db.Char(36)
+  tenantId              String     @db.Char(36)
+  requestId             String     @db.Char(36)
+  lineNo                Int
+  itemId                String     @db.Char(36)
+  itemCode              String     @db.VarChar(30)
+  itemName              String     @db.VarChar(150)
+  uomCode               String     @db.VarChar(10)
+  taxCode               String     @db.VarChar(20)
+  taxRate               Decimal    @db.Decimal(7, 4)
+  unitPrice             Decimal    @db.Decimal(18, 4) // last price at the time of the request
+  qty                   Decimal    @db.Decimal(18, 4)
+  estAmount             Decimal    @db.Decimal(18, 2)
+  preferredSupplierCode String?    @db.VarChar(20)
+  preferredSupplierName String?    @db.VarChar(150)
+  request               PurRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, lineNo])
+  @@index([tenantId, itemCode])
+  @@map("pur_request_line")
+}
+
+enum PurRfqStatus {
+  DRAFT
+  WAITING
+  READY
+  AWARDED
+  CLOSED
+}
+
+enum PurRfqSupplierStatus {
+  ASKED
+  REPLIED
+  DECLINED
+}
+
+model PurRfq {
+  id                  String             @id @default(uuid()) @db.Char(36)
+  tenantId            String             @db.Char(36)
+  docNo               String             @db.VarChar(30)
+  docDate             DateTime           @db.Date
+  status              PurRfqStatus       @default(DRAFT)
+  branchCode          String             @db.VarChar(10)
+  buyerCode           String             @db.VarChar(20)
+  buyerName           String             @db.VarChar(100)
+  requestId           String?            @db.Char(36)
+  sourceNo            String?            @db.VarChar(30) // PRQ-0003, SO-0008; null = raised by the buyer
+  summary             String?            @db.VarChar(200)
+  neededBy            DateTime?          @db.Date
+  replyBy             DateTime?          @db.Date
+  sentAt              DateTime?          @db.DateTime(3)
+  awardedSupplierCode String?            @db.VarChar(20)
+  awardedSupplierName String?            @db.VarChar(150)
+  awardReason         String?            @db.Text // required when the winner is not the cheapest
+  awardedAt           DateTime?          @db.DateTime(3)
+  awardedByCode       String?            @db.VarChar(20)
+  closeReason         String?            @db.VarChar(300)
+  remarks             String?            @db.Text
+  version             Int                @default(1)
+  isMigrated          Boolean            @default(false)
+  createdAt           DateTime           @default(now()) @db.DateTime(3)
+  createdBy           String             @db.VarChar(20)
+  updatedAt           DateTime           @updatedAt @db.DateTime(3)
+  updatedBy           String             @db.VarChar(20)
+  request             PurRequest?        @relation(fields: [requestId], references: [id])
+  lines               PurRfqLine[]
+  suppliers           PurRfqSupplier[]
+  orders              PurPurchaseOrder[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("pur_rfq")
+}
+
+model PurRfqLine {
+  id         String            @id @default(uuid()) @db.Char(36)
+  tenantId   String            @db.Char(36)
+  rfqId      String            @db.Char(36)
+  lineNo     Int
+  itemId     String            @db.Char(36)
+  itemCode   String            @db.VarChar(30)
+  itemName   String            @db.VarChar(150)
+  uomCode    String            @db.VarChar(10)
+  taxCode    String            @db.VarChar(20)
+  taxRate    Decimal           @db.Decimal(7, 4)
+  qty        Decimal           @db.Decimal(18, 4)
+  rfq        PurRfq            @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  replyLines PurRfqReplyLine[]
+
+  @@unique([rfqId, lineNo])
+  @@index([tenantId])
+  @@map("pur_rfq_line")
+}
+
+/// A supplier asked on an RFQ, with their reply terms once they answer.
+model PurRfqSupplier {
+  id              String               @id @default(uuid()) @db.Char(36)
+  tenantId        String               @db.Char(36)
+  rfqId           String               @db.Char(36)
+  supplierId      String               @db.Char(36)
+  supplierCode    String               @db.VarChar(20)
+  supplierName    String               @db.VarChar(150)
+  email           String?              @db.VarChar(150)
+  replyToken      String               @unique @db.Char(36) // each supplier's own reply link
+  status          PurRfqSupplierStatus @default(ASKED)
+  askedAt         DateTime             @db.DateTime(3)
+  remindedAt      DateTime?            @db.DateTime(3)
+  repliedAt       DateTime?            @db.DateTime(3)
+  leadTimeDays    Int?
+  paymentTermDays Int?
+  validUntil      DateTime?            @db.Date
+  quoteRef        String?              @db.VarChar(50)
+  replyNote       String?              @db.Text
+  isAwarded       Boolean              @default(false)
+  rfq             PurRfq               @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  replyLines      PurRfqReplyLine[]
+
+  @@unique([rfqId, supplierCode])
+  @@index([tenantId, status])
+  @@map("pur_rfq_supplier")
+}
+
+model PurRfqReplyLine {
+  id            String         @id @default(uuid()) @db.Char(36)
+  tenantId      String         @db.Char(36)
+  rfqSupplierId String         @db.Char(36)
+  rfqLineId     String         @db.Char(36)
+  unitPrice     Decimal        @db.Decimal(18, 4)
+  minOrderQty   Decimal?       @db.Decimal(18, 4)
+  rfqSupplier   PurRfqSupplier @relation(fields: [rfqSupplierId], references: [id], onDelete: Cascade)
+  rfqLine       PurRfqLine     @relation(fields: [rfqLineId], references: [id], onDelete: Cascade)
+
+  @@unique([rfqSupplierId, rfqLineId])
+  @@index([tenantId])
+  @@map("pur_rfq_reply_line")
+}
+
+enum PurOrderStatus {
+  DRAFT
+  PENDING_APPROVAL
+  RELEASED
+  PARTIAL
+  DONE
+  CANCELLED
+}
+
+enum PurOrderSource {
+  BUYER
+  REQUEST
+  RFQ
+  SALES_ORDER
+  MIGRATED
+}
+
+/// Kinds of purchase order (Document types, P25).
+model PurPoType {
+  id                   String  @id @default(uuid()) @db.Char(36)
+  tenantId             String  @db.Char(36)
+  code                 String  @db.VarChar(10) // STD, BTO, SVC, AST
+  name                 String  @db.VarChar(60)
+  description          String  @db.VarChar(300)
+  needsGoodsReceipt    Boolean @default(true)
+  linkedToSalesOrder   Boolean @default(false)
+  sendsToAssetRegister Boolean @default(false)
+  sortOrder            Int     @default(0)
+  isActive             Boolean @default(true)
+
+  @@unique([tenantId, code])
+  @@map("pur_po_type")
+}
+
+model PurPurchaseOrder {
+  id               String                 @id @default(uuid()) @db.Char(36)
+  tenantId         String                 @db.Char(36)
+  docNo            String                 @db.VarChar(30)
+  docDate          DateTime               @db.Date
+  status           PurOrderStatus         @default(DRAFT)
+  balanceCancelled Boolean                @default(false)
+  branchCode       String                 @db.VarChar(10)
+  poTypeCode       String                 @default("STD") @db.VarChar(10)
+  supplierId       String                 @db.Char(36)
+  supplierCode     String                 @db.VarChar(20)
+  supplierName     String                 @db.VarChar(150)
+  buyerCode        String                 @db.VarChar(20)
+  buyerName        String                 @db.VarChar(100)
+  warehouseCode    String                 @db.VarChar(20) // deliver to
+  warehouseName    String                 @db.VarChar(100)
+  expectedDate     DateTime?              @db.Date
+  promisedDate     DateTime?              @db.Date // the supplier's latest promise for the open balance
+  supplierSays     String?                @db.VarChar(200) // "Coming 2 Oct", "Discontinued"
+  paymentTermDays  Int                    @default(30)
+  currency         String                 @default("MYR") @db.Char(3)
+  taxMode          String                 @default("EXCLUSIVE") @db.VarChar(10)
+  supplierQuoteRef String?                @db.VarChar(50)
+  noteToSupplier   String?                @db.Text
+  sourceType       PurOrderSource         @default(BUYER)
+  sourceNo         String?                @db.VarChar(30) // PRQ-0004, RFQ-0002, SO-0003
+  requestId        String?                @db.Char(36)
+  rfqId            String?                @db.Char(36)
+  salesOrderNo     String?                @db.VarChar(30)
+  customerName     String?                @db.VarChar(150)
+  subtotal         Decimal                @default(0) @db.Decimal(18, 2)
+  taxTotal         Decimal                @default(0) @db.Decimal(18, 2)
+  total            Decimal                @default(0) @db.Decimal(18, 2)
+  approvalRequired Boolean                @default(false)
+  approvedAt       DateTime?              @db.DateTime(3)
+  releasedAt       DateTime?              @db.DateTime(3)
+  releasedByCode   String?                @db.VarChar(20)
+  releasedByName   String?                @db.VarChar(100)
+  emailedAt        DateTime?              @db.DateTime(3)
+  remarks          String?                @db.Text
+  version          Int                    @default(1)
+  isMigrated       Boolean                @default(false)
+  createdAt        DateTime               @default(now()) @db.DateTime(3)
+  createdBy        String                 @db.VarChar(20)
+  updatedAt        DateTime               @updatedAt @db.DateTime(3)
+  updatedBy        String                 @db.VarChar(20)
+  request          PurRequest?            @relation(fields: [requestId], references: [id])
+  rfq              PurRfq?                @relation(fields: [rfqId], references: [id])
+  lines            PurPurchaseOrderLine[]
+  receipts         PurGoodsReceipt[]
+  invoices         PurInvoice[]
+  cancelOrders     PurCancelOrder[]
+  returns          PurReturn[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, supplierCode])
+  @@map("pur_purchase_order")
+}
+
+/// Running quantities are updated in the same transaction as the document that changes them.
+/// Open to receive = orderedQty − receivedQty − cancelledQty.
+model PurPurchaseOrderLine {
+  id            String                @id @default(uuid()) @db.Char(36)
+  tenantId      String                @db.Char(36)
+  poId          String                @db.Char(36)
+  lineNo        Int
+  itemId        String                @db.Char(36)
+  itemCode      String                @db.VarChar(30)
+  itemName      String                @db.VarChar(150)
+  uomCode       String                @db.VarChar(10)
+  taxCode       String                @db.VarChar(20)
+  taxRate       Decimal               @db.Decimal(7, 4)
+  unitPrice     Decimal               @db.Decimal(18, 4)
+  orderedQty    Decimal               @db.Decimal(18, 4)
+  receivedQty   Decimal               @default(0) @db.Decimal(18, 4)
+  billedQty     Decimal               @default(0) @db.Decimal(18, 4)
+  returnedQty   Decimal               @default(0) @db.Decimal(18, 4)
+  cancelledQty  Decimal               @default(0) @db.Decimal(18, 4)
+  amount        Decimal               @db.Decimal(18, 2) // round(orderedQty × unitPrice, 2)
+  taxAmount     Decimal               @db.Decimal(18, 2) // round(amount × taxRate, 2)
+  requestLineId String?               @db.Char(36)
+  salesOrderNo  String?               @db.VarChar(30)
+  note          String?               @db.VarChar(300)
+  po            PurPurchaseOrder      @relation(fields: [poId], references: [id], onDelete: Cascade)
+  receiptLines  PurGoodsReceiptLine[]
+  invoiceLines  PurInvoiceLine[]
+  cancelLines   PurCancelOrderLine[]
+  returnLines   PurReturnLine[]
+
+  @@unique([poId, lineNo])
+  @@index([tenantId, itemCode])
+  @@map("pur_purchase_order_line")
+}
+
+enum PurReceiptStatus {
+  DRAFT
+  CONFIRMED
+}
+
+enum PurShortAction {
+  KEEP_OPEN
+  CANCEL_BALANCE
+}
+
+model PurGoodsReceipt {
+  id              String                @id @default(uuid()) @db.Char(36)
+  tenantId        String                @db.Char(36)
+  docNo           String                @db.VarChar(30)
+  docDate         DateTime              @db.Date // received date
+  status          PurReceiptStatus      @default(DRAFT)
+  branchCode      String                @db.VarChar(10)
+  poId            String                @db.Char(36)
+  poNo            String                @db.VarChar(30)
+  supplierCode    String                @db.VarChar(20)
+  supplierName    String                @db.VarChar(150)
+  warehouseCode   String                @db.VarChar(20)
+  warehouseName   String                @db.VarChar(100)
+  supplierDoNo    String?               @db.VarChar(50)
+  vehicleNo       String?               @db.VarChar(20)
+  receivedByCode  String                @db.VarChar(20)
+  receivedByName  String                @db.VarChar(100)
+  arrivedAt       DateTime?             @db.DateTime(3)
+  shortAction     PurShortAction?
+  confirmedAt     DateTime?             @db.DateTime(3)
+  confirmedByCode String?               @db.VarChar(20)
+  remarks         String?               @db.Text
+  version         Int                   @default(1)
+  isMigrated      Boolean               @default(false)
+  createdAt       DateTime              @default(now()) @db.DateTime(3)
+  createdBy       String                @db.VarChar(20)
+  updatedAt       DateTime              @updatedAt @db.DateTime(3)
+  updatedBy       String                @db.VarChar(20)
+  po              PurPurchaseOrder      @relation(fields: [poId], references: [id])
+  lines           PurGoodsReceiptLine[]
+  returns         PurReturn[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, poId])
+  @@map("pur_goods_receipt")
+}
+
+model PurGoodsReceiptLine {
+  id            String               @id @default(uuid()) @db.Char(36)
+  tenantId      String               @db.Char(36)
+  grnId         String               @db.Char(36)
+  poLineId      String               @db.Char(36)
+  lineNo        Int
+  itemId        String               @db.Char(36)
+  itemCode      String               @db.VarChar(30)
+  itemName      String               @db.VarChar(150)
+  uomCode       String               @db.VarChar(10)
+  taxCode       String               @db.VarChar(20)
+  taxRate       Decimal              @db.Decimal(7, 4)
+  unitPrice     Decimal              @db.Decimal(18, 4)
+  orderedQty    Decimal              @db.Decimal(18, 4) // PO line snapshot
+  openQtyBefore Decimal              @db.Decimal(18, 4) // open on the PO when this receipt was drafted
+  receivedQty   Decimal              @default(0) @db.Decimal(18, 4)
+  billedQty     Decimal              @default(0) @db.Decimal(18, 4)
+  returnedQty   Decimal              @default(0) @db.Decimal(18, 4)
+  condition     String               @default("GOOD") @db.VarChar(20)
+  locationCode  String?              @db.VarChar(30)
+  grn           PurGoodsReceipt      @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  poLine        PurPurchaseOrderLine @relation(fields: [poLineId], references: [id])
+  invoiceLines  PurInvoiceLine[]
+  returnLines   PurReturnLine[]
+
+  @@unique([grnId, lineNo])
+  @@index([tenantId, poLineId])
+  @@map("pur_goods_receipt_line")
+}
+
+enum PurInvoiceStatus {
+  DRAFT
+  TO_MATCH
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum PurInvoiceDecision {
+  RECORD_RECEIVED
+  HOLD
+  ACCEPT_AS_BILLED
+}
+
+enum PurMatchResult {
+  NOT_MATCHED
+  MATCHED
+  DIFFERENCE
+}
+
+/// A supplier invoice. "billed*" is what the supplier asks for; subtotal/taxTotal/total is what we record.
+model PurInvoice {
+  id                String              @id @default(uuid()) @db.Char(36)
+  tenantId          String              @db.Char(36)
+  docNo             String              @db.VarChar(30)
+  docDate           DateTime            @db.Date
+  status            PurInvoiceStatus    @default(DRAFT)
+  branchCode        String              @db.VarChar(10)
+  supplierId        String              @db.Char(36)
+  supplierCode      String              @db.VarChar(20)
+  supplierName      String              @db.VarChar(150)
+  supplierInvoiceNo String              @db.VarChar(50)
+  invoiceDate       DateTime            @db.Date
+  dueDate           DateTime?           @db.Date
+  poId              String              @db.Char(36)
+  poNo              String              @db.VarChar(30)
+  currency          String              @default("MYR") @db.Char(3)
+  billedSubtotal    Decimal             @default(0) @db.Decimal(18, 2)
+  billedTax         Decimal             @default(0) @db.Decimal(18, 2)
+  billedTotal       Decimal             @default(0) @db.Decimal(18, 2)
+  subtotal          Decimal             @default(0) @db.Decimal(18, 2)
+  taxTotal          Decimal             @default(0) @db.Decimal(18, 2)
+  total             Decimal             @default(0) @db.Decimal(18, 2)
+  matchResult       PurMatchResult      @default(NOT_MATCHED)
+  matchSummary      String?             @db.VarChar(200) // "Qty fixed 100 → 95", "Price +3.2% · freight"
+  decision          PurInvoiceDecision?
+  supplierNote      String?             @db.VarChar(500)
+  decisionNote      String?             @db.Text // buyer's note to the approver
+  messageToSupplier String?             @db.Text
+  eInvoiceStatus    String?             @db.VarChar(20) // VALIDATED once LHDN e-Invoice checks pass
+  approvedAt        DateTime?           @db.DateTime(3)
+  approvedByCode    String?             @db.VarChar(20)
+  rejectReason      String?             @db.VarChar(500)
+  paidAt            DateTime?           @db.DateTime(3)
+  remarks           String?             @db.Text
+  version           Int                 @default(1)
+  isMigrated        Boolean             @default(false)
+  createdAt         DateTime            @default(now()) @db.DateTime(3)
+  createdBy         String              @db.VarChar(20)
+  updatedAt         DateTime            @updatedAt @db.DateTime(3)
+  updatedBy         String              @db.VarChar(20)
+  po                PurPurchaseOrder    @relation(fields: [poId], references: [id])
+  lines             PurInvoiceLine[]
+  debitNotes        PurDebitNote[]
+
+  @@unique([tenantId, docNo])
+  @@unique([tenantId, supplierCode, supplierInvoiceNo]) // the same supplier invoice cannot be recorded twice
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, poId])
+  @@map("pur_invoice")
+}
+
+model PurInvoiceLine {
+  id              String               @id @default(uuid()) @db.Char(36)
+  tenantId        String               @db.Char(36)
+  invoiceId       String               @db.Char(36)
+  poLineId        String               @db.Char(36)
+  grnLineId       String?              @db.Char(36)
+  lineNo          Int
+  itemId          String               @db.Char(36)
+  itemCode        String               @db.VarChar(30)
+  itemName        String               @db.VarChar(150)
+  uomCode         String               @db.VarChar(10)
+  taxCode         String               @db.VarChar(20)
+  taxRate         Decimal              @db.Decimal(7, 4)
+  orderedQty      Decimal              @db.Decimal(18, 4) // snapshots for the match table
+  orderedPrice    Decimal              @db.Decimal(18, 4)
+  receivedQty     Decimal              @db.Decimal(18, 4)
+  billedQty       Decimal              @db.Decimal(18, 4)
+  billedUnitPrice Decimal              @db.Decimal(18, 4)
+  billedAmount    Decimal              @db.Decimal(18, 2)
+  billedTax       Decimal              @db.Decimal(18, 2)
+  qty             Decimal              @db.Decimal(18, 4) // what we record
+  unitPrice       Decimal              @db.Decimal(18, 4)
+  amount          Decimal              @db.Decimal(18, 2)
+  taxAmount       Decimal              @db.Decimal(18, 2)
+  invoice         PurInvoice           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  poLine          PurPurchaseOrderLine @relation(fields: [poLineId], references: [id])
+  grnLine         PurGoodsReceiptLine? @relation(fields: [grnLineId], references: [id])
+
+  @@unique([invoiceId, lineNo])
+  @@index([tenantId, poLineId])
+  @@map("pur_invoice_line")
+}
+
+enum PurCancelOrderStatus {
+  DRAFT
+  RELEASED
+}
+
+/// Cancels the unreceived balance of a PO. Migrated rows may point to old-system POs by number only.
+model PurCancelOrder {
+  id             String               @id @default(uuid()) @db.Char(36)
+  tenantId       String               @db.Char(36)
+  docNo          String               @db.VarChar(30)
+  docDate        DateTime             @db.Date
+  status         PurCancelOrderStatus @default(DRAFT)
+  branchCode     String               @db.VarChar(10)
+  poId           String?              @db.Char(36)
+  poNo           String               @db.VarChar(30)
+  supplierCode   String               @db.VarChar(20)
+  supplierName   String               @db.VarChar(150)
+  reason         String               @db.VarChar(200)
+  supplierLetter String?              @db.VarChar(200)
+  askedByCode    String               @db.VarChar(20)
+  askedByName    String               @db.VarChar(100)
+  summary        String?              @db.VarChar(200) // "10 of 30 hinge packs"
+  totalValue     Decimal              @default(0) @db.Decimal(18, 2) // cancelled value incl. tax
+  releasedAt     DateTime?            @db.DateTime(3)
+  releasedByCode String?              @db.VarChar(20)
+  remarks        String?              @db.Text
+  version        Int                  @default(1)
+  isMigrated     Boolean              @default(false)
+  createdAt      DateTime             @default(now()) @db.DateTime(3)
+  createdBy      String               @db.VarChar(20)
+  updatedAt      DateTime             @updatedAt @db.DateTime(3)
+  updatedBy      String               @db.VarChar(20)
+  po             PurPurchaseOrder?    @relation(fields: [poId], references: [id])
+  lines          PurCancelOrderLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("pur_cancel_order")
+}
+
+model PurCancelOrderLine {
+  id            String                @id @default(uuid()) @db.Char(36)
+  tenantId      String                @db.Char(36)
+  cancelOrderId String                @db.Char(36)
+  poLineId      String?               @db.Char(36)
+  lineNo        Int
+  itemId        String                @db.Char(36)
+  itemCode      String                @db.VarChar(30)
+  itemName      String                @db.VarChar(150)
+  uomCode       String                @db.VarChar(10)
+  taxCode       String                @db.VarChar(20)
+  taxRate       Decimal               @db.Decimal(7, 4)
+  unitPrice     Decimal               @db.Decimal(18, 4)
+  orderedQty    Decimal               @db.Decimal(18, 4)
+  receivedQty   Decimal               @db.Decimal(18, 4)
+  openQty       Decimal               @db.Decimal(18, 4)
+  cancelQty     Decimal               @db.Decimal(18, 4)
+  amount        Decimal               @db.Decimal(18, 2)
+  taxAmount     Decimal               @db.Decimal(18, 2)
+  cancelOrder   PurCancelOrder        @relation(fields: [cancelOrderId], references: [id], onDelete: Cascade)
+  poLine        PurPurchaseOrderLine? @relation(fields: [poLineId], references: [id])
+
+  @@unique([cancelOrderId, lineNo])
+  @@index([tenantId, poLineId])
+  @@map("pur_cancel_order_line")
+}
+
+enum PurCashPurchaseStatus {
+  DRAFT
+  RELEASED
+}
+
+enum PurPaymentKind {
+  COMPANY_CARD
+  PETTY_CASH
+}
+
+/// Company cards and petty cash floats a branch may use for cash purchases.
+model PurPaymentMethod {
+  id          String         @id @default(uuid()) @db.Char(36)
+  tenantId    String         @db.Char(36)
+  code        String         @db.VarChar(20) // CARD-4471, PETTY-HQ
+  kind        PurPaymentKind
+  label       String         @db.VarChar(60) // "Company card ···· 4471", "Petty cash · HQ"
+  cardLast4   String?        @db.Char(4)
+  holder      String?        @db.VarChar(60) // "HQ Store"
+  branchCode  String         @db.VarChar(10)
+  floatAmount Decimal?       @db.Decimal(18, 2) // petty cash float
+  isActive    Boolean        @default(true)
+
+  @@unique([tenantId, code])
+  @@map("pur_payment_method")
+}
+
+model PurCashPurchase {
+  id                String                @id @default(uuid()) @db.Char(36)
+  tenantId          String                @db.Char(36)
+  docNo             String                @db.VarChar(30)
+  docDate           DateTime              @db.Date
+  status            PurCashPurchaseStatus @default(DRAFT)
+  branchCode        String                @db.VarChar(10)
+  supplierId        String                @db.Char(36)
+  supplierCode      String                @db.VarChar(20)
+  supplierName      String                @db.VarChar(150)
+  boughtByCode      String                @db.VarChar(20)
+  boughtByName      String                @db.VarChar(100)
+  paymentMethodCode String                @db.VarChar(20)
+  paidBy            PurPaymentKind
+  paidByLabel       String                @db.VarChar(60) // snapshot
+  receiptNo         String?               @db.VarChar(50)
+  warehouseCode     String                @db.VarChar(20)
+  currency          String                @default("MYR") @db.Char(3)
+  taxMode           String                @default("EXCLUSIVE") @db.VarChar(10)
+  summary           String?               @db.VarChar(200)
+  subtotal          Decimal               @default(0) @db.Decimal(18, 2)
+  taxTotal          Decimal               @default(0) @db.Decimal(18, 2)
+  total             Decimal               @default(0) @db.Decimal(18, 2)
+  releasedAt        DateTime?             @db.DateTime(3)
+  releasedByCode    String?               @db.VarChar(20)
+  remarks           String?               @db.Text
+  version           Int                   @default(1)
+  isMigrated        Boolean               @default(false)
+  createdAt         DateTime              @default(now()) @db.DateTime(3)
+  createdBy         String                @db.VarChar(20)
+  updatedAt         DateTime              @updatedAt @db.DateTime(3)
+  updatedBy         String                @db.VarChar(20)
+  lines             PurCashPurchaseLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("pur_cash_purchase")
+}
+
+model PurCashPurchaseLine {
+  id             String          @id @default(uuid()) @db.Char(36)
+  tenantId       String          @db.Char(36)
+  cashPurchaseId String          @db.Char(36)
+  lineNo         Int
+  itemId         String          @db.Char(36)
+  itemCode       String          @db.VarChar(30)
+  itemName       String          @db.VarChar(150)
+  uomCode        String          @db.VarChar(10)
+  taxCode        String          @db.VarChar(20)
+  taxRate        Decimal         @db.Decimal(7, 4)
+  unitPrice      Decimal         @db.Decimal(18, 4)
+  qty            Decimal         @db.Decimal(18, 4)
+  amount         Decimal         @db.Decimal(18, 2)
+  taxAmount      Decimal         @db.Decimal(18, 2)
+  cashPurchase   PurCashPurchase @relation(fields: [cashPurchaseId], references: [id], onDelete: Cascade)
+
+  @@unique([cashPurchaseId, lineNo])
+  @@index([tenantId, itemCode])
+  @@map("pur_cash_purchase_line")
+}
+
+enum PurDebitNoteStatus {
+  DRAFT
+  PENDING_APPROVAL
+  RELEASED
+  REJECTED
+}
+
+/// An extra charge from a supplier on an invoice we already have. Migrated rows may point to an
+/// old-system invoice by number only.
+model PurDebitNote {
+  id                String             @id @default(uuid()) @db.Char(36)
+  tenantId          String             @db.Char(36)
+  docNo             String             @db.VarChar(30)
+  docDate           DateTime           @db.Date
+  status            PurDebitNoteStatus @default(DRAFT)
+  branchCode        String             @db.VarChar(10)
+  supplierId        String             @db.Char(36)
+  supplierCode      String             @db.VarChar(20)
+  supplierName      String             @db.VarChar(150)
+  invoiceId         String?            @db.Char(36)
+  invoiceNo         String             @db.VarChar(30) // PI-0002
+  supplierInvoiceNo String?            @db.VarChar(50)
+  theirNoteNo       String             @db.VarChar(50)
+  reason            String             @db.VarChar(200)
+  chargeOnPo        Boolean            @default(true) // false → needs Purchasing Manager approval
+  dueDate           DateTime?          @db.Date
+  subtotal          Decimal            @default(0) @db.Decimal(18, 2)
+  taxTotal          Decimal            @default(0) @db.Decimal(18, 2)
+  total             Decimal            @default(0) @db.Decimal(18, 2)
+  releasedAt        DateTime?          @db.DateTime(3)
+  releasedByCode    String?            @db.VarChar(20)
+  remarks           String?            @db.Text
+  version           Int                @default(1)
+  isMigrated        Boolean            @default(false)
+  createdAt         DateTime           @default(now()) @db.DateTime(3)
+  createdBy         String             @db.VarChar(20)
+  updatedAt         DateTime           @updatedAt @db.DateTime(3)
+  updatedBy         String             @db.VarChar(20)
+  invoice           PurInvoice?        @relation(fields: [invoiceId], references: [id])
+  lines             PurDebitNoteLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("pur_debit_note")
+}
+
+model PurDebitNoteLine {
+  id          String       @id @default(uuid()) @db.Char(36)
+  tenantId    String       @db.Char(36)
+  debitNoteId String       @db.Char(36)
+  lineNo      Int
+  itemId      String       @db.Char(36)
+  itemCode    String       @db.VarChar(30)
+  itemName    String       @db.VarChar(150)
+  uomCode     String       @db.VarChar(10)
+  taxCode     String       @db.VarChar(20)
+  taxRate     Decimal      @db.Decimal(7, 4)
+  unitPrice   Decimal      @db.Decimal(18, 4)
+  qty         Decimal      @db.Decimal(18, 4)
+  amount      Decimal      @db.Decimal(18, 2)
+  taxAmount   Decimal      @db.Decimal(18, 2)
+  debitNote   PurDebitNote @relation(fields: [debitNoteId], references: [id], onDelete: Cascade)
+
+  @@unique([debitNoteId, lineNo])
+  @@index([tenantId])
+  @@map("pur_debit_note_line")
+}
+
+enum PurReturnStatus {
+  DRAFT
+  RELEASED // waiting for the supplier's credit note or replacement
+  SETTLED
+}
+
+enum PurSettleBy {
+  CREDIT_NOTE
+  REPLACEMENT
+}
+
+/// Goods sent back after they were received. Migrated rows may point to an old-system GRN by number only.
+model PurReturn {
+  id               String            @id @default(uuid()) @db.Char(36)
+  tenantId         String            @db.Char(36)
+  docNo            String            @db.VarChar(30)
+  docDate          DateTime          @db.Date
+  status           PurReturnStatus   @default(DRAFT)
+  branchCode       String            @db.VarChar(10)
+  grnId            String?           @db.Char(36)
+  grnNo            String            @db.VarChar(30)
+  poId             String?           @db.Char(36)
+  poNo             String?           @db.VarChar(30)
+  supplierId       String            @db.Char(36)
+  supplierCode     String            @db.VarChar(20)
+  supplierName     String            @db.VarChar(150)
+  reason           String            @db.VarChar(200)
+  settleBy         PurSettleBy       @default(CREDIT_NOTE)
+  rmaNo            String?           @db.VarChar(50)
+  collection       String?           @db.VarChar(200) // "Supplier lorry · 30 Sep"
+  collectionDate   DateTime?         @db.Date
+  summary          String?           @db.VarChar(200)
+  subtotal         Decimal           @default(0) @db.Decimal(18, 2)
+  taxTotal         Decimal           @default(0) @db.Decimal(18, 2)
+  total            Decimal           @default(0) @db.Decimal(18, 2) // credit expected
+  releasedAt       DateTime?         @db.DateTime(3)
+  releasedByCode   String?           @db.VarChar(20)
+  creditNoteNo     String?           @db.VarChar(50)
+  replacementGrnNo String?           @db.VarChar(30)
+  settledAt        DateTime?         @db.DateTime(3)
+  remarks          String?           @db.Text
+  version          Int               @default(1)
+  isMigrated       Boolean           @default(false)
+  createdAt        DateTime          @default(now()) @db.DateTime(3)
+  createdBy        String            @db.VarChar(20)
+  updatedAt        DateTime          @updatedAt @db.DateTime(3)
+  updatedBy        String            @db.VarChar(20)
+  grn              PurGoodsReceipt?  @relation(fields: [grnId], references: [id])
+  po               PurPurchaseOrder? @relation(fields: [poId], references: [id])
+  lines            PurReturnLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("pur_return")
+}
+
+model PurReturnLine {
+  id                String                @id @default(uuid()) @db.Char(36)
+  tenantId          String                @db.Char(36)
+  returnId          String                @db.Char(36)
+  grnLineId         String?               @db.Char(36)
+  poLineId          String?               @db.Char(36)
+  lineNo            Int
+  itemId            String                @db.Char(36)
+  itemCode          String                @db.VarChar(30)
+  itemName          String                @db.VarChar(150)
+  uomCode           String                @db.VarChar(10)
+  taxCode           String                @db.VarChar(20)
+  taxRate           Decimal               @db.Decimal(7, 4)
+  unitPrice         Decimal               @db.Decimal(18, 4)
+  receivedQty       Decimal               @db.Decimal(18, 4) // GRN line snapshot
+  returnedBeforeQty Decimal               @default(0) @db.Decimal(18, 4)
+  qty               Decimal               @db.Decimal(18, 4)
+  amount            Decimal               @db.Decimal(18, 2)
+  taxAmount         Decimal               @db.Decimal(18, 2)
+  purReturn         PurReturn             @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  grnLine           PurGoodsReceiptLine?  @relation(fields: [grnLineId], references: [id])
+  poLine            PurPurchaseOrderLine? @relation(fields: [poLineId], references: [id])
+
+  @@unique([returnId, lineNo])
+  @@index([tenantId, grnLineId])
+  @@map("pur_return_line")
+}
+
+// ── Purchase settings (Operation Policies) ──────────────────────────────────
+
+/// Approval limits (P24). branchCode null = all branches.
+/// condition: OVER_AMOUNT (PO), OUTSIDE_TOLERANCE (PI), CHARGE_NOT_ON_PO (PDN), BLOCKED_OVER_AMOUNT (CP).
+model PurApprovalRule {
+  id                 String   @id @default(uuid()) @db.Char(36)
+  tenantId           String   @db.Char(36)
+  docType            String   @db.VarChar(10) // PO, PI, PDN, CP
+  branchCode         String?  @db.VarChar(10)
+  condition          String   @db.VarChar(30)
+  thresholdAmount    Decimal? @db.Decimal(18, 2)
+  approverRole       String?  @db.VarChar(40)
+  approverCode       String?  @db.VarChar(20)
+  secondOverAmount   Decimal? @db.Decimal(18, 2)
+  secondApproverRole String?  @db.VarChar(40)
+  secondApproverCode String?  @db.VarChar(20)
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
+  updatedAt          DateTime @updatedAt @db.DateTime(3)
+  updatedBy          String   @db.VarChar(20)
+
+  @@index([tenantId, docType])
+  @@map("pur_approval_rule")
+}
+
+/// One row per tenant: match tolerance and the rule switches (P24), numbering options (P25).
+model PurSetting {
+  id                      String   @id @default(uuid()) @db.Char(36)
+  tenantId                String   @unique @db.Char(36)
+  priceTolerancePct       Decimal  @default(2) @db.Decimal(7, 4) // ± % of the PO price
+  qtyToleranceOver        Decimal  @default(0) @db.Decimal(18, 4) // units billed over received
+  taxToleranceAmount      Decimal  @default(1) @db.Decimal(18, 2) // ± RM
+  rfqRequiredOn           Boolean  @default(true)
+  rfqRequiredOver         Decimal  @default(50000) @db.Decimal(18, 2)
+  rfqMinReplies           Int      @default(2)
+  allowOverReceipt        Boolean  @default(false)
+  autoDraftBuyToOrder     Boolean  @default(true)
+  onlyActiveSuppliers     Boolean  @default(true)
+  buyerCannotApproveOwnPo Boolean  @default(true)
+  numberWithBranchCode    Boolean  @default(false)
+  updatedAt               DateTime @updatedAt @db.DateTime(3)
+  updatedBy               String   @db.VarChar(20)
+
+  @@map("pur_setting")
+}
+
+/// "Change history" on Approval Rules.
+model PurSettingChange {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  area      String   @db.VarChar(30) // APPROVAL_RULES, DOCUMENT_TYPES, EMAIL_TEMPLATES
+  message   String   @db.VarChar(300)
+  userCode  String   @db.VarChar(20)
+  userName  String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  @@index([tenantId, area, createdAt])
+  @@map("pur_setting_change")
+}
+
+/// Email templates (P26). Variables use single braces: {po.number}.
+model PurEmailTemplate {
+  id          String   @id @default(uuid()) @db.Char(36)
+  tenantId    String   @db.Char(36)
+  key         String   @db.VarChar(50) // PO_TO_SUPPLIER …
+  name        String   @db.VarChar(100)
+  description String   @db.VarChar(200)
+  toTemplate  String   @db.VarChar(200)
+  ccTemplate  String?  @db.VarChar(200)
+  subject     String   @db.VarChar(300)
+  body        String   @db.Text
+  attachPdf   Boolean  @default(false)
+  autoSend    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+  updatedBy   String   @db.VarChar(20)
+
+  @@unique([tenantId, key])
+  @@map("pur_email_template")
+}
+
+/// Purchase price history brought over from the old system, plus opening last prices.
+/// "Last price" = newest of this table and released PO lines.
+model PurPriceHistory {
+  id           String   @id @default(uuid()) @db.Char(36)
+  tenantId     String   @db.Char(36)
+  itemCode     String   @db.VarChar(30)
+  supplierCode String?  @db.VarChar(20)
+  supplierName String?  @db.VarChar(150)
+  docNo        String?  @db.VarChar(30) // null = opening price, not a document
+  docDate      DateTime @db.Date
+  qty          Decimal? @db.Decimal(18, 4)
+  unitPrice    Decimal  @db.Decimal(18, 4)
+  note         String?  @db.VarChar(200)
+
+  @@index([tenantId, itemCode, docDate])
+  @@map("pur_price_history")
+}
+
+/// Supplier delivery record from the old system; new goods receipts add to it.
+model PurSupplierStat {
+  id            String   @id @default(uuid()) @db.Char(36)
+  tenantId      String   @db.Char(36)
+  supplierCode  String   @db.VarChar(20)
+  deliveries12m Int
+  onTimePct12m  Decimal  @db.Decimal(5, 2)
+  asOf          DateTime @db.Date
+
+  @@unique([tenantId, supplierCode])
+  @@map("pur_supplier_stat")
 }
