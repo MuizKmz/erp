@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Bell, House, LogOut } from 'lucide-vue-next'
+import { Bell, House, LogOut } from '@lucide/vue'
 import { useApprovalsCount } from '@/composables/useApprovalsCount'
 import { useSession } from '@/composables/useSession'
 import { moduleDef } from '@/modules/registry'

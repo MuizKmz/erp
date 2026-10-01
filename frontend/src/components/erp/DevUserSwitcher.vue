@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { Check, ChevronDown } from 'lucide-vue-next'
+import { Check, ChevronDown } from '@lucide/vue'
 import { roleLabel, useSession } from '@/composables/useSession'
 import { initials } from '@/utils/format'
 

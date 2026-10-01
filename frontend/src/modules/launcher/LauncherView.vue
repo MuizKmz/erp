@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Component } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import { ChartLine, ClipboardCheck, Database, Factory, Sun, Warehouse } from 'lucide-vue-next'
+import { ChartLine, ClipboardCheck, Database, Factory, Sun, Warehouse } from '@lucide/vue'
 import { sessionApi, type ModuleTile } from '@/api/session'
 import DevUserSwitcher from '@/components/erp/DevUserSwitcher.vue'
 

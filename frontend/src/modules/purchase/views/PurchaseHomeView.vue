@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import { Plus } from 'lucide-vue-next'
+import { Plus } from '@lucide/vue'
 import KpiCard from '@/components/erp/KpiCard.vue'
 import MoneyText from '@/components/erp/MoneyText.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'

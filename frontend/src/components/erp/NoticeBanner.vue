@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CircleAlert, Info, TriangleAlert } from 'lucide-vue-next'
+import { CircleAlert, Info, TriangleAlert } from '@lucide/vue'
 
 /**
  * Info: policy hints (module colour). Warning: "Inventory is not connected yet…". Error: blocked actions.

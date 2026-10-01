@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2023",
     "lib": ["ES2023"],
     "declaration": false,
@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "rootDir": "./",
     "skipLibCheck": true,
     "strict": true,
     "noImplicitOverride": true,

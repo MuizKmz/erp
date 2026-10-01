@@ -10,7 +10,7 @@ import {
   ReceiptText,
   Shield,
   Undo2,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 export interface MenuItem {
   key: string

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search } from 'lucide-vue-next'
+import { Search } from '@lucide/vue'
 import type { ModuleDef } from '@/modules/registry'
 
 /** "Search pages, modules..." in the top bar: jumps to a menu page by name. */
