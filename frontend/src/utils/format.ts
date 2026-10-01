@@ -37,6 +37,13 @@ export function formatRm(value: string | null | undefined, decimals = 2): string
   return money ? `RM ${money}` : ''
 }
 
+/** Unit price: at least 2 decimals, up to 4 when they matter: "40.0000" → "40.00", "140.9091" → "140.9091". */
+export function formatPrice(value: string | null | undefined): string {
+  if (value === null || value === undefined || value === '') return ''
+  const four = formatMoney(value, 4)
+  return four.replace(/(\.\d{2}\d*?)0+$/, '$1')
+}
+
 /** "95.0000" → "95", "2.5000" → "2.5". Up to `maxDecimals` places, trailing zeros dropped. */
 export function formatQty(value: string | null | undefined, maxDecimals = 4): string {
   if (value === null || value === undefined || value === '') return ''
@@ -97,6 +104,12 @@ export function formatTime(moment: Date | string): string {
     .format(new Date(moment))
 }
 
+/** A moment → "24 Sep" (its calendar day in Malaysia time) */
+export function formatShortDate(moment: Date | string): string {
+  const parts = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', timeZone: BUSINESS_TIMEZONE }).formatToParts(new Date(moment))
+  return `${parts.find((p) => p.type === 'day')?.value ?? ''} ${parts.find((p) => p.type === 'month')?.value ?? ''}`
+}
+
 /** A moment → "29 Sep, 10:05 AM" in Malaysia time */
 export function formatDateTime(moment: Date | string): string {
   const d = new Date(moment)
@@ -122,4 +135,24 @@ export function percentOf(part: string | null | undefined, whole: string | null 
   const w = Number(whole ?? 0)
   if (!Number.isFinite(p) || !Number.isFinite(w) || w <= 0) return 0
   return Math.max(0, Math.min(100, (p / w) * 100))
+}
+
+const UNIT_WORDS: Record<string, [string, string]> = {
+  ROLL: ['roll', 'rolls'],
+  PCS: ['pcs', 'pcs'],
+  BOX: ['box', 'boxes'],
+  TIN: ['tin', 'tins'],
+  SET: ['set', 'sets'],
+  LOT: ['lot', 'lots'],
+  PACK: ['pack', 'packs'],
+  M: ['m', 'm'],
+}
+
+/** "5.0000", "ROLL" → "5 rolls" (sentences); tables use "100 ROLL". */
+export function qtyWithUnit(qty: string | null | undefined, uomCode: string | null | undefined): string {
+  const text = formatQty(qty)
+  if (!uomCode) return text
+  const words = UNIT_WORDS[uomCode]
+  if (!words) return `${text} ${uomCode}`
+  return `${text} ${text === '1' ? words[0] : words[1]}`
 }

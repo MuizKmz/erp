@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { ClockService } from '../clock/clock.service';
 import type { RequestContext } from '../context/request-context';
 import { PrismaService, type Tx } from '../prisma/prisma.service';
 
@@ -28,7 +29,10 @@ export interface ActivityItem {
 /** Writes sys_activity in the same transaction as the change it describes. */
 @Injectable()
 export class ActivityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clock: ClockService,
+  ) {}
 
   async log(tx: Tx, ctx: RequestContext, entry: ActivityEntry): Promise<void> {
     await tx.sysActivity.create({
@@ -43,6 +47,7 @@ export class ActivityService {
         data: entry.data,
         userCode: ctx.user.code,
         userName: ctx.user.name,
+        createdAt: this.clock.now(),
       },
     });
   }

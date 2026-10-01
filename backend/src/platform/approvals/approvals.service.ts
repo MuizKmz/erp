@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, type SysApprovalRequest, type SysApprovalStep } from '@prisma/client';
+import { ClockService } from '../clock/clock.service';
 import type { CurrentUserInfo, RequestContext } from '../context/request-context';
 import { BusinessRuleError, NotFoundError } from '../http/errors';
 import { toMoneyOrNull, type DecimalInput } from '../http/decimal';
@@ -123,7 +124,10 @@ function toView(r: RequestWithSteps): ApprovalRequestView {
  */
 @Injectable()
 export class ApprovalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clock: ClockService,
+  ) {}
 
   async create(tx: Tx, ctx: RequestContext, input: CreateApprovalInput): Promise<ApprovalRequestView> {
     const steps = initialSteps(input.steps);
@@ -152,6 +156,7 @@ export class ApprovalsService {
         requestedByName: ctx.user.name,
         status: 'PENDING',
         currentStep: 1,
+        createdAt: this.clock.now(),
         steps: { create: steps.value.map((s) => ({ ...s, tenantId: ctx.tenantId })) },
       },
       include: { steps: true },
@@ -179,7 +184,7 @@ export class ApprovalsService {
     if (!check.ok) throw new BusinessRuleError(check.code, check.message);
 
     const result = applyDecision(state, check.value, decision);
-    const now = new Date();
+    const now = this.clock.now();
     for (const change of result.stepChanges) {
       const decided = change.stepNo === check.value.stepNo;
       await tx.sysApprovalStep.update({
@@ -229,7 +234,7 @@ export class ApprovalsService {
     }
     await tx.sysApprovalRequest.update({
       where: { id: request.id },
-      data: { status: 'CANCELLED', decidedAt: new Date() },
+      data: { status: 'CANCELLED', decidedAt: this.clock.now() },
     });
     return true;
   }

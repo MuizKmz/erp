@@ -1,6 +1,9 @@
 import type { RouteRecordRaw } from 'vue-router'
 
 const Placeholder = () => import('./views/PlaceholderView.vue')
+const OrderList = () => import('./views/OrderListView.vue')
+const OrderForm = () => import('./views/OrderFormView.vue')
+const Approvals = () => import('./views/ApprovalsView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies'
 
@@ -24,15 +27,15 @@ const doc = (title: string, to: string) => ({ title, to })
  * the step which delivers them.
  */
 const SCREENS: ScreenDef[] = [
-  { code: 'P02', path: 'approvals', name: 'purchase-approvals', title: 'Approvals', group: 'transaction', step: 4, mockup: 'PurApprovals.html' },
+  { code: 'P02', path: 'approvals', name: 'purchase-approvals', title: 'Approvals', group: 'transaction', step: 4, mockup: 'PurApprovals.html', component: Approvals },
   { code: 'P04', path: 'demand', name: 'purchase-demand', title: 'Demand', group: 'transaction', item: 'demand', step: 5, mockup: 'PurDemand.html' },
   { code: 'P05', path: 'requests', name: 'purchase-requests', title: 'Purchase Request', group: 'transaction', item: 'requests', step: 5, mockup: 'PurRequestList.html' },
   { code: 'P06', path: 'requests/:id', name: 'purchase-request', title: 'Purchase request', group: 'transaction', item: 'requests', step: 5, mockup: 'PurRequestForm.html', parent: doc('Purchase Request', '/purchase/requests') },
   { code: 'P07', path: 'rfqs', name: 'purchase-rfqs', title: 'Request for Quote', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqList.html' },
   { code: 'P08', path: 'rfqs/:id', name: 'purchase-rfq', title: 'Compare replies', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqCompare.html', parent: doc('Request for Quote', '/purchase/rfqs') },
-  { code: 'P09', path: 'orders', name: 'purchase-orders', title: 'Purchase Order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoList.html' },
+  { code: 'P09', path: 'orders', name: 'purchase-orders', title: 'Purchase Order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoList.html', component: OrderList },
   { code: 'P03', path: 'orders/:id/flow', name: 'purchase-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 10, mockup: 'PurDocFlow.html', parent: doc('Purchase Order', '/purchase/orders') },
-  { code: 'P10', path: 'orders/:id', name: 'purchase-order', title: 'Purchase order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoForm.html', parent: doc('Purchase Order', '/purchase/orders') },
+  { code: 'P10', path: 'orders/:id', name: 'purchase-order', title: 'Purchase order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoForm.html', parent: doc('Purchase Order', '/purchase/orders'), component: OrderForm },
   { code: 'P14', path: 'receipts', name: 'purchase-receipts', title: 'Goods Receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnList.html' },
   { code: 'P15', path: 'receipts/:id', name: 'purchase-receipt', title: 'Goods receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnConfirm.html', parent: doc('Goods Receipt', '/purchase/receipts') },
   { code: 'P12', path: 'cancel-orders', name: 'purchase-cancel-orders', title: 'Cancel Order', group: 'transaction', item: 'cancel-orders', step: 9, mockup: 'PoCancelList.html' },

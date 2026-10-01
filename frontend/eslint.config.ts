@@ -13,5 +13,11 @@ export default defineConfigWithVueTs(
   },
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
+  {
+    // Shared ERP component names are fixed by CLAUDE.md (e.g. "Pager").
+    name: 'app/erp-component-names',
+    files: ['src/components/erp/**/*.vue'],
+    rules: { 'vue/multi-word-component-names': 'off' },
+  },
   skipFormatting,
 )

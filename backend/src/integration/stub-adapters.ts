@@ -5,6 +5,7 @@ import {
   STOCK_PORT,
   type SalesDemand,
   type SalesDemandPort,
+  type SalesOrderSummary,
   type StockLevel,
   type StockPort,
 } from './integration.ports';
@@ -57,6 +58,11 @@ export class StubSalesDemandAdapter implements SalesDemandPort {
       isBuyToOrder: r.isBuyToOrder,
       neededBy: r.neededBy ? isoDate(r.neededBy) : null,
     }));
+  }
+
+  async findSalesOrder(tenantId: string, soNo: string): Promise<SalesOrderSummary | null> {
+    const row = await this.prisma.salDemandStub.findFirst({ where: { tenantId, soNo } });
+    return row ? { soNo: row.soNo, customerName: row.customerName, soTotal: row.soTotal.toFixed(2) } : null;
   }
 }
 

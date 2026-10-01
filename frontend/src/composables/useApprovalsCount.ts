@@ -4,6 +4,13 @@ import { useSession } from './useSession'
 
 const REFRESH_MS = 60_000
 
+/** Bumped after an approval is decided or a document is sent for approval, so every badge reloads. */
+const changed = ref(0)
+
+export function notifyApprovalsChanged(): void {
+  changed.value += 1
+}
+
 /** The Approvals badge in the top bar: how many approvals wait for the current user. */
 export function useApprovalsCount(module: () => ModuleDef) {
   const { state } = useSession()
@@ -23,7 +30,7 @@ export function useApprovalsCount(module: () => ModuleDef) {
     timer = setInterval(() => void load(), REFRESH_MS)
   })
   onBeforeUnmount(() => clearInterval(timer))
-  watch(() => state.version, () => void load())
+  watch([() => state.version, changed], () => void load())
 
   return { count, refresh: load }
 }

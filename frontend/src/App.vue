@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import ConfirmDialog from 'primevue/confirmdialog'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import { onApiError } from '@/api/http'
@@ -31,6 +32,7 @@ const pageKey = computed(() => `${session.state.version}:${route.path}`)
 
 <template>
   <Toast position="top-right" />
+  <ConfirmDialog class="erp-dialog" :style="{ width: '460px' }" />
 
   <div v-if="session.state.error" class="flex min-h-screen items-center justify-center bg-erp-bg p-8">
     <div class="erp-card flex max-w-md flex-col items-center gap-3 px-8 py-10 text-center">

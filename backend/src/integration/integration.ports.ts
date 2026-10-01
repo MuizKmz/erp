@@ -36,7 +36,15 @@ export interface SalesDemand {
   neededBy: string | null;
 }
 
+export interface SalesOrderSummary {
+  soNo: string;
+  customerName: string;
+  soTotal: string;
+}
+
 export interface SalesDemandPort {
   readonly connected: boolean;
   listOpenDemand(tenantId: string, itemCodes?: string[]): Promise<SalesDemand[]>;
+  /** Customer and value of a sales order, for buy-to-order POs. */
+  findSalesOrder(tenantId: string, soNo: string): Promise<SalesOrderSummary | null>;
 }

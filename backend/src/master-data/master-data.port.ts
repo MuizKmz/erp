@@ -55,6 +55,34 @@ export interface MdItem {
   status: 'ACTIVE' | 'BLOCKED' | 'DISCONTINUED';
 }
 
+export interface MdWarehouse {
+  code: string;
+  name: string;
+  branchCode: string;
+  isActive: boolean;
+}
+
+export interface MdTaxCode {
+  code: string;
+  /** "SST 10%" */
+  name: string;
+  /** fraction: "0.1000" */
+  rate: string;
+}
+
+export interface MdContractPrice {
+  itemCode: string;
+  supplierCode: string;
+  unitPrice: string;
+  validFrom: string;
+  validTo: string | null;
+}
+
+export interface SearchOptions {
+  q?: string;
+  limit?: number;
+}
+
 export interface MasterDataPort {
   findUserByCode(tenantId: string, code: string): Promise<MdUser | null>;
   listUsers(tenantId: string): Promise<MdUser[]>;
@@ -63,4 +91,15 @@ export interface MasterDataPort {
   listSuppliers(tenantId: string, codes?: string[]): Promise<MdSupplier[]>;
   /** Active items that Purchase may buy. */
   listPurchasableItems(tenantId: string): Promise<MdItem[]>;
+  findSupplier(tenantId: string, code: string): Promise<MdSupplier | null>;
+  /** Suppliers matching code or name; activeOnly hides BLOCKED ones. */
+  searchSuppliers(tenantId: string, options: SearchOptions & { activeOnly?: boolean }): Promise<MdSupplier[]>;
+  /** Items by code, whatever their status (so callers can explain why one cannot be used). */
+  findItems(tenantId: string, codes: string[]): Promise<MdItem[]>;
+  /** Active purchasable items matching code or name. */
+  searchPurchasableItems(tenantId: string, options: SearchOptions): Promise<MdItem[]>;
+  listWarehouses(tenantId: string, branchCode?: string): Promise<MdWarehouse[]>;
+  listTaxCodes(tenantId: string): Promise<MdTaxCode[]>;
+  /** Contract prices valid on a date (YYYY-MM-DD). */
+  listContractPrices(tenantId: string, filter: { supplierCode?: string; itemCodes?: string[]; onDate: string }): Promise<MdContractPrice[]>;
 }

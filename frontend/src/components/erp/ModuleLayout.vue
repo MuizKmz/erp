@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Bell, House, LogOut } from '@lucide/vue'
 import { useApprovalsCount } from '@/composables/useApprovalsCount'
+import { useCrumb } from '@/composables/usePageCrumb'
 import { useSession } from '@/composables/useSession'
 import { moduleDef } from '@/modules/registry'
 import { formatTime, formatTopBarDate } from '@/utils/format'
@@ -20,6 +21,7 @@ const { today, now } = useSession()
 const module = computed(() => moduleDef(route.meta.module))
 const group = computed(() => module.value.menu.find((g) => g.key === route.meta.menuGroup) ?? module.value.menu[0]!)
 const { count: approvals } = useApprovalsCount(() => module.value)
+const pageCrumb = useCrumb()
 
 // Breadcrumb: Home › group › list title, or Home › list › document (pages may set the last crumb).
 const crumbs = computed(() => {
@@ -29,7 +31,7 @@ const crumbs = computed(() => {
   } else if (route.meta.code !== 'P02') {
     items.push({ label: group.value.title })
   }
-  items.push({ label: route.meta.title ?? '' })
+  items.push({ label: pageCrumb.value ?? route.meta.title ?? '' })
   return items
 })
 

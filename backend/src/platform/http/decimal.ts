@@ -42,3 +42,11 @@ export function toRate(value: DecimalInput | null | undefined): string {
 export function toMoneyOrNull(value: DecimalInput | null | undefined): string | null {
   return value === null || value === undefined ? null : toMoney(value);
 }
+
+/** "RM 46,200.00" — money in messages written for users. */
+export function toRmText(value: DecimalInput | null | undefined): string {
+  const [whole, cents] = toMoney(value).split('.');
+  const negative = whole!.startsWith('-');
+  const digits = negative ? whole!.slice(1) : whole!;
+  return `${negative ? '-' : ''}RM ${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${cents}`;
+}

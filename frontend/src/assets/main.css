@@ -199,3 +199,157 @@
     color: var(--erp-on-dark);
   }
 }
+
+/* ── Form inputs (DESIGN_TOKENS.md → Inputs: 38px, radius 8px) ────────────── */
+@layer components {
+  .erp-input {
+    height: 38px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--erp-input-border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--erp-text);
+    background: var(--erp-card);
+  }
+  .erp-input:focus {
+    outline: 2px solid var(--mod-line);
+    outline-offset: -1px;
+  }
+  .erp-input[aria-invalid='true'] {
+    border-color: var(--note-error-text);
+  }
+  /* Read-only values look like inputs but grey (locked fields of a released document) */
+  .erp-input-ro {
+    display: flex;
+    align-items: center;
+    height: 38px;
+    box-sizing: border-box;
+    border: 1px solid var(--erp-border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--erp-subtle);
+    background: var(--erp-head-bg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  textarea.erp-input {
+    height: auto;
+    min-height: 72px;
+    padding: 10px 12px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  select.erp-input {
+    padding-right: 32px;
+  }
+  /* Editable cell in a lines table (qty, price) */
+  .erp-cell {
+    width: 100%;
+    height: 32px;
+    box-sizing: border-box;
+    border: 1.5px solid var(--mod-line);
+    border-radius: 6px;
+    text-align: right;
+    padding: 0 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--erp-text);
+    background: var(--erp-card);
+  }
+
+  /* ── PrimeVue widgets in the ERP look ─────────────────────────────────── */
+  .erp-datalist .p-datatable-thead > tr > th {
+    background: var(--erp-head-bg);
+    border-bottom: 1px solid var(--erp-border);
+    padding: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--erp-muted);
+    white-space: nowrap;
+  }
+  /* Lists act on one picked row: no select-all box in the header */
+  .erp-datalist .p-datatable-thead .p-checkbox {
+    display: none;
+  }
+  .erp-datalist .p-datatable-tbody > tr > td {
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--erp-row-border);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  .erp-datalist .p-datatable-tbody > tr.p-datatable-row-selected,
+  .erp-datalist .p-datatable-tbody > tr.p-datatable-row-selected > td {
+    background: var(--mod-light);
+    color: var(--erp-text);
+  }
+  .erp-datalist .p-datatable-tbody > tr:not(.p-datatable-row-selected):hover {
+    background: var(--erp-head-bg);
+  }
+  .erp-datalist .erp-col-num {
+    text-align: right;
+  }
+  .erp-datalist .erp-col-num .p-datatable-column-header-content {
+    justify-content: flex-end;
+  }
+
+  .erp-date .p-datepicker-dropdown {
+    border-radius: 0 8px 8px 0;
+  }
+  .erp-picker .p-autocomplete-input,
+  .erp-date .p-datepicker-input {
+    height: 38px;
+    border-radius: 8px;
+    border-color: var(--erp-input-border);
+    font-size: 13px;
+    padding: 0 12px;
+  }
+  .erp-select.p-select {
+    height: 38px;
+    border-radius: 8px;
+    border-color: var(--erp-input-border);
+    align-items: center;
+  }
+  .erp-select .p-select-label {
+    font-size: 13px;
+    padding: 0 12px;
+  }
+
+  .erp-dialog.p-dialog {
+    border-radius: 16px;
+    border: none;
+  }
+  .erp-dialog .p-dialog-header {
+    padding: 22px 24px 14px;
+    border-bottom: 1px solid var(--erp-border);
+  }
+  .erp-dialog .p-dialog-content {
+    padding: 18px 24px;
+  }
+  .erp-dialog .p-dialog-footer {
+    padding: 14px 24px;
+    background: var(--erp-head-bg);
+    border-top: 1px solid var(--erp-border);
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+/* Print: only the document, no sidebar or top bar */
+@media print {
+  nav,
+  header,
+  .erp-no-print {
+    display: none !important;
+  }
+  body {
+    background: var(--erp-card);
+  }
+}
