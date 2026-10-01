@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Purchase · Email templates</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:10px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr.sel td{background:#F0FDF4}
+.nw{white-space:nowrap}
+.mut{color:#5E6478}
+.sm{font-size:12px}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.ro{background:#F7F8FB;color:#3A4056;border-color:#E4E6EE}
+.cell{width:72px;height:32px;box-sizing:border-box;border:1.5px solid #15803D;border-radius:6px;text-align:right;padding:0 8px;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;background:#FFFFFF}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-red{background:#DC2626;color:#FFFFFF}
+.b-dark{background:#4B5563;color:#FFFFFF}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-mod{background:#166534;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.b-redline{background:#FFFFFF;color:#B91C1C;border-color:#F3B4B4}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.st-pend{background:#FEF3C7;color:#92400E}
+.st-rel{background:#DBEAFE;color:#1E40AF}
+.st-part{background:#EDE9FE;color:#5B21B6}
+.st-done{background:#DCFCE7;color:#166534}
+.st-canc{background:#FEE2E2;color:#991B1B}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500;white-space:nowrap}
+.nav:hover{background:#17733A}
+.nav.on{background:#14532D;font-weight:700}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 0 10px;font-family:inherit;font-size:13px;font-weight:600;color:#5E6478;cursor:pointer;white-space:nowrap}
+.tab.on{border-bottom-color:#15803D;color:#166534}
+.kpi{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.kpi span:first-child{font-size:12px;font-weight:600;color:#5E6478}
+.kpi strong{font-size:22px}
+.kpi span:last-child{font-size:12px;color:#5E6478}
+.pg{width:32px;height:32px;border-radius:8px;border:1px solid #D9DCE6;background:#FFFFFF;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;cursor:pointer}
+.h2{margin:0;font-size:14px;font-weight:700}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-bottom:1px solid #EEF0F4;font-variant-numeric:tabular-nums}
+.kv span:first-child{color:#5E6478}
+.kv.tot{border-bottom:none;border-top:1px solid #1E2233;margin-top:4px;padding-top:10px;font-size:15px;font-weight:700}
+.kv.tot span:first-child{color:#1E2233}
+.step{display:flex;gap:12px;font-size:13px;line-height:1.5}
+.step b{width:24px;height:24px;border-radius:12px;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ev{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4}
+.ev time{width:112px;flex-shrink:0;color:#5E6478;font-size:12px}
+.note{display:flex;align-items:flex-start;gap:10px;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.5}
+.n-info{background:#F0FDF4;border:1px solid #BBF7D0;color:#1E2233}
+.n-warn{background:#FFFBEB;border:1px solid #FCD34D;color:#78350F}
+.n-err{background:#FEF2F2;border:1px solid #FECACA;color:#7F1D1D}
+.sw{width:40px;height:22px;border-radius:11px;border:none;padding:2px;display:flex;cursor:pointer;flex-shrink:0;box-sizing:border-box}
+.sw i{width:18px;height:18px;border-radius:9px;background:#FFFFFF;display:block}
+.sw.on{background:#15803D;justify-content:flex-end}
+.sw.off{background:#CBD0DC;justify-content:flex-start}
+.bar{height:6px;border-radius:3px;background:#EEF0F4;overflow:hidden;width:64px}
+.bar i{display:block;height:6px;background:#15803D}
+.lnkrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4;gap:10px}
+.sel{height:32px;border:1px solid #D9DCE6;border-radius:6px;padding:0 8px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF;width:100%;box-sizing:border-box}
+.num-in{height:32px;width:110px;border:1px solid #D9DCE6;border-radius:6px;padding:0 8px;font-family:inherit;font-size:13px;text-align:right;box-sizing:border-box}
+.rule{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid #EEF0F4}
+.rule b{font-size:13px;display:block}
+.rule span{font-size:12px;color:#5E6478}
+.tpl{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+.tpl.on{background:#F0FDF4;border:1px solid #BBF7D0}
+.var{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:6px;padding:2px 7px;margin:0 4px 6px 0}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden;position:relative">
+<nav aria-label="Operation Policies" style="width:220px;flex-shrink:0;background:#15803D;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Operation Policies</div>
+</div>
+<a class="nav" href="PurPolicies.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path></svg>Approval Rules</a>
+<a class="nav" href="PurDocTypes.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Document Types</a>
+<a class="nav on" aria-current="page" href="PurEmailTemplates.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg>Email Templates</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="PurHome.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Purchase home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#15803D;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:200px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#166534;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="PurApprovals.html" aria-label="Approvals, 2 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#166534;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">2</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#166534;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">LM</span>meiying@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="PurHome.html">Home</a><span>›</span><span>Operation Policies</span><span>›</span><span style="color:#1E2233;font-weight:500">Email Templates</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+<div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="margin:0;font-size:20px;font-weight:700">Email Templates</h1></div>
+<div style="font-size:12px;color:#5E6478">Emails Purchase sends to suppliers and approvers. Words in braces are filled in from the document.</div>
+</div>
+<div style="display:flex;gap:8px;flex-shrink:0"><button class="btn b-ghost">Send test email</button><button class="btn b-mod">Save template</button></div>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;width:280px;flex-shrink:0;gap:4px"><h2 class="h2">Templates</h2><div class="tpl on"><strong>Purchase order to supplier</strong><span class="sm mut">Sent when a PO is released</span></div><div class="tpl"><strong>RFQ request</strong><span class="sm mut">Asks a supplier for a price</span></div><div class="tpl"><strong>RFQ not awarded</strong><span class="sm mut">Polite “not this time”</span></div><div class="tpl"><strong>Delivery reminder</strong><span class="sm mut">Two days before the expected date</span></div><div class="tpl"><strong>Invoice difference</strong><span class="sm mut">When we record less than billed</span></div><div class="tpl"><strong>Cancellation notice</strong><span class="sm mut">When a PO balance is cancelled</span></div><div class="tpl"><strong>Return notice</strong><span class="sm mut">With the RMA number</span></div><div class="tpl"><strong>Approval request</strong><span class="sm mut">Internal, to the approver</span></div></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex-grow:1"><div style="display:flex;justify-content:space-between;align-items:center"><h2 class="h2">Purchase order to supplier</h2><span class="chip st-done">In use</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px"><label class="fld">To<input class="inp" value="{supplier.email}"></label><label class="fld">Cc<input class="inp" value="{buyer.email}"></label><label class="fld" style="grid-column:span 2">Subject<input class="inp" value="Purchase order {po.number} from {company.name}"></label></div><label class="fld" style="flex-grow:1">Message<textarea class="inp" style="flex-grow:1;min-height:260px;padding:12px;resize:none;line-height:1.55">Dear {supplier.contact},
+
+Please find attached our purchase order {po.number} dated {po.date}.
+
+Deliver to: {po.deliver_to}
+Needed by: {po.expected_date}
+Order total: {po.currency} {po.total}
+
+Please quote {po.number} on your delivery order and invoice, and reply to confirm the delivery date.
+
+Regards,
+{buyer.name}
+{company.name}</textarea></label><div class="rule" style="border-bottom:none;padding-bottom:0"><div><b>Attach the PO as PDF</b><span>Uses the standard purchase order layout</span></div><button class="sw on" role="switch" aria-checked="true" aria-label="Attach PDF"><i></i></button></div><div class="rule" style="border-bottom:none;padding-top:4px"><div><b>Send automatically on release</b><span>Otherwise the buyer clicks “Email to supplier”</span></div><button class="sw on" role="switch" aria-checked="true" aria-label="Send automatically"><i></i></button></div></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;width:280px;flex-shrink:0"><h2 class="h2">Fields you can use</h2><div><span class="var">{supplier.contact}</span><span class="var">{supplier.email}</span><span class="var">{po.number}</span><span class="var">{po.date}</span><span class="var">{po.deliver_to}</span><span class="var">{po.expected_date}</span><span class="var">{po.currency}</span><span class="var">{po.total}</span><span class="var">{buyer.name}</span><span class="var">{buyer.email}</span><span class="var">{company.name}</span></div><p style="margin:0;font-size:12px;color:#5E6478;line-height:1.5">Supplier fields come from Master Data. Company name and logo come from Master Data › Company.</p><h2 class="h2" style="padding-top:8px">Last sent</h2><div class="lnkrow"><span>PO-0004 · Kilang Kain Jaya</span><span class="sm mut nw">28 Sep</span></div><div class="lnkrow"><span>PO-0002 · Mesin Jahit Pro</span><span class="sm mut nw">24 Sep</span></div><div class="lnkrow"><span>PO-0001 · Kilang Kain Jaya</span><span class="sm mut nw">23 Sep</span></div></section>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

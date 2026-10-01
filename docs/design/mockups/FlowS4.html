@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales flow · Deposit with a proforma</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F6F5FA}
+a{color:#2563EB;text-decoration:none}
+.fcol>*{flex-shrink:0}
+.fh{display:flex;justify-content:space-between;align-items:flex-start;gap:32px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6D45DB}
+.fh h1{margin:6px 0 6px;font-size:30px;font-weight:800;letter-spacing:-0.01em;text-wrap:balance}
+.fh p{margin:0;font-size:15px;color:#4A5068;line-height:1.5;max-width:760px}
+.meta{display:grid;grid-template-columns:repeat(3,minmax(0,250px));gap:12px}
+.mb{background:#FFFFFF;border:1px solid #E4E1F0;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.mb span{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#8A88A0}
+.mb b{font-size:13px;font-weight:600;line-height:1.45}
+.legend{display:flex;gap:22px;align-items:center;font-size:12px;color:#5E6478}
+.legend i{display:inline-block;width:22px;height:14px;border-radius:4px;vertical-align:middle;margin-right:7px;box-sizing:border-box}
+.lanes{position:relative;background:#FFFFFF;border:1px solid #E4E1F0;border-radius:14px;overflow:hidden}
+.lane{position:absolute;left:0;right:0;border-bottom:1px solid #EEECF5}
+.lane.alt{background:#FBFAFE}
+.ll{position:absolute;left:0;top:0;bottom:0;width:156px;background:#F3F0FC;border-right:1px solid #E4E1F0;display:flex;flex-direction:column;justify-content:center;padding:0 16px;box-sizing:border-box;gap:3px}
+.ll b{font-size:13px;font-weight:700;color:#3B2A7A}
+.ll span{font-size:11px;color:#6E6A88;line-height:1.35}
+.nd{position:absolute;box-sizing:border-box;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.k-step{background:#FFFFFF;border:1.5px solid #CFC4F7;box-shadow:0 1px 2px rgba(59,42,122,0.08)}
+.k-dec{background:#FFFBEB;border:1.5px solid #F2B84B}
+.k-sys{background:#F2F4F8;border:1.5px dashed #9AA3B8}
+.k-appr{background:#FFF7ED;border:1.5px solid #F59E0B}
+.k-start{background:#2A2340;border:none;border-radius:40px;color:#FFFFFF;justify-content:center;padding:8px 16px}
+.k-end{background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:40px;color:#14532D;justify-content:center;padding:8px 16px}
+.nt{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#7A7596}
+.k-dec .nt{color:#92400E}
+.k-appr .nt{color:#9A3412}
+.no{min-width:18px;height:18px;border-radius:9px;background:#6D45DB;color:#FFFFFF;font-size:10.5px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0;padding:0 4px;box-sizing:border-box}
+.k-dec .no{background:#D97706}
+.k-appr .no{background:#EA580C}
+.k-sys .no{background:#6B7190}
+.tx{font-size:13px;font-weight:600;line-height:1.3}
+.k-start .tx,.k-end .tx{font-size:13px;text-align:center}
+.sub{font-size:11px;color:#5E6478;line-height:1.3}
+.scr{display:inline-block;align-self:flex-start;font-size:11px;font-weight:600;color:#5B35C9;background:#F3EFFE;border:1px solid #DDD6FE;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.scr:hover{background:#E9E2FD}
+.el{position:absolute;z-index:3;font-size:11px;font-weight:700;color:#3B2A7A;background:#FFFFFF;border:1px solid #D9CFFB;border-radius:10px;padding:1px 8px;white-space:nowrap}
+.el.no-{color:#991B1B;border-color:#FECACA}
+.el.yes{color:#166534;border-color:#BBF7D0}
+.nh{display:flex;justify-content:space-between;align-items:baseline}
+.nh h2{margin:0;font-size:18px;font-weight:800}
+.nh span{font-size:12px;color:#6E6A88}
+.nt2{width:100%;border-collapse:separate;border-spacing:0;background:#FFFFFF;border:1px solid #E4E1F0;border-radius:14px;overflow:hidden;font-size:13px}
+.nt2 th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#6E6A88;background:#F7F5FC;padding:10px 12px;border-bottom:1px solid #E4E1F0}
+.nt2 td{padding:11px 12px;border-bottom:1px solid #F0EEF6;vertical-align:top;line-height:1.45}
+.nt2 tr:last-child td{border-bottom:none}
+.nt2 td.n{width:28px}
+.nt2 .stp{font-weight:700}
+.nt2 td .scr{margin:0 4px 4px 0}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;background:#6D45DB;color:#FFFFFF;font-size:11px;font-weight:700;padding:0 5px;box-sizing:border-box}
+.pill.d{background:#D97706}.pill.a{background:#EA580C}.pill.s{background:#6B7190}
+
+</style>
+
+<div style="width:2160px;height:1700px;background:#F6F5FA;overflow:hidden;position:relative">
+<div class="fcol" style="position:absolute;inset:0;padding:36px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box"><header class="fh"><div><div class="eyebrow">Sales · user flow F4</div><h1>Deposit with a proforma</h1><p>For customers who pay part or all of an order before delivery. The proforma asks for money; the tax invoice comes later and uses up the deposit.</p></div><div class="meta"><div class="mb"><span>Starts when</span><b>A released order needs a deposit</b></div><div class="mb"><span>Ends when</span><b>The balance after deposit is paid</b></div><div class="mb"><span>People</span><b>Sales agent, Billing, Store</b></div></div></header><div class="legend"><span><i style="background:#FFFFFF;border:1.5px solid #CFC4F7"></i>Step on a screen</span><span><i style="background:#FFFBEB;border:1.5px solid #F2B84B"></i>Decision</span><span><i style="background:#FFF7ED;border:1.5px solid #F59E0B"></i>Approval</span><span><i style="background:#F2F4F8;border:1.5px dashed #9AA3B8"></i>Done by the system or another module</span><span><i style="background:#2A2340;border-radius:7px"></i>Start</span><span><i style="background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:7px"></i>End</span><span style="margin-left:auto">Purple tags open the screen</span></div><div class="lanes" style="height:750px"><div class="lane" style="top:0px;height:150px"><div class="ll"><b>Sales agent</b><span>Follows up</span></div></div><div class="lane alt" style="top:150px;height:150px"><div class="ll"><b>Billing</b><span>Proforma and invoice</span></div></div><div class="lane" style="top:300px;height:150px"><div class="ll"><b>Customer</b><span>Pays</span></div></div><div class="lane alt" style="top:450px;height:150px"><div class="ll"><b>Store · delivery</b><span>Delivers</span></div></div><div class="lane" style="top:600px;height:150px"><div class="ll"><b>System · Finance</b><span>Records receipts</span></div></div><svg width="2088" height="750" viewBox="0 0 2088 750" style="position:absolute;left:0;top:0;z-index:1" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7D78A0"></path></marker></defs><path d="M 361.6 75.0 L 381.6 75.0 L 381.6 225.0 L 401.6 225.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 573.1 225.0 L 613.1 225.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 784.7 225.0 L 804.7 225.0 L 804.7 375.0 L 824.7 375.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 996.2 359.0 L 1016.2 359.0 L 1016.2 75.0 L 1036.2 75.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 996.2 391.0 L 1016.2 391.0 L 1016.2 675.0 L 1036.2 675.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1207.8 675.0 L 1227.8 675.0 L 1227.8 525.0 L 1247.8 525.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1419.3 525.0 L 1439.3 525.0 L 1439.3 225.0 L 1459.3 225.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1630.9 225.0 L 1650.9 225.0 L 1650.9 675.0 L 1670.9 675.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1842.4 675.0 L 1862.4 675.0 L 1862.4 375.0 L 1882.4 375.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path></svg><div class="nd k-start" style="left:190px;top:43px;width:172px;height:64px"><div class="tx">Order released; deposit needed</div></div><div class="nd k-step" style="left:402px;top:177px;width:172px;min-height:96px"><div class="nt"><span class="no">1</span></div><div class="tx">Create proforma from the order</div><div class="sub">Deposit % and pay-by date</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="ProformaForm.html">S22 · Proforma</a></div></div><div class="nd k-step" style="left:613px;top:177px;width:172px;min-height:96px"><div class="nt"><span class="no">2</span></div><div class="tx">Release and email it</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="ProformaList.html">S21 · Proforma list</a><a class="scr" href="EmailTemplates.html">S33 · Email templates</a></div></div><div class="nd k-dec" style="left:825px;top:327px;width:172px;min-height:96px"><div class="nt"><span class="no">3</span>Customer</div><div class="tx">Deposit paid by the date?</div></div><div class="nd k-step" style="left:1036px;top:27px;width:172px;min-height:96px"><div class="nt"><span class="no">4</span></div><div class="tx">Remind, or cancel the order (F6)</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="ProformaList.html">S21 · Proforma list</a></div></div><div class="nd k-sys" style="left:1036px;top:627px;width:172px;min-height:96px"><div class="nt"><span class="no">5</span>System</div><div class="tx">Finance records the deposit</div><div class="sub">Proforma → Paid</div></div><div class="nd k-step" style="left:1248px;top:477px;width:172px;min-height:96px"><div class="nt"><span class="no">6</span></div><div class="tx">Deliver the order</div><div class="sub">Same steps as F2</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="DeliveryConfirm.html">S16 · Confirm delivery</a></div></div><div class="nd k-step" style="left:1459px;top:177px;width:172px;min-height:96px"><div class="nt"><span class="no">7</span></div><div class="tx">Invoice what was delivered</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="CreateInvoice.html">S18 · Create invoice</a><a class="scr" href="InvoiceForm.html">S19 · Invoice</a></div></div><div class="nd k-sys" style="left:1671px;top:627px;width:172px;min-height:96px"><div class="nt"><span class="no">8</span>System</div><div class="tx">Deposit used on the invoice</div><div class="sub">Balance = total − deposit</div></div><div class="nd k-end" style="left:1882px;top:343px;width:172px;height:64px"><div class="tx">Customer pays the balance</div></div><span class="el no-" style="left:1022px;top:331px">No</span><span class="el yes" style="left:1022px;top:399px">Yes</span></div><div class="nh" style="padding-top:6px"><h2>Step by step</h2><span>Numbers match the boxes above</span></div><table class="nt2"><thead><tr><th></th><th>Step · screen</th><th>What the user does and sees</th><th>Rules the screen enforces</th><th>What changes after</th></tr></thead><tbody><tr><td class="n"><span class="pill">1</span></td><td style="width:210px"><div class="stp">Create proforma from the order</div><div style="padding-top:6px"><a class="scr" href="ProformaForm.html">S22 · Proforma</a></div></td><td>Opens <b>Proforma Invoice</b>, clicks <b>New proforma</b> and picks the order. Chooses deposit %, or pay before release, and a pay-by date.</td><td>A proforma is only a payment request: nothing is posted, nothing goes to LHDN, and the order balance does not change.</td><td style="width:330px">PF number, Draft.</td></tr><tr><td class="n"><span class="pill">2</span></td><td style="width:210px"><div class="stp">Release and email it</div><div style="padding-top:6px"><a class="scr" href="ProformaList.html">S21 · Proforma list</a><a class="scr" href="EmailTemplates.html">S33 · Email templates</a></div></td><td>Clicks <b>Release</b>, then <b>Email</b>. Bank details print from Master Data.</td><td>—</td><td style="width:330px">Sent. The delivery list shows the order waiting for <i>Deposit · PF-0004</i>.</td></tr><tr><td class="n"><span class="pill">4</span></td><td style="width:210px"><div class="stp">Remind, or cancel the order (F6)</div><div style="padding-top:6px"><a class="scr" href="ProformaList.html">S21 · Proforma list</a></div></td><td>The agent sees the proforma still unpaid in the list and follows up.</td><td>Delivery stays on hold while the deposit is unpaid.</td><td style="width:330px">Customer pays, or the order balance is cancelled (F6).</td></tr><tr><td class="n"><span class="pill s">5</span></td><td style="width:210px"><div class="stp">Finance records the deposit</div><div style="padding-top:6px"><span style="color:#8A88A0">—</span></div></td><td>Nothing to click in Sales.</td><td>Receipts are recorded in Finance against the proforma number.</td><td style="width:330px">Proforma → Paid. The deposit is held for the invoice.</td></tr><tr><td class="n"><span class="pill">6</span></td><td style="width:210px"><div class="stp">Deliver the order</div><div style="padding-top:6px"><a class="scr" href="DeliveryConfirm.html">S16 · Confirm delivery</a></div></td><td>Store delivers as in F2.</td><td>—</td><td style="width:330px">Delivered quantity can be invoiced.</td></tr><tr><td class="n"><span class="pill">7</span></td><td style="width:210px"><div class="stp">Invoice what was delivered</div><div style="padding-top:6px"><a class="scr" href="CreateInvoice.html">S18 · Create invoice</a><a class="scr" href="InvoiceForm.html">S19 · Invoice</a></div></td><td>Billing creates the invoice as in F3.</td><td>Only the tax invoice goes to LHDN, never the proforma.</td><td style="width:330px">Invoice released.</td></tr><tr><td class="n"><span class="pill s">8</span></td><td style="width:210px"><div class="stp">Deposit used on the invoice</div><div style="padding-top:6px"><span style="color:#8A88A0">—</span></div></td><td>The invoice shows the deposit taken from the proforma.</td><td>A deposit can be used only once.</td><td style="width:330px">Proforma → <i>Used on INV-xxxx</i>. Balance due = total minus deposit.</td></tr></tbody></table><div data-m="end"></div></div>
+</div>
+</div>
+
+</body>
+</html>

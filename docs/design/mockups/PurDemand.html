@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Purchase · Demand list</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:10px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nw{white-space:nowrap}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.cell{height:32px;width:72px;box-sizing:border-box;border:2px solid #15803D;border-radius:6px;padding:0 8px;font-family:inherit;font-size:13px;font-weight:700;color:#1E2233;background:#FFFFFF;text-align:right}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-mod{background:#166534;color:#FFFFFF}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.st-pend{background:#FEF3C7;color:#92400E}
+.st-rel{background:#DBEAFE;color:#1E40AF}
+.st-part{background:#EDE9FE;color:#5B21B6}
+.st-done{background:#DCFCE7;color:#166534}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500}
+.nav:hover{background:#17733A}
+.nav.on{background:#14532D;font-weight:700}
+.h2{margin:0;font-size:15px;font-weight:700}
+.kpi{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.kpi span:first-child{font-size:12px;font-weight:600;color:#5E6478}
+.kpi strong{font-size:22px}
+.kpi span:last-child{font-size:12px;color:#5E6478}
+.off td{color:#8A90A2;background:#FAFAFB}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden">
+<nav aria-label="Purchase transaction" style="width:220px;flex-shrink:0;background:#15803D;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 4h6v3H9z"></path><path d="M9 13l2 2 4-4"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Purchase Transaction</div>
+</div>
+<a class="nav on" aria-current="page" href="PurDemand.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"></path><path d="M6 15l4-4 3 3 5-6"></path></svg>Demand</a>
+<a class="nav" href="PurRequestList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Purchase Request</a>
+<a class="nav" href="RfqList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Request for Quote</a>
+<a class="nav" href="PoList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Purchase Order</a>
+<a class="nav" href="GrnList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"></path><path d="M3 7l9 4 9-4"></path><path d="M12 11v10"></path></svg>Goods Receipt</a>
+<a class="nav" href="PoCancelList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Cancel Order</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="PurHome.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Purchase home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#15803D;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:180px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#166534;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="PurApprovals.html" aria-label="Approvals, 2 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#166534;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">2</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#166534;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">LM</span>meiying@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="PurHome.html">Home</a><span>›</span><span>Purchase Transaction</span><span>›</span><span style="color:#1E2233;font-weight:500">Demand</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-size:20px;font-weight:700">Demand · what we should buy</h1><div style="font-size:12px;color:#5E6478">Built every night from stock levels (Inventory), open sales orders (Sales events) and reorder levels (Master Data). Last run 29 Sep, 1:00 AM.</div></div>
+<div style="display:flex;gap:8px"><button class="btn b-ghost">Run again now</button><a class="btn b-mod" href="PurRequestForm.html">Raise request for selected</a></div>
+</div>
+<div style="display:flex;gap:14px">
+<div class="card kpi"><span>Items that need buying</span><strong>4</strong><span>2 below reorder · 2 for sales orders</span></div>
+<div class="card kpi"><span>Already covered</span><strong>3</strong><span>by open POs or requests</span></div>
+<div class="card kpi"><span>Estimated value</span><strong>RM 40,040.00</strong><span>at last purchase prices</span></div>
+<div class="card kpi"><span>Selected</span><strong>2</strong><span>RM 1,120.00 · 2 suppliers</span></div>
+</div>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;flex-grow:1">
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+<input class="inp" aria-label="Search item" placeholder="Search item">
+<select class="inp" aria-label="Reason"><option>All reasons</option></select>
+<select class="inp" aria-label="Preferred supplier"><option>All suppliers</option></select>
+<select class="inp" aria-label="Branch"><option>HQ Shah Alam</option></select>
+</div>
+<table class="tbl">
+<thead><tr><th></th><th>Item</th><th>Why</th><th class="num">On hand</th><th class="num">On order</th><th class="num">Reorder level</th><th>Preferred supplier</th><th class="num">Last price</th><th class="num">Buy</th></tr></thead>
+<tbody>
+<tr style="background:#F0FDF4"><td><input type="checkbox" checked aria-label="Select SC-WOD-08"></td><td><div class="nw" style="font-weight:600">SC-WOD-08</div><div style="font-size:12px;color:#5E6478">Wood screw, box of 200</div></td><td><span class="chip st-pend">Below reorder</span></td><td class="num">5</td><td class="num">0</td><td class="num">20</td><td>Hardware Mart Klang</td><td class="num">18.00</td><td class="num"><input class="cell" value="20" aria-label="Buy quantity SC-WOD-08"></td></tr>
+<tr style="background:#F0FDF4"><td><input type="checkbox" checked aria-label="Select VR-LAC-01"></td><td><div class="nw" style="font-weight:600">VR-LAC-01</div><div style="font-size:12px;color:#5E6478">Lacquer, 5 L</div></td><td><span class="chip st-pend">Below reorder</span></td><td class="num">3</td><td class="num">0</td><td class="num">10</td><td>Cat Warna Sdn Bhd</td><td class="num">95.00</td><td class="num"><input class="cell" value="8" aria-label="Buy quantity VR-LAC-01"></td></tr>
+<tr><td><input type="checkbox" aria-label="Select CH-DIN-01"></td><td><div class="nw" style="font-weight:600">CH-DIN-01</div><div style="font-size:12px;color:#5E6478">Dining chair, solid oak</div></td><td><span class="chip st-part">For SO-0001 · 40</span></td><td class="num">0</td><td class="num">0</td><td class="num">50</td><td>Perabot Kayu Timur</td><td class="num">150.00</td><td class="num"><input class="cell" value="90" aria-label="Buy quantity CH-DIN-01"></td></tr>
+<tr><td><input type="checkbox" aria-label="Select TB-DIN-06"></td><td><div class="nw" style="font-weight:600">TB-DIN-06</div><div style="font-size:12px;color:#5E6478">Dining table, 6-seater</div></td><td><span class="chip st-part">For SO-0008 · 30</span></td><td class="num">4</td><td class="num">0</td><td class="num">5</td><td>Perabot Kayu Timur</td><td class="num">820.00</td><td class="num"><input class="cell" value="31" aria-label="Buy quantity TB-DIN-06"></td></tr>
+<tr class="off"><td><input type="checkbox" disabled aria-label="SF-CUS-03 already covered"></td><td><div class="nw" style="font-weight:600">SF-CUS-03</div><div style="font-size:12px">Custom 3-seater sofa</div></td><td>For SO-0003 · buy to order</td><td class="num">0</td><td class="num">20</td><td class="num">—</td><td>Perabot Kayu Timur</td><td class="num">2,100.00</td><td class="num">Covered by <a class="lnk" href="PoApproval.html">PO-0003</a></td></tr>
+<tr class="off"><td><input type="checkbox" disabled aria-label="FB-OAK-01 already covered"></td><td><div class="nw" style="font-weight:600">FB-OAK-01</div><div style="font-size:12px">Chair fabric roll, oatmeal</div></td><td>Below reorder</td><td class="num">30</td><td class="num">65</td><td class="num">50</td><td>Kilang Kain Jaya</td><td class="num">40.00</td><td class="num">Covered by PO-0001, PO-0004</td></tr>
+<tr class="off"><td><input type="checkbox" disabled aria-label="FM-SEA-05 already covered"></td><td><div class="nw" style="font-weight:600">FM-SEA-05</div><div style="font-size:12px">Seat foam sheet</div></td><td>Below reorder</td><td class="num">12</td><td class="num">40</td><td class="num">40</td><td>Tekstil Utara Enterprise</td><td class="num">35.00</td><td class="num">Covered by PO-0005</td></tr>
+</tbody>
+</table>
+<p style="margin:0;font-size:12px;color:#5E6478">“Buy” is a suggestion: it tops stock back up to the reorder level, adds what open sales orders still need, and rounds up to the supplier’s pack size. Change it before raising the request.</p>
+</section>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

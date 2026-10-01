@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Purchase · UX guide</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F4F8F5}
+a{color:#2563EB;text-decoration:none}
+.fcol>*{flex-shrink:0}
+.fh{display:flex;justify-content:space-between;align-items:flex-start;gap:32px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#15803D}
+.fh h1{margin:6px 0 6px;font-size:30px;font-weight:800;letter-spacing:-0.01em;text-wrap:balance}
+.fh p{margin:0;font-size:15px;color:#4A5A50;line-height:1.5;max-width:760px}
+.meta{display:grid;grid-template-columns:repeat(3,minmax(0,250px));gap:12px}
+.mb{background:#FFFFFF;border:1px solid #DAE6DE;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.mb span{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#7A8A80}
+.mb b{font-size:13px;font-weight:600;line-height:1.45}
+.legend{display:flex;gap:22px;align-items:center;font-size:12px;color:#5E6478}
+.legend i{display:inline-block;width:22px;height:14px;border-radius:4px;vertical-align:middle;margin-right:7px;box-sizing:border-box}
+.lanes{position:relative;background:#FFFFFF;border:1px solid #DAE6DE;border-radius:14px;overflow:hidden}
+.lane{position:absolute;left:0;right:0;border-bottom:1px solid #E6EEE9}
+.lane.alt{background:#F9FCFA}
+.ll{position:absolute;left:0;top:0;bottom:0;width:156px;background:#EAF6EE;border-right:1px solid #DAE6DE;display:flex;flex-direction:column;justify-content:center;padding:0 16px;box-sizing:border-box;gap:3px}
+.ll b{font-size:13px;font-weight:700;color:#14532D}
+.ll span{font-size:11px;color:#5B6E62;line-height:1.35}
+.nd{position:absolute;box-sizing:border-box;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.k-step{background:#FFFFFF;border:1.5px solid #9FD9B3;box-shadow:0 1px 2px rgba(59,42,122,0.08)}
+.k-dec{background:#FFFBEB;border:1.5px solid #F2B84B}
+.k-sys{background:#F2F4F8;border:1.5px dashed #9AA3B8}
+.k-appr{background:#FFF7ED;border:1.5px solid #F59E0B}
+.k-start{background:#16261C;border:none;border-radius:40px;color:#FFFFFF;justify-content:center;padding:8px 16px}
+.k-end{background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:40px;color:#14532D;justify-content:center;padding:8px 16px}
+.nt{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#6A7A70}
+.k-dec .nt{color:#92400E}
+.k-appr .nt{color:#9A3412}
+.no{min-width:18px;height:18px;border-radius:9px;background:#15803D;color:#FFFFFF;font-size:10.5px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0;padding:0 4px;box-sizing:border-box}
+.k-dec .no{background:#D97706}
+.k-appr .no{background:#EA580C}
+.k-sys .no{background:#6B7190}
+.tx{font-size:13px;font-weight:600;line-height:1.3}
+.k-start .tx,.k-end .tx{font-size:13px;text-align:center}
+.sub{font-size:11px;color:#5E6478;line-height:1.3}
+.scr{display:inline-block;align-self:flex-start;font-size:11px;font-weight:600;color:#166534;background:#ECFDF3;border:1px solid #BBF7D0;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.scr:hover{background:#DCFCE7}
+.el{position:absolute;z-index:3;font-size:11px;font-weight:700;color:#14532D;background:#FFFFFF;border:1px solid #BBF7D0;border-radius:10px;padding:1px 8px;white-space:nowrap}
+.el.no-{color:#991B1B;border-color:#FECACA}
+.el.yes{color:#166534;border-color:#BBF7D0}
+.nh{display:flex;justify-content:space-between;align-items:baseline}
+.nh h2{margin:0;font-size:18px;font-weight:800}
+.nh span{font-size:12px;color:#5B6E62}
+.nt2{width:100%;border-collapse:separate;border-spacing:0;background:#FFFFFF;border:1px solid #DAE6DE;border-radius:14px;overflow:hidden;font-size:13px}
+.nt2 th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#5B6E62;background:#F1F7F3;padding:10px 12px;border-bottom:1px solid #DAE6DE}
+.nt2 td{padding:11px 12px;border-bottom:1px solid #EAF1EC;vertical-align:top;line-height:1.45}
+.nt2 tr:last-child td{border-bottom:none}
+.nt2 td.n{width:28px}
+.nt2 .stp{font-weight:700}
+.nt2 td .scr{margin:0 4px 4px 0}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;background:#15803D;color:#FFFFFF;font-size:11px;font-weight:700;padding:0 5px;box-sizing:border-box}
+.pill.d{background:#D97706}.pill.a{background:#EA580C}.pill.s{background:#6B7190}
+
+.card{background:#FFFFFF;border:1px solid #DAE6DE;border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box}
+.card h2{margin:0;font-size:17px;font-weight:800}
+.card p{margin:0;font-size:13px;color:#4A5A50;line-height:1.55}
+.tag{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#15803D}
+.li{display:flex;gap:10px;font-size:13px;line-height:1.5;align-items:flex-start}
+.li b.k{flex-shrink:0;width:22px;height:22px;border-radius:11px;background:#15803D;color:#FFFFFF;font-size:11px;display:flex;align-items:center;justify-content:center}
+.wf{border:1px solid #BBF7D0;border-radius:10px;overflow:hidden;background:#F9FCFA;position:relative}
+.wf .blk{position:absolute;border-radius:4px}
+.wf .lab{position:absolute;width:20px;height:20px;border-radius:10px;background:#1E2233;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2}
+.row{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:center;font-size:13px;padding:7px 0;border-bottom:1px solid #EAF1EC;line-height:1.45}
+.row:last-child{border-bottom:none}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap;justify-self:start}
+.btnx{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:7px;font-size:12px;font-weight:600;white-space:nowrap;justify-self:start;box-sizing:border-box}
+.rt{width:100%;border-collapse:collapse;font-size:13px}
+.rt th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#5B6E62;padding:8px 10px;background:#F1F7F3;border-bottom:1px solid #DAE6DE}
+.rt td{padding:9px 10px;border-bottom:1px solid #EAF1EC;vertical-align:top;line-height:1.45}
+.rt tr:last-child td{border-bottom:none}
+.fl{display:flex;flex-direction:column;gap:4px;border:1px solid #DAE6DE;border-radius:10px;padding:12px 14px;background:#F9FCFA}
+.fl:hover{border-color:#7CCB98}
+.fl b{font-size:14px;color:#1E2233}
+.fl span{font-size:12px;color:#5E6478;line-height:1.45}
+.tn{position:absolute;box-sizing:border-box;border-radius:9px;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:13px;font-weight:600;color:#1E2233;z-index:2;white-space:nowrap;overflow:hidden}
+.t-root{background:#16261C;color:#FFFFFF}
+.t-home{background:#166534;color:#FFFFFF}
+.t-grp{background:#E1F3E7;border:1.5px solid #94D3AB;color:#14532D}
+.t-list{background:#FFFFFF;border:1.5px solid #9FD9B3}
+.t-form{background:#FFFFFF;border:1px solid #DAE6DE}
+.t-top{background:#FFF7ED;border:1.5px solid #F59E0B}
+.code{font-size:11px;font-weight:700;color:#166534;background:#ECFDF3;border-radius:5px;padding:2px 6px;flex-shrink:0}
+.t-root .code,.t-home .code{background:rgba(255,255,255,0.18);color:#FFFFFF}
+.tn em{font-style:normal;font-size:11px;font-weight:500;color:#5B6E62;margin-left:auto}
+.colh{position:absolute;top:0;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#7A8A80}
+
+.chain{display:flex;align-items:stretch;gap:0}
+.cn{flex:1;border:1px solid #DAE6DE;border-radius:10px;padding:10px 12px;background:#F9FCFA;display:flex;flex-direction:column;gap:3px}
+.cn b{font-size:13px}
+.cn span{font-size:11.5px;color:#5E6478;line-height:1.4}
+.ar{width:24px;display:flex;align-items:center;justify-content:center;color:#6D8474;font-size:16px}
+.m3{display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr;align-items:stretch}
+.m3 .eq{display:flex;align-items:center;justify-content:center;font-size:20px;color:#6D8474;font-weight:700}
+
+</style>
+
+<div style="width:2160px;height:2190px;background:#F4F8F5;overflow:hidden;position:relative">
+<div class="fcol" style="position:absolute;inset:0;padding:36px;display:flex;flex-direction:column;gap:22px;box-sizing:border-box"><header class="fh"><div><div class="eyebrow">Purchase · user experience guide</div><h1>How every Purchase screen works</h1><p>Purchase uses the same frame, lists and documents as Sales. This guide covers what is different: matching bills to goods, approval limits, and the rules that protect what the company pays.</p></div><div class="meta"><div class="mb"><span>For</span><b>Designers, developers, trainers</b></div><div class="mb"><span>Covers</span><b>26 screens, 7 flows, 8 roles</b></div><div class="mb"><span>Read next</span><b>P1 · From a need to a request</b></div></div></header><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start"><div style="display:flex;flex-direction:column;gap:18px"><div class="card"><div class="tag">Pattern 1</div><h2>Same frame as Sales, in green</h2><div class="wf" style="height:200px"><div class="blk" style="left:0;top:0;bottom:0;width:70px;background:#15803D;border-radius:0"></div><div class="blk" style="left:12px;top:44px;width:46px;height:8px;background:rgba(255,255,255,0.45)"></div><div class="blk" style="left:12px;top:64px;width:46px;height:8px;background:rgba(255,255,255,0.45)"></div><div class="blk" style="left:12px;top:84px;width:46px;height:8px;background:rgba(255,255,255,0.45)"></div><div class="blk" style="left:12px;top:104px;width:46px;height:8px;background:rgba(255,255,255,0.9)"></div><div class="blk" style="left:12px;top:124px;width:46px;height:8px;background:rgba(255,255,255,0.45)"></div><div class="blk" style="left:12px;top:144px;width:46px;height:8px;background:rgba(255,255,255,0.45)"></div><div class="blk" style="left:70px;top:0;right:0;height:26px;background:#15803D;border-radius:0"></div><div class="blk" style="left:170px;top:8px;width:120px;height:10px;background:#166534"></div><div class="blk" style="right:14px;top:8px;width:60px;height:10px;background:rgba(255,255,255,0.6)"></div><div class="blk" style="left:84px;top:36px;width:110px;height:6px;background:#9FD9B3"></div><div class="blk" style="left:84px;top:52px;width:150px;height:12px;background:#1E2233"></div><div class="blk" style="left:240px;top:53px;width:40px;height:10px;background:#EDE9FE;border-radius:5px"></div><div class="blk" style="right:14px;top:50px;width:52px;height:16px;background:#166534"></div><div class="blk" style="right:72px;top:50px;width:44px;height:16px;background:#FFFFFF;border:1px solid #D9DCE6"></div><div class="blk" style="left:84px;top:76px;right:124px;bottom:14px;background:#FFFFFF;border:1px solid #E4E6EE"></div><div class="blk" style="right:14px;top:76px;width:100px;bottom:14px;background:#FFFFFF;border:1px solid #E4E6EE"></div><div class="blk" style="left:96px;right:136px;top:92px;height:8px;background:#EEF0F4"></div><div class="blk" style="left:96px;right:136px;top:116px;height:8px;background:#EEF0F4"></div><div class="blk" style="left:96px;right:136px;top:140px;height:8px;background:#EEF0F4"></div><div class="blk" style="left:96px;right:136px;top:164px;height:8px;background:#EEF0F4"></div><div class="lab" style="left:26px;top:20px">1</div><div class="lab" style="left:282px;top:4px">2</div><div class="lab" style="left:92px;top:24px">3</div><div class="lab" style="left:160px;top:70px">4</div><div class="lab" style="left:300px;top:70px">5</div><div class="lab" style="left:566px;top:120px">6</div></div><div class="li"><b class="k">1</b><span><b>Sidebar</b>: Purchase Transaction, Supplier Billing or Operation Policies. Purchase home and Sign out at the bottom.</span></div><div class="li"><b class="k">2</b><span><b>Top bar</b>: search, <b>Approvals</b> with a count, and who is signed in.</span></div><div class="li"><b class="k">3</b><span><b>Breadcrumb</b>: Home › group › screen.</span></div><div class="li"><b class="k">4</b><span><b>Title</b> with number and status chip; the line below names the supplier and where it came from.</span></div><div class="li"><b class="k">5</b><span><b>Actions</b>: the filled green button is the next step.</span></div><div class="li"><b class="k">6</b><span><b>Right panel</b>: what happens next, checks and linked documents.</span></div><p>List pages and document pages follow the same order as in Sales, so a user who knows one module knows the other.</p></div><div class="card"><div class="tag">Pattern 4</div><h2>Status chips</h2><p>Same colours as Sales. Purchase adds a few words of its own.</p><div class="row" style="grid-template-columns:290px 1fr"><span class="chip" style="background:#EEF0F4;color:#475069">Draft</span><span>Saved, not in effect yet.</span></div><div class="row" style="grid-template-columns:290px 1fr"><span class="chip" style="background:#FEF3C7;color:#92400E">Pending approval</span><span>Waiting in someone’s Approvals inbox.</span></div><div class="row" style="grid-template-columns:290px 1fr"><span class="chip" style="background:#DBEAFE;color:#1E40AF">Released · Submitted · Waiting</span><span>Sent out; the next step can start.</span></div><div class="row" style="grid-template-columns:290px 1fr"><span class="chip" style="background:#EDE9FE;color:#5B21B6">Partially received · Short 5</span><span>Some arrived; a balance is open.</span></div><div class="row" style="grid-template-columns:290px 1fr"><span class="chip" style="background:#DCFCE7;color:#166534">Done · Converted · Awarded · Settled</span><span>Nothing left to do.</span></div><div class="row" style="grid-template-columns:290px 1fr"><span class="chip" style="background:#FEF3C7;color:#92400E">To match · Waiting for credit</span><span>Needs someone to act, no approval.</span></div><div class="row" style="grid-template-columns:290px 1fr"><span class="chip" style="background:#FEE2E2;color:#991B1B">Rejected · Closed</span><span>Stopped; kept for audit.</span></div></div></div><div style="display:flex;flex-direction:column;gap:18px"><div class="card"><div class="tag">Pattern 2</div><h2>Three-way match</h2><p>A supplier bill is paid only when three documents agree, line by line.</p><div class="m3"><div class="cn"><b>Ordered</b><span>Purchase order · price and qty agreed</span></div><div class="eq">=</div><div class="cn"><b>Received</b><span>Goods receipt · qty that arrived</span></div><div class="eq">=</div><div class="cn"><b>Billed</b><span>Supplier invoice · what they ask for</span></div></div><table class="rt"><thead><tr><th>Check</th><th>Tolerance</th><th>Outside it</th></tr></thead><tbody><tr><td>Unit price</td><td>± 2%</td><td>Approve the difference, or ask for a new bill</td></tr><tr><td>Quantity</td><td>0 over received</td><td>Record only what was received</td></tr><tr><td>Tax amount</td><td>± RM 1.00</td><td>Rounding only</td></tr></tbody></table><p>Example: PI-0001 billed 100 rolls, 95 were received, so RM 4,180.00 is recorded instead of RM 4,400.00.</p></div><div class="card"><div class="tag">Pattern 3</div><h2>Who approves what</h2><table class="rt"><thead><tr><th>Document or branch</th><th>When</th><th>Approver</th></tr></thead><tbody><tr><td><b>HQ Shah Alam</b></td><td>over RM 10,000.00</td><td>Purchasing Manager</td></tr><tr><td><b>Penang</b></td><td>over RM 5,000.00</td><td>Branch Manager</td></tr><tr><td><b>Any branch</b></td><td>over RM 50,000.00</td><td>+ Finance Director</td></tr><tr><td><b>Invoices</b></td><td>outside tolerance</td><td>Purchasing Manager</td></tr><tr><td><b>Debit notes</b></td><td>charge not on the PO</td><td>Purchasing Manager</td></tr><tr><td><b>Cash purchase</b></td><td>over RM 1,000.00</td><td>Not allowed; raise a PO</td></tr></tbody></table><p>Limits live in Approval Rules (P24). Every approval shows the requester’s note and keeps the approver’s comment.</p></div></div><div style="display:flex;flex-direction:column;gap:18px"><div class="card"><div class="tag">Journeys</div><h2>The seven Purchase flows</h2><p>Each board shows who does each step, on which screen, and what changes after.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><a class="fl" href="FlowP1.html"><b>P1 · From a need to a request</b><span>Demand list, staff requests and buy-to-order lines.</span></a><a class="fl" href="FlowP2.html"><b>P2 · Asking suppliers for prices</b><span>RFQ, compare replies, award.</span></a><a class="fl" href="FlowP3.html"><b>P3 · PO approval and release</b><span>Branch limits, one or two approvers.</span></a><a class="fl" href="FlowP4.html"><b>P4 · Receiving goods</b><span>Count, short deliveries, confirm.</span></a><a class="fl" href="FlowP5.html"><b>P5 · Invoice and three-way match</b><span>Tolerance, differences, payable.</span></a><a class="fl" href="FlowP6.html"><b>P6 · Fixing after the purchase</b><span>Cancel, return or debit note.</span></a><a class="fl" href="FlowP7.html"><b>P7 · Cash purchase</b><span>Small urgent buys with a receipt photo.</span></a><a class="fl" href="PurNavMap.html" style="background:#ECFDF3"><b>Navigation map</b><span>Where each of the 26 screens lives.</span></a></div></div><div class="card"><div class="tag">Rules</div><h2>Seven rules users can rely on</h2><div class="li"><b class="k">1</b><span>Goods can never be received beyond the open PO quantity.</span></div><div class="li"><b class="k">2</b><span>A bill is never paid for goods that have not arrived.</span></div><div class="li"><b class="k">3</b><span>The buyer can never approve their own PO.</span></div><div class="li"><b class="k">4</b><span>Orders over RM 50,000.00 need replies from at least 2 suppliers, unless the item has a contract price.</span></div><div class="li"><b class="k">5</b><span>Choosing a supplier that is not the cheapest needs a written reason.</span></div><div class="li"><b class="k">6</b><span>Only active suppliers from Master Data can be used.</span></div><div class="li"><b class="k">7</b><span>Released documents are locked. Fix them with a cancel order, a purchase return or a debit note.</span></div></div><div class="card"><div class="tag">Numbers</div><h2>Document numbers</h2><table class="rt"><tbody><tr><td style="width:160px"><code style="white-space:nowrap">PRQ-0001</code></td><td>Purchase request</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">RFQ-0001</code></td><td>Request for quotation</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">PO-0001</code></td><td>Purchase order</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">GRN-0001</code></td><td>Goods receipt</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">PI-0001</code></td><td>Purchase invoice · supplier’s own number kept beside it</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">CP-0002</code></td><td>Cash purchase</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">PDN-0001 · PRT-0001</code></td><td>Supplier debit note · Purchase return</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">PCO-0001</code></td><td>Cancel order</td></tr><tr><td style="width:160px"><code style="white-space:nowrap">PO-L-0861</code></td><td>Migrated from the old system</td></tr></tbody></table><p>Prefixes and next numbers are set in Document Types (P25).</p></div></div></div><div class="card"><div class="tag">Case study</div><h2>One order through the whole module</h2><div class="chain"><div class="cn"><b>PRQ-0001</b><span>100 rolls requested</span></div><div class="ar">→</div><div class="cn"><b>RFQ-0001</b><span>2 suppliers quote</span></div><div class="ar">→</div><div class="cn"><b>PO-0001</b><span>RM 4,400.00</span></div><div class="ar">→</div><div class="cn"><b>GRN-0001</b><span>95 arrive</span></div><div class="ar">→</div><div class="cn"><b>PI-0001</b><span>Billed 100, recorded 95</span></div><div class="ar">→</div><div class="cn"><b>PRT-0001</b><span>10 wrong colour back</span></div></div><p>Chair fabric from Kilang Kain Jaya. Each flow below uses this case, so the numbers match from screen to screen.</p></div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start"><div class="card"><div class="tag">Pattern 5</div><h2>Working with other modules</h2><div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:10px;padding:11px 14px;font-size:13px;color:#78350F;line-height:1.5"><b>Inventory is not connected yet.</b> This receipt is saved and the stock movement is queued.</div><p>Purchase never waits for another module. It saves an event, and the other module picks it up when it is plugged in.</p><table class="rt"><thead><tr><th>Module</th><th>What passes between them</th><th>What users see now</th></tr></thead><tbody><tr><td><b style="white-space:nowrap">Inventory</b></td><td>Goods receipts, purchase returns, cash purchase stock</td><td>Receipt confirmed in Purchase; stock event waits</td></tr><tr><td><b style="white-space:nowrap">Finance</b></td><td>Payables, payments, supplier credit and debit notes</td><td>Approved invoices kept as payables</td></tr><tr><td><b style="white-space:nowrap">Sales</b></td><td>Buy-to-order lines on released sales orders</td><td>Draft PO appears for the buyer</td></tr><tr><td><b style="white-space:nowrap">Core · Master Data</b></td><td>Suppliers, items, prices, tax codes, users</td><td>Read-only in Purchase</td></tr></tbody></table></div><div class="card"><div class="tag">People</div><h2>Who does what</h2><table class="rt"><thead><tr><th>Role</th><th>Main screens</th><th>Approves</th></tr></thead><tbody><tr><td><b style="white-space:nowrap">Requester</b></td><td>Demand, purchase request</td><td>—</td></tr><tr><td><b style="white-space:nowrap">Buyer</b></td><td>RFQ, purchase order, cancel (draft), return, debit note</td><td>—</td></tr><tr><td><b style="white-space:nowrap">Purchasing manager</b></td><td>Approvals, release cancellations</td><td>POs over the HQ limit, invoice differences, extra charges</td></tr><tr><td><b style="white-space:nowrap">Branch manager</b></td><td>Approvals</td><td>Penang POs over RM 5,000.00</td></tr><tr><td><b style="white-space:nowrap">Finance director</b></td><td>Approvals</td><td>Second approval over RM 50,000.00</td></tr><tr><td><b style="white-space:nowrap">Store · receiving</b></td><td>Goods receipt, hand over returns</td><td>—</td></tr><tr><td><b style="white-space:nowrap">AP clerk</b></td><td>Purchase invoice, credit and debit notes</td><td>—</td></tr><tr><td><b style="white-space:nowrap">Admin</b></td><td>Operation Policies</td><td>Changes are logged</td></tr></tbody></table></div></div><div data-m="end"></div></div>
+</div>
+</div>
+
+</body>
+</html>

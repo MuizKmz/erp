@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales · Reports · Sales by customer</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:10px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr.sel td{background:#F8F5FF}
+.nw{white-space:nowrap}
+.mut{color:#5E6478}
+.sm{font-size:12px}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.ro{background:#F7F8FB;color:#3A4056;border-color:#E4E6EE}
+.cell{width:72px;height:32px;box-sizing:border-box;border:1.5px solid #6D45DB;border-radius:6px;text-align:right;padding:0 8px;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;background:#FFFFFF}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-red{background:#DC2626;color:#FFFFFF}
+.b-dark{background:#4B5563;color:#FFFFFF}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-mod{background:#6D45DB;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.b-redline{background:#FFFFFF;color:#B91C1C;border-color:#F3B4B4}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.st-pend{background:#FEF3C7;color:#92400E}
+.st-rel{background:#DBEAFE;color:#1E40AF}
+.st-part{background:#EDE9FE;color:#5B21B6}
+.st-done{background:#DCFCE7;color:#166534}
+.st-canc{background:#FEE2E2;color:#991B1B}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500;white-space:nowrap}
+.nav:hover{background:#6A42D6}
+.nav.on{background:#5B35C9;font-weight:700}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 0 10px;font-family:inherit;font-size:13px;font-weight:600;color:#5E6478;cursor:pointer;white-space:nowrap}
+.tab.on{border-bottom-color:#6D45DB;color:#5B35C9}
+.kpi{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.kpi span:first-child{font-size:12px;font-weight:600;color:#5E6478}
+.kpi strong{font-size:22px}
+.kpi span:last-child{font-size:12px;color:#5E6478}
+.pg{width:32px;height:32px;border-radius:8px;border:1px solid #D9DCE6;background:#FFFFFF;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;cursor:pointer}
+.h2{margin:0;font-size:14px;font-weight:700}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-bottom:1px solid #EEF0F4;font-variant-numeric:tabular-nums}
+.kv span:first-child{color:#5E6478}
+.kv.tot{border-bottom:none;border-top:1px solid #1E2233;margin-top:4px;padding-top:10px;font-size:15px;font-weight:700}
+.kv.tot span:first-child{color:#1E2233}
+.step{display:flex;gap:12px;font-size:13px;line-height:1.5}
+.step b{width:24px;height:24px;border-radius:12px;background:#F8F5FF;color:#5B35C9;border:1px solid #DDD6FE;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ev{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4}
+.ev time{width:112px;flex-shrink:0;color:#5E6478;font-size:12px}
+.note{display:flex;align-items:flex-start;gap:10px;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.5}
+.n-info{background:#F8F5FF;border:1px solid #DDD6FE;color:#1E2233}
+.n-warn{background:#FFFBEB;border:1px solid #FCD34D;color:#78350F}
+.n-err{background:#FEF2F2;border:1px solid #FECACA;color:#7F1D1D}
+.sw{width:40px;height:22px;border-radius:11px;border:none;padding:2px;display:flex;cursor:pointer;flex-shrink:0;box-sizing:border-box}
+.sw i{width:18px;height:18px;border-radius:9px;background:#FFFFFF;display:block}
+.sw.on{background:#6D45DB;justify-content:flex-end}
+.sw.off{background:#CBD0DC;justify-content:flex-start}
+.bar{height:6px;border-radius:3px;background:#EEF0F4;overflow:hidden;width:64px}
+.bar i{display:block;height:6px;background:#6D45DB}
+.lnkrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4;gap:10px}
+
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden;position:relative">
+<nav aria-label="Reports" style="width:220px;flex-shrink:0;background:#7B4FE0;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6D45DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11"></path><path d="M11 20V5"></path><path d="M17 20v-7"></path><path d="M3 20h18"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Reports</div>
+</div>
+<a class="nav on" aria-current="page" href="SalesReports.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11"></path><path d="M11 20V5"></path><path d="M17 20v-7"></path><path d="M3 20h18"></path></svg>Sales by customer</a>
+<a class="nav" href="SalesReports.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11"></path><path d="M11 20V5"></path><path d="M17 20v-7"></path><path d="M3 20h18"></path></svg>Sales by item</a>
+<a class="nav" href="SalesReports.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg>Open orders</a>
+<a class="nav" href="SalesReports.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"></path><path d="M6 15l4-4 3 3 5-6"></path></svg>Quotation conversion</a>
+<a class="nav" href="SalesReports.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Customer aging</a>
+<a class="nav" href="SalesReports.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Invoice register</a>
+<a class="nav" href="SalesReports.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path></svg>e-Invoice status</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="Main.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Sales home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#7B4FE0;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:200px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#6A42D6;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="Approvals.html" aria-label="Approvals, 3 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#5B35C9;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">3</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">MA</span>admin@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="Main.html">Home</a><span>›</span><span>Reports</span><span>›</span><span style="color:#1E2233;font-weight:500">Sales by customer</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+<div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="margin:0;font-size:20px;font-weight:700">Sales by customer</h1><span class="chip st-rel">September 2026</span></div>
+<div style="font-size:12px;color:#5E6478">Ordered, invoiced and still open, per customer. Cancelled balances are left out of “open”.</div>
+</div>
+<div style="display:flex;gap:8px;flex-shrink:0"><button class="btn b-ghost"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Schedule email</button><button class="btn b-ghost">PDF</button><button class="btn b-green">Export to Excel</button></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px"><select class="inp" aria-label="Period"><option>Period: September 2026</option></select><select class="inp" aria-label="Branch"><option>Branch: all</option></select><select class="inp" aria-label="Sales agent"><option>Sales agent: all</option></select><select class="inp" aria-label="Customer group"><option>Customer group: all</option></select><select class="inp" aria-label="Compare"><option>Compare: none</option></select></div>
+<div style="display:flex;gap:14px"><div class="card kpi"><span>Ordered</span><strong>RM 274,098.00</strong><span>8 sales orders</span></div><div class="card kpi" style="background:#F8F5FF;border-color:#DDD6FE"><span style="color:#5B35C9">Invoiced</span><strong style="color:#5B35C9">RM 32,890.00</strong><span style="color:#5B35C9">12% of ordered</span></div><div class="card kpi" style="background:#FEF2F2;border-color:#FECACA"><span style="color:#991B1B">Cancelled</span><strong style="color:#991B1B">RM 4,950.00</strong><span style="color:#991B1B">CO-0002 · SO-0006</span></div><div class="card kpi"><span>Still open</span><strong>RM 236,258.00</strong><span>To deliver and invoice</span></div></div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;width:450px;flex-shrink:0"><div style="display:flex;justify-content:space-between;align-items:center"><h2 class="h2">Ordered by customer (RM)</h2><div style="display:flex;gap:14px" class="sm"><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;background:#6D45DB;border-radius:2px;display:inline-block"></i>Invoiced</span><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;background:#C4B5FD;border-radius:2px;display:inline-block"></i>Ordered</span></div></div><div style="display:flex;flex-direction:column;gap:14px;padding-top:6px"><div style="display:grid;grid-template-columns:190px 1fr 110px;align-items:center;gap:12px;font-size:13px"><span class="nw" style="overflow:hidden;text-overflow:ellipsis">Kedai Perabot Maju</span><div style="height:18px;border-radius:4px;background:#EEF0F4;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;bottom:0;width:100.0%;background:#C4B5FD"></div><div style="position:absolute;left:0;top:0;bottom:0;width:0.0%;background:#6D45DB"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums">113,498.00</span></div><div style="display:grid;grid-template-columns:190px 1fr 110px;align-items:center;gap:12px;font-size:13px"><span class="nw" style="overflow:hidden;text-overflow:ellipsis">Hotel Seri Bayu Sdn Bhd</span><div style="height:18px;border-radius:4px;background:#EEF0F4;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;bottom:0;width:86.3%;background:#C4B5FD"></div><div style="position:absolute;left:0;top:0;bottom:0;width:14.5%;background:#6D45DB"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums">97,900.00</span></div><div style="display:grid;grid-template-columns:190px 1fr 110px;align-items:center;gap:12px;font-size:13px"><span class="nw" style="overflow:hidden;text-overflow:ellipsis">Villa Damai Resort</span><div style="height:18px;border-radius:4px;background:#EEF0F4;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;bottom:0;width:32.6%;background:#C4B5FD"></div><div style="position:absolute;left:0;top:0;bottom:0;width:0.0%;background:#6D45DB"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums">36,960.00</span></div><div style="display:grid;grid-template-columns:190px 1fr 110px;align-items:center;gap:12px;font-size:13px"><span class="nw" style="overflow:hidden;text-overflow:ellipsis">Restoran Selera Kampung</span><div style="height:18px;border-radius:4px;background:#EEF0F4;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;bottom:0;width:11.5%;background:#C4B5FD"></div><div style="position:absolute;left:0;top:0;bottom:0;width:11.5%;background:#6D45DB"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums">13,090.00</span></div><div style="display:grid;grid-template-columns:190px 1fr 110px;align-items:center;gap:12px;font-size:13px"><span class="nw" style="overflow:hidden;text-overflow:ellipsis">Klinik Sihat Jaya</span><div style="height:18px;border-radius:4px;background:#EEF0F4;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;bottom:0;width:7.3%;background:#C4B5FD"></div><div style="position:absolute;left:0;top:0;bottom:0;width:2.9%;background:#6D45DB"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums">8,250.00</span></div><div style="display:grid;grid-template-columns:190px 1fr 110px;align-items:center;gap:12px;font-size:13px"><span class="nw" style="overflow:hidden;text-overflow:ellipsis">Syarikat Delta Trading</span><div style="height:18px;border-radius:4px;background:#EEF0F4;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;bottom:0;width:3.9%;background:#C4B5FD"></div><div style="position:absolute;left:0;top:0;bottom:0;width:0.0%;background:#6D45DB"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums">4,400.00</span></div></div><p style="margin:0;font-size:12px;color:#5E6478;padding-top:6px">SO-0008 (RM 92,378.00) is still waiting for credit approval. It counts as ordered.</p><h2 class="h2" style="padding-top:10px">By sales agent</h2><table class="tbl "><thead><tr><th>Agent</th><th class="num">Orders</th><th class="num">Ordered (RM)</th></tr></thead><tbody><tr><td>Aina Rahman</td><td class="num">3</td><td class="num">134,860.00</td></tr><tr><td>Lim Wei Jie</td><td class="num">2</td><td class="num">113,498.00</td></tr><tr><td>Faizal Omar</td><td class="num">3</td><td class="num">25,740.00</td></tr></tbody></table></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex-grow:1;min-width:0"><h2 class="h2">Detail</h2><table class="tbl "><thead><tr><th>Customer</th><th class="num">Orders</th><th class="num">Ordered</th><th class="num">Invoiced</th><th class="num">Open</th><th class="num">Share</th></tr></thead><tbody><tr><td><strong class="nw">Kedai Perabot Maju</strong></td><td class="num">2</td><td class="num">113,498.00</td><td class="num">0.00</td><td class="num">113,498.00</td><td class="num">41.4%</td></tr><tr><td><strong class="nw">Hotel Seri Bayu Sdn Bhd</strong></td><td class="num">2</td><td class="num">97,900.00</td><td class="num">16,500.00</td><td class="num">81,400.00</td><td class="num">35.7%</td></tr><tr><td><strong class="nw">Villa Damai Resort</strong></td><td class="num">1</td><td class="num">36,960.00</td><td class="num">0.00</td><td class="num">36,960.00</td><td class="num">13.5%</td></tr><tr><td><strong class="nw">Restoran Selera Kampung</strong></td><td class="num">1</td><td class="num">13,090.00</td><td class="num">13,090.00</td><td class="num">0.00</td><td class="num">4.8%</td></tr><tr><td><strong class="nw">Klinik Sihat Jaya</strong></td><td class="num">1</td><td class="num">8,250.00</td><td class="num">3,300.00</td><td class="num">0.00</td><td class="num">3.0%</td></tr><tr><td><strong class="nw">Syarikat Delta Trading</strong></td><td class="num">1</td><td class="num">4,400.00</td><td class="num">0.00</td><td class="num">4,400.00</td><td class="num">1.6%</td></tr><tr style="background:#F7F8FB"><td><strong>Total</strong></td><td class="num"><strong>8</strong></td><td class="num"><strong>274,098.00</strong></td><td class="num"><strong>32,890.00</strong></td><td class="num"><strong>236,258.00</strong></td><td class="num"><strong>100%</strong></td></tr></tbody></table><p style="margin:0;font-size:12px;color:#5E6478">Amounts include tax. Invoiced is before returns: SR-0001 credited RM 1,375.00 on INV-0001.</p></section>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

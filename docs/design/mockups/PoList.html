@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Purchase · Purchase order list</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:10px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr.sel td{background:#F0FDF4}
+.nw{white-space:nowrap}
+.mut{color:#5E6478}
+.sm{font-size:12px}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.ro{background:#F7F8FB;color:#3A4056;border-color:#E4E6EE}
+.cell{width:72px;height:32px;box-sizing:border-box;border:1.5px solid #15803D;border-radius:6px;text-align:right;padding:0 8px;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;background:#FFFFFF}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-red{background:#DC2626;color:#FFFFFF}
+.b-dark{background:#4B5563;color:#FFFFFF}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-mod{background:#166534;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.b-redline{background:#FFFFFF;color:#B91C1C;border-color:#F3B4B4}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.st-pend{background:#FEF3C7;color:#92400E}
+.st-rel{background:#DBEAFE;color:#1E40AF}
+.st-part{background:#EDE9FE;color:#5B21B6}
+.st-done{background:#DCFCE7;color:#166534}
+.st-canc{background:#FEE2E2;color:#991B1B}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500;white-space:nowrap}
+.nav:hover{background:#17733A}
+.nav.on{background:#14532D;font-weight:700}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 0 10px;font-family:inherit;font-size:13px;font-weight:600;color:#5E6478;cursor:pointer;white-space:nowrap}
+.tab.on{border-bottom-color:#15803D;color:#166534}
+.kpi{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.kpi span:first-child{font-size:12px;font-weight:600;color:#5E6478}
+.kpi strong{font-size:22px}
+.kpi span:last-child{font-size:12px;color:#5E6478}
+.pg{width:32px;height:32px;border-radius:8px;border:1px solid #D9DCE6;background:#FFFFFF;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;cursor:pointer}
+.h2{margin:0;font-size:14px;font-weight:700}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-bottom:1px solid #EEF0F4;font-variant-numeric:tabular-nums}
+.kv span:first-child{color:#5E6478}
+.kv.tot{border-bottom:none;border-top:1px solid #1E2233;margin-top:4px;padding-top:10px;font-size:15px;font-weight:700}
+.kv.tot span:first-child{color:#1E2233}
+.step{display:flex;gap:12px;font-size:13px;line-height:1.5}
+.step b{width:24px;height:24px;border-radius:12px;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ev{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4}
+.ev time{width:112px;flex-shrink:0;color:#5E6478;font-size:12px}
+.note{display:flex;align-items:flex-start;gap:10px;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.5}
+.n-info{background:#F0FDF4;border:1px solid #BBF7D0;color:#1E2233}
+.n-warn{background:#FFFBEB;border:1px solid #FCD34D;color:#78350F}
+.n-err{background:#FEF2F2;border:1px solid #FECACA;color:#7F1D1D}
+.sw{width:40px;height:22px;border-radius:11px;border:none;padding:2px;display:flex;cursor:pointer;flex-shrink:0;box-sizing:border-box}
+.sw i{width:18px;height:18px;border-radius:9px;background:#FFFFFF;display:block}
+.sw.on{background:#15803D;justify-content:flex-end}
+.sw.off{background:#CBD0DC;justify-content:flex-start}
+.bar{height:6px;border-radius:3px;background:#EEF0F4;overflow:hidden;width:64px}
+.bar i{display:block;height:6px;background:#15803D}
+.lnkrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4;gap:10px}
+
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden;position:relative">
+<nav aria-label="Purchase Transaction" style="width:220px;flex-shrink:0;background:#15803D;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 4h6v3H9z"></path><path d="M9 13l2 2 4-4"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Purchase Transaction</div>
+</div>
+<a class="nav" href="PurDemand.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"></path><path d="M6 15l4-4 3 3 5-6"></path></svg>Demand</a>
+<a class="nav" href="PurRequestList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Purchase Request</a>
+<a class="nav" href="RfqList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Request for Quote</a>
+<a class="nav on" aria-current="page" href="PoList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Purchase Order</a>
+<a class="nav" href="GrnList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"></path><path d="M3 7l9 4 9-4"></path><path d="M12 11v10"></path></svg>Goods Receipt</a>
+<a class="nav" href="PoCancelList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Cancel Order</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="PurHome.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Purchase home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#15803D;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:200px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#166534;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="PurApprovals.html" aria-label="Approvals, 2 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#166534;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">2</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#166534;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">LM</span>meiying@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="PurHome.html">Home</a><span>›</span><span>Purchase Transaction</span><span>›</span><span style="color:#1E2233;font-weight:500">Purchase Order</span></div>
+<section class="card" style="padding:18px 24px;display:flex;flex-direction:column;gap:12px;flex-grow:1">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px"><div><h1 style="margin:0;font-size:18px;font-weight:700">List of Purchase Order</h1><p style="margin:4px 0 0;font-size:12px;color:#5E6478">Orders placed with suppliers. Released orders are sent to the supplier and wait for goods.</p></div><div style="display:flex;gap:8px;flex-shrink:0"><a class="btn b-blue" href="PoForm.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Add new PO</a><a class="btn b-ghost" href="PoApproval.html">Send for approval</a><button class="btn b-mod">Release</button><button class="btn b-red">Delete draft</button></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px"><input class="inp" aria-label="Filter by supplier" placeholder="Filter by supplier"><select class="inp" aria-label="Filter by buyer"><option>Filter by buyer</option></select><select class="inp" aria-label="Filter by branch"><option>Filter by branch</option></select><input class="inp" aria-label="Filter by date: 01 Sep – 29 Sep 2026" placeholder="Filter by date: 01 Sep – 29 Sep 2026"></div>
+<div style="display:flex;justify-content:space-between;align-items:flex-end"><div role="tablist" aria-label="Purchase order status" style="display:flex;gap:24px;border-bottom:1px solid #E4E6EE;flex-grow:1"><button role="tab" aria-selected="true" class="tab on">All · 11</button><button role="tab" aria-selected="false" class="tab">Draft · 2</button><button role="tab" aria-selected="false" class="tab">Pending approval · 1</button><button role="tab" aria-selected="false" class="tab">Released · 3</button><button role="tab" aria-selected="false" class="tab">Partially received · 2</button><button role="tab" aria-selected="false" class="tab">Done · 3</button></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><span class="sm mut">1 selected · PO-0003 is waiting for Ahmad Zaki</span><div style="display:flex;gap:8px"><button class="btn b-dark">Import</button><button class="btn b-green">Export</button><button class="btn b-ghost">Select columns</button></div></div>
+<table class="tbl "><thead><tr><th></th><th>PO no</th><th>Date</th><th>Supplier</th><th>Source</th><th class="num">Total (RM)</th><th>Received</th><th>Invoiced</th><th>Status</th></tr></thead><tbody><tr><td><input type="checkbox" aria-label="Select PO-0006"></td><td><span class="nw"><a class="lnk" href="PoForm.html" style="font-weight:600">PO-0006</a></span></td><td><span class="nw">29 Sep 2026</span></td><td>Hardware Mart Klang</td><td><span class="mut">Buyer</span></td><td class="num">396.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:0%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">0 / 30</span></div></td><td><span class="mut">—</span></td><td><span class="chip st-draft">Draft</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-0005"></td><td><span class="nw"><a class="lnk" href="PoForm.html" style="font-weight:600">PO-0005</a></span></td><td><span class="nw">28 Sep 2026</span></td><td>Tekstil Utara Enterprise</td><td><a class="lnk" href="RfqList.html">RFQ-0002</a></td><td class="num">1,540.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:0%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">0 / 40</span></div></td><td><span class="mut">—</span></td><td><span class="chip st-draft">Draft</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-0004"></td><td><span class="nw"><a class="lnk" href="PoForm.html" style="font-weight:600">PO-0004</a></span></td><td><span class="nw">28 Sep 2026</span></td><td>Kilang Kain Jaya Sdn Bhd</td><td><a class="lnk" href="PurRequestList.html">PRQ-0004</a></td><td class="num">2,640.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:0%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">0 / 60</span></div></td><td><span class="mut">—</span></td><td><span class="chip st-rel">Released</span></td></tr><tr class="sel"><td><input type="checkbox" aria-label="Select PO-0003" checked></td><td><span class="nw"><a class="lnk" href="PoApproval.html" style="font-weight:600">PO-0003</a></span></td><td><span class="nw">27 Sep 2026</span></td><td>Perabot Kayu Timur</td><td><span class="nw">SO-0003 · auto</span></td><td class="num">46,200.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:0%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">0 / 20</span></div></td><td><span class="mut">—</span></td><td><span class="chip st-pend">Pending approval</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-0002"></td><td><span class="nw"><a class="lnk" href="PoForm.html" style="font-weight:600">PO-0002</a></span></td><td><span class="nw">24 Sep 2026</span></td><td>Mesin Jahit Pro Sdn Bhd</td><td><a class="lnk" href="PurRequestList.html">PRQ-0002</a></td><td class="num">25,000.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:100%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">1 / 1</span></div></td><td><span class="nw" style="color:#92400E">PI-0002 · waiting</span></td><td><span class="chip st-done">Done</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-0001"></td><td><span class="nw"><a class="lnk" href="PoForm.html" style="font-weight:600">PO-0001</a></span></td><td><span class="nw">23 Sep 2026</span></td><td>Kilang Kain Jaya Sdn Bhd</td><td><a class="lnk" href="RfqCompare.html">RFQ-0001</a></td><td class="num">4,400.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:95%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">95 / 100</span></div></td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:95%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">95 / 100</span></div></td><td><span class="chip st-part">Partial</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-L-0882"></td><td><span class="nw"><strong>PO-L-0882</strong></span></td><td><span class="nw">21 Sep 2026</span></td><td>Mesin Jahit Pro Sdn Bhd</td><td><span class="mut">Migrated</span></td><td class="num">872.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:0%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">0 / 8</span></div></td><td><span class="mut">—</span></td><td><span class="chip st-rel">Released</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-L-0879"></td><td><span class="nw"><strong>PO-L-0879</strong></span></td><td><span class="nw">21 Sep 2026</span></td><td>Cat Warna Sdn Bhd</td><td><span class="mut">Migrated</span></td><td class="num">12,400.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:0%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">0 / 80</span></div></td><td><span class="mut">—</span></td><td><span class="chip st-rel">Released</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-L-0877"></td><td><span class="nw"><strong>PO-L-0877</strong></span></td><td><span class="nw">18 Sep 2026</span></td><td>Cat Warna Sdn Bhd</td><td><span class="mut">Migrated</span></td><td class="num">1,254.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:100%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">12 / 12</span></div></td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:100%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">12 / 12</span></div></td><td><span class="chip st-done">Done</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-L-0870"></td><td><span class="nw"><strong>PO-L-0870</strong></span></td><td><span class="nw">15 Sep 2026</span></td><td>Tekstil Utara Enterprise</td><td><span class="mut">Migrated</span></td><td class="num">1,100.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:100%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">25 / 25</span></div></td><td><span class="nw" style="color:#92400E">PI-0003 · to match</span></td><td><span class="chip st-done">Done</span></td></tr><tr><td><input type="checkbox" aria-label="Select PO-L-0861"></td><td><span class="nw"><strong>PO-L-0861</strong></span></td><td><span class="nw">10 Sep 2026</span></td><td>Hardware Mart Klang</td><td><span class="mut">Migrated</span></td><td class="num">648.00</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:67%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">20 / 30</span></div></td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i style="width:67%"></i></div><span class="nw" style="font-variant-numeric:tabular-nums">20 / 30</span></div></td><td><span class="chip st-part">Partial</span></td></tr></tbody></table>
+<div style="flex-grow:1"></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><span class="sm mut">11 orders · RM 96,450.00 in total, tax included</span><div style="display:flex;gap:6px"><button class="pg" aria-label="Previous page">‹</button><button class="pg" aria-current="page" style="background:#1E2233;color:#FFFFFF;border-color:#1E2233">1</button><button class="pg" aria-label="Next page">›</button></div></div>
+</section>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

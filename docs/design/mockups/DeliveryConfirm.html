@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales · Confirm delivery DO-0001</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:9px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.cell{height:34px;width:96px;box-sizing:border-box;border:2px solid #6D45DB;border-radius:6px;padding:0 8px;font-family:inherit;font-size:14px;font-weight:700;color:#1E2233;background:#FFFFFF;text-align:right}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-purple{background:#6D45DB;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500}
+.nav:hover{background:#6A42D6}
+.nav.on{background:#5B35C9;font-weight:700}
+.h2{margin:0;font-size:14px;font-weight:700}
+.step{display:flex;gap:12px;font-size:13px;line-height:1.5}
+.step b{width:24px;height:24px;border-radius:12px;background:#EFE9FD;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden">
+<nav aria-label="Sales transaction" style="width:220px;flex-shrink:0;background:#7B4FE0;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6D45DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M3 4h2l2.4 11h11.2L21 7H6.2"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Sales Transaction</div>
+</div>
+<a class="nav" href="EnquiryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Enquiry</a>
+<a class="nav" href="QuotationForm.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Draft Quotation</a>
+<a class="nav" href="QuotationList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Quotation</a>
+<a class="nav" href="SalesOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Sales Order</a>
+<a class="nav on" aria-current="page" href="DeliveryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11v10H3z"></path><path d="M14 10h4l3 3v3h-7"></path><circle cx="7" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg>Delivery Order</a>
+<a class="nav" href="CancelOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Cancel Order</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="Main.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Sales home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#7B4FE0;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:180px">Monday, September 21</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#6A42D6;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<div style="font-size:13px">9:28 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">AR</span>aina@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="Main.html">Home</a><span>›</span><span>Delivery Order</span><span>›</span><span style="color:#1E2233;font-weight:500">DO-0001</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="margin:0;font-size:20px;font-weight:700">Confirm delivery DO-0001</h1><span class="chip st-draft">Draft</span></div>
+<div style="font-size:12px;color:#5E6478">From <a class="lnk" href="SalesOrderForm.html">SO-0001</a> · Hotel Seri Bayu Sdn Bhd</div>
+</div>
+<div style="display:flex;gap:8px"><a class="btn b-ghost" href="SalesOrderForm.html">Cancel</a><button class="btn b-ghost">Print DO</button><button class="btn b-ghost">Save draft</button><a class="btn b-purple" href="SalesOrderForm.html">Confirm delivery</a></div>
+</div>
+<div style="display:flex;align-items:flex-start;gap:10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;font-size:13px;color:#1E3A8A;line-height:1.5">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v5h1"></path></svg>
+<span><strong>Inventory is not connected yet.</strong> Delivery is confirmed here in Sales and the event is saved. When the Inventory module is plugged in, picking and delivery move there, and this screen shows its status instead.</span>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<div style="flex-grow:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+<section class="card" style="padding:16px 20px">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px">
+<label class="fld">Delivery date<input class="inp" value="21 Sep 2026"></label>
+<label class="fld">Vehicle · driver<input class="inp" value="VKL 3321 · Rahim"></label>
+<label class="fld">Consignment note<input class="inp" value="CN-778120"></label>
+<label class="fld" style="grid-column:span 2">Deliver to<input class="inp" value="Hotel Seri Bayu, Jalan Pantai Baharu, 59200 Kuala Lumpur"></label>
+<label class="fld">Receiver<input class="inp" value="Pn. Zarina Aziz"></label>
+<label class="fld" style="grid-column:span 3">Warehouse note<input class="inp" value="Use loading bay B. Call receiver 30 minutes before arrival."></label>
+</div>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">What is being delivered</h2>
+<table class="tbl">
+<thead><tr><th>Item</th><th>Description</th><th class="num">Ordered</th><th class="num">Delivered before</th><th class="num">Balance</th><th class="num">Deliver now</th><th class="num">Left after</th></tr></thead>
+<tbody><tr><td style="font-weight:600">CH-DIN-01</td><td>Dining chair, solid oak</td><td class="num">100</td><td class="num">0</td><td class="num">100</td><td class="num"><input class="cell" value="60" aria-label="Deliver now, CH-DIN-01"></td><td class="num" style="font-weight:700;color:#5B21B6">40</td></tr></tbody>
+</table>
+<p style="margin:0;font-size:12px;color:#5E6478">Deliver now cannot be more than the balance (100). The rest stays open on the order.</p>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:8px">
+<h2 class="h2">Proof of delivery</h2>
+<div style="height:88px;border:2px dashed #D9DCE6;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#5E6478">Drop the signed DO or a photo here, or <span style="color:#2563EB;font-weight:600">browse</span></div>
+</section>
+</div>
+<aside style="width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<h2 class="h2">When you confirm</h2>
+<div class="step"><b>1</b><span>SO-0001 balance goes from 100 to <strong>40</strong>. Its status becomes Partial.</span></div>
+<div class="step"><b>2</b><span>60 chairs can now be invoiced from the order.</span></div>
+<div class="step"><b>3</b><span>The event <code style="font-size:12px">sales.shipment.requested</code> is saved for Inventory to pick up later.</span></div>
+<div class="step"><b>4</b><span>The DO is locked. Mistakes are fixed with a return, not an edit.</span></div>
+</section>
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">SO-0001 progress</h2>
+<div style="height:10px;border-radius:5px;background:#EEF0F4;display:flex;overflow:hidden"><div style="width:60%;background:#6D45DB"></div></div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#3A4056"><span>After this DO: 60 of 100 delivered</span><strong>60%</strong></div>
+<div style="display:flex;flex-direction:column;gap:6px;font-size:13px;padding-top:4px">
+<div style="display:flex;justify-content:space-between"><span style="color:#5E6478">In stock now</span><span>60</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5E6478">Wanted by</span><span>12 Oct 2026</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5E6478">Sales agent</span><span>Aina Rahman</span></div>
+</div>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

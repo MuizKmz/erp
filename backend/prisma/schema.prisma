@@ -1,0 +1,220 @@
+// Zora Pro ERP — one schema for every module.
+// Table prefixes (via @@map): sys_ platform · mdm_ master data (seed only, read through MasterDataPort)
+// inv_ / sal_ stubs · pur_ purchase.
+// Conventions: uuid CHAR(36) ids, tenantId on every table with an index starting with it,
+// money Decimal(18,2), unit price / qty Decimal(18,4), rates Decimal(7,4), timestamps DATETIME(3) in UTC.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// sys_ · platform
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SysTenant {
+  id           String   @id @default(uuid()) @db.Char(36)
+  code         String   @unique @db.VarChar(20)
+  name         String   @db.VarChar(150)
+  baseCurrency String   @default("MYR") @db.Char(3)
+  timezone     String   @default("Asia/Kuala_Lumpur") @db.VarChar(50)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @db.DateTime(3)
+
+  @@map("sys_tenant")
+}
+
+/// One running number per document type. NumberingService locks the row (SELECT … FOR UPDATE)
+/// inside the caller's transaction, so numbers are never handed out twice.
+model SysNumberSequence {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  docType   String   @db.VarChar(20) // PO, PRQ, GRN …
+  prefix    String   @db.VarChar(20) // "PO-"
+  digits    Int      @default(4)
+  nextValue Int      @default(1)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, docType])
+  @@map("sys_number_sequence")
+}
+
+/// Who did what to which document. Shown in the Activity panel of every document.
+model SysActivity {
+  id         String   @id @default(uuid()) @db.Char(36)
+  tenantId   String   @db.Char(36)
+  entityType String   @db.VarChar(40) // e.g. PUR_ORDER
+  entityId   String   @db.Char(36)
+  docNo      String?  @db.VarChar(30)
+  action     String   @db.VarChar(40) // created, submitted, approved, released …
+  message    String   @db.VarChar(500)
+  comment    String?  @db.Text
+  data       Json?
+  userCode   String   @db.VarChar(20)
+  userName   String   @db.VarChar(100)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+
+  @@index([tenantId, entityType, entityId, createdAt])
+  @@map("sys_activity")
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ApprovalStepStatus {
+  QUEUED // a later step, not active yet
+  WAITING // the active step, sits in the approver's inbox
+  APPROVED
+  REJECTED
+  SKIPPED // never reached because the request was rejected or cancelled
+}
+
+/// A generic approval request for any document. The owning module decides the steps
+/// (e.g. Purchasing Manager, then Finance Director) and reacts to the outcome.
+model SysApprovalRequest {
+  id              String            @id @default(uuid()) @db.Char(36)
+  tenantId        String            @db.Char(36)
+  entityType      String            @db.VarChar(40)
+  entityId        String            @db.Char(36)
+  docNo           String            @db.VarChar(30)
+  branchCode      String            @db.VarChar(10)
+  amount          Decimal?          @db.Decimal(18, 2)
+  title           String            @db.VarChar(200) // what is being approved, for the inbox
+  reason          String            @db.VarChar(500) // why approval is needed, e.g. "Over the HQ limit of RM 10,000.00"
+  requesterNote   String?           @db.Text
+  requestedByCode String            @db.VarChar(20)
+  requestedByName String            @db.VarChar(100)
+  status          ApprovalStatus    @default(PENDING)
+  currentStep     Int               @default(1)
+  createdAt       DateTime          @default(now()) @db.DateTime(3)
+  decidedAt       DateTime?         @db.DateTime(3)
+  steps           SysApprovalStep[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, entityType, entityId])
+  @@map("sys_approval_request")
+}
+
+model SysApprovalStep {
+  id            String             @id @default(uuid()) @db.Char(36)
+  tenantId      String             @db.Char(36)
+  requestId     String             @db.Char(36)
+  stepNo        Int
+  approverRole  String             @db.VarChar(40) // PURCHASE_MANAGER …
+  approverCode  String?            @db.VarChar(20) // a named approver, when the rule names one
+  approverName  String?            @db.VarChar(100)
+  status        ApprovalStepStatus @default(QUEUED)
+  decidedByCode String?            @db.VarChar(20)
+  decidedByName String?            @db.VarChar(100)
+  comment       String?            @db.Text
+  decidedAt     DateTime?          @db.DateTime(3)
+  request       SysApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, stepNo])
+  @@index([tenantId, status, approverRole])
+  @@map("sys_approval_step")
+}
+
+enum OutboxStatus {
+  PENDING
+  DISPATCHED
+  FAILED
+}
+
+/// Events for other modules, written in the same transaction as the change (see docs/integration/EVENTS.md).
+/// Events that no module listens to yet simply stay PENDING until one is connected.
+model SysOutbox {
+  id            String       @id @default(uuid()) @db.Char(36)
+  seq           Int          @unique @default(autoincrement()) // delivery order
+  tenantId      String       @db.Char(36)
+  name          String       @db.VarChar(100) // purchase.order.released
+  version       Int          @default(1)
+  aggregateType String       @db.VarChar(40)
+  aggregateId   String       @db.Char(36)
+  payload       Json
+  actorCode     String       @db.VarChar(20)
+  correlationId String       @db.Char(36)
+  occurredAt    DateTime     @default(now()) @db.DateTime(3)
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  nextAttemptAt DateTime     @default(now()) @db.DateTime(3)
+  lastError     String?      @db.Text
+  dispatchedAt  DateTime?    @db.DateTime(3)
+
+  @@index([tenantId, status, name])
+  @@index([status, nextAttemptAt])
+  @@map("sys_outbox")
+}
+
+/// Idempotency for event consumers: one row per (event, handler) that has processed it.
+model SysEventHandled {
+  eventId   String   @db.Char(36)
+  handler   String   @db.VarChar(100)
+  tenantId  String   @db.Char(36)
+  handledAt DateTime @default(now()) @db.DateTime(3)
+
+  @@id([eventId, handler])
+  @@index([tenantId, handledAt])
+  @@map("sys_event_handled")
+}
+
+/// Files stored on local disk under backend/uploads. Uploaded first, then attached to a document.
+model SysAttachment {
+  id             String   @id @default(uuid()) @db.Char(36)
+  tenantId       String   @db.Char(36)
+  entityType     String?  @db.VarChar(40)
+  entityId       String?  @db.Char(36)
+  kind           String?  @db.VarChar(40) // RECEIPT_PHOTO, SUPPLIER_LETTER, DO_PHOTO …
+  fileName       String   @db.VarChar(255)
+  mimeType       String   @db.VarChar(100)
+  sizeBytes      Int
+  storageKey     String   @db.VarChar(500) // path relative to UPLOAD_DIR
+  uploadedByCode String   @db.VarChar(20)
+  createdAt      DateTime @default(now()) @db.DateTime(3)
+
+  @@index([tenantId, entityType, entityId])
+  @@map("sys_attachment")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// mdm_ · master data (local seed tables, phase 1). Only MasterDataPort reads these.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MdmBranch {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  code      String   @db.VarChar(10) // HQ, PNG
+  name      String   @db.VarChar(100)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, code])
+  @@map("mdm_branch")
+}
+
+model MdmUser {
+  id          String   @id @default(uuid()) @db.Char(36)
+  tenantId    String   @db.Char(36)
+  code        String   @db.VarChar(20) // LMY
+  name        String   @db.VarChar(100)
+  email       String   @db.VarChar(150)
+  roles       Json // string[]: PURCHASE_BUYER, PURCHASE_MANAGER …
+  branchCodes Json // string[]: HQ, PNG
+  department  String?  @db.VarChar(50) // Production, Office …
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, code])
+  @@map("mdm_user")
+}

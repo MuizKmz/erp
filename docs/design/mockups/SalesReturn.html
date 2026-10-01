@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Billing · Sales return SR-0001</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:9px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl td:nth-child(1){white-space:nowrap}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid #EEF0F4;font-variant-numeric:tabular-nums}
+.kv span:first-child{color:#5E6478}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.cell{height:34px;width:90px;box-sizing:border-box;border:2px solid #6D45DB;border-radius:6px;padding:0 8px;font-family:inherit;font-size:14px;font-weight:700;color:#1E2233;background:#FFFFFF;text-align:right}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-purple{background:#6D45DB;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500}
+.nav:hover{background:#6A42D6}
+.nav.on{background:#5B35C9;font-weight:700}
+.h2{margin:0;font-size:14px;font-weight:700}
+.tot{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;font-variant-numeric:tabular-nums}
+.tot span:first-child{color:#5E6478}
+.step{display:flex;gap:12px;font-size:13px;line-height:1.5}
+.step b{width:24px;height:24px;border-radius:12px;background:#EFE9FD;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden">
+<nav aria-label="Billing" style="width:220px;flex-shrink:0;background:#7B4FE0;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6D45DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Billing</div>
+</div>
+<a class="nav" href="ProformaList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Proforma Invoice</a>
+<a class="nav" href="InvoiceList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Invoice</a>
+<a class="nav" href="CashSaleList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Cash Sales</a>
+<a class="nav" href="DebitNoteList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Debit Note</a>
+<a class="nav on" aria-current="page" href="SalesReturnList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l-4-4 4-4"></path><path d="M5 10h9a5 5 0 0 1 0 10h-3"></path></svg>Sales Return</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="Main.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Sales home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#7B4FE0;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:180px">Thursday, September 24</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#6A42D6;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<div style="font-size:13px">11:40 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">AR</span>aina@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="Main.html">Home</a><span>›</span><span>Billing</span><span>›</span><span style="color:#1E2233;font-weight:500">SR-0001</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="margin:0;font-size:20px;font-weight:700">Sales return SR-0001</h1><span class="chip st-draft">Draft</span></div>
+<div style="font-size:12px;color:#5E6478">From invoice <a class="lnk" href="InvoiceForm.html">INV-0001</a> · Hotel Seri Bayu Sdn Bhd</div>
+</div>
+<div style="display:flex;gap:8px"><a class="btn b-ghost" href="InvoiceForm.html">Cancel</a><button class="btn b-ghost">Save draft</button><a class="btn b-purple" href="DocFlow.html">Release return</a></div>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<div style="flex-grow:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+<section class="card" style="padding:16px 20px">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px">
+<label class="fld">Customer · C-0012<input class="inp" value="Hotel Seri Bayu Sdn Bhd" readonly style="background:#F7F8FB"></label>
+<label class="fld">Return date<input class="inp" value="24 Sep 2026"></label>
+<label class="fld">Reason<select class="inp"><option>Damaged in transit</option></select></label>
+<label class="fld">Return goods to<select class="inp"><option>Damaged goods · HQ Shah Alam</option></select></label>
+<label class="fld">Credit method<select class="inp"><option>Credit note to customer account</option></select></label>
+<label class="fld">Customer reference<input class="inp" value="HSB-RMA-014"></label>
+<label class="fld" style="grid-column:span 3">Note<input class="inp" value="5 chairs with cracked back rails. Photos attached by the receiver."></label>
+</div>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">What is coming back</h2>
+<table class="tbl">
+<thead><tr><th>Item</th><th class="num">Invoiced</th><th class="num">Returned before</th><th class="num">Max return</th><th class="num">Return now</th><th class="num">Unit price</th><th class="num">Credit</th></tr></thead>
+<tbody><tr><td><div style="font-weight:600">CH-DIN-01</div><div style="font-size:12px;color:#5E6478">Dining chair, solid oak</div></td><td class="num">60</td><td class="num">0</td><td class="num">60</td><td class="num"><input class="cell" value="5" aria-label="Return now, CH-DIN-01"></td><td class="num">250.00</td><td class="num">1,250.00</td></tr></tbody>
+</table>
+<p style="margin:0;font-size:12px;color:#5E6478">You can never return more than was invoiced, minus earlier returns.</p>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:8px">
+<h2 class="h2">Photos and documents</h2>
+<div style="display:flex;gap:10px">
+<div style="width:120px;height:80px;border-radius:8px;background:#EEF0F4;display:flex;align-items:center;justify-content:center;font-size:12px;color:#5E6478">[photo 1]</div>
+<div style="width:120px;height:80px;border-radius:8px;background:#EEF0F4;display:flex;align-items:center;justify-content:center;font-size:12px;color:#5E6478">[photo 2]</div>
+<div style="width:120px;height:80px;border-radius:8px;border:2px dashed #D9DCE6;display:flex;align-items:center;justify-content:center;font-size:12px;color:#2563EB;font-weight:600">+ Add</div>
+</div>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex-grow:1">
+<h2 class="h2">Checks before release</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="display:flex;gap:10px;align-items:center;font-size:13px;padding:10px 12px;border-radius:8px;background:#F0FDF4;color:#14532D"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Return qty 5 is within 60 invoiced</div>
+<div style="display:flex;gap:10px;align-items:center;font-size:13px;padding:10px 12px;border-radius:8px;background:#F0FDF4;color:#14532D"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Customer is active in Master Data</div>
+<div style="display:flex;gap:10px;align-items:center;font-size:13px;padding:10px 12px;border-radius:8px;background:#F0FDF4;color:#14532D"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Return location exists at HQ Shah Alam</div>
+<div style="display:flex;gap:10px;align-items:center;font-size:13px;padding:10px 12px;border-radius:8px;background:#F0FDF4;color:#14532D"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>A reason is given</div>
+</div>
+</section>
+</div>
+<aside style="width:330px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column">
+<h2 class="h2" style="padding-bottom:6px">Credit (MYR)</h2>
+<div class="tot"><span>Goods</span><span>1,250.00</span></div>
+<div class="tot"><span>Tax (SST 10%)</span><span>125.00</span></div>
+<div class="tot" style="border-top:1px solid #E4E6EE;padding-top:10px;font-size:16px;font-weight:700"><span style="color:#1E2233">Credit total</span><span>1,375.00</span></div>
+</section>
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<h2 class="h2">When you release</h2>
+<div class="step"><b>1</b><span>INV-0001 balance due drops by RM 1,375.00.</span></div>
+<div class="step"><b>2</b><span>5 chairs go into Damaged goods. The event is saved for Inventory.</span></div>
+<div class="step"><b>3</b><span>A credit note is queued for Finance and for LHDN e-Invoice, referencing INV-0001.</span></div>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column">
+<h2 class="h2" style="padding-bottom:6px">Original invoice INV-0001</h2>
+<div class="kv"><span>Invoice date</span><span>21 Sep 2026</span></div>
+<div class="kv"><span>Invoice total</span><span>RM 16,500.00</span></div>
+<div class="kv"><span>Paid so far</span><span>RM 0.00</span></div>
+<div class="kv"><span>Balance due now</span><span>RM 16,500.00</span></div>
+<div class="kv" style="border-bottom:none;font-weight:700"><span style="color:#1E2233">After this return</span><span>RM 15,125.00</span></div>
+<a class="lnk" href="InvoiceForm.html" style="font-size:13px;font-weight:600;padding-top:8px">Open invoice →</a>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

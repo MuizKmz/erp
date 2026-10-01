@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales · Cancel order balance</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:9px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nw{white-space:nowrap}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.ro{background:#F7F8FB;color:#3A4056;border-color:#E4E6EE}
+.cell{height:34px;width:90px;box-sizing:border-box;border:2px solid #DC2626;border-radius:6px;padding:0 8px;font-family:inherit;font-size:14px;font-weight:700;color:#1E2233;background:#FFFFFF;text-align:right}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-red{background:#DC2626;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.st-canc{background:#FEE2E2;color:#991B1B}
+.st-rel{background:#DBEAFE;color:#1E40AF}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500}
+.nav:hover{background:#6A42D6}
+.nav.on{background:#5B35C9;font-weight:700}
+.h2{margin:0;font-size:14px;font-weight:700}
+.step{display:flex;gap:12px;font-size:13px;line-height:1.5}
+.step b{width:24px;height:24px;border-radius:12px;background:#FEE2E2;color:#991B1B;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden">
+<nav aria-label="Sales transaction" style="width:220px;flex-shrink:0;background:#7B4FE0;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6D45DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M3 4h2l2.4 11h11.2L21 7H6.2"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Sales Transaction</div>
+</div>
+<a class="nav" href="EnquiryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Enquiry</a>
+<a class="nav" href="QuotationForm.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Draft Quotation</a>
+<a class="nav" href="QuotationList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Quotation</a>
+<a class="nav" href="SalesOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Sales Order</a>
+<a class="nav" href="DeliveryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11v10H3z"></path><path d="M14 10h4l3 3v3h-7"></path><circle cx="7" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg>Delivery Order</a>
+<a class="nav on" aria-current="page" href="CancelOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Cancel Order</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="Main.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Sales home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#7B4FE0;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:180px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#6A42D6;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="Approvals.html" aria-label="Approvals, 3 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#5B35C9;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">3</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">FO</span>faizal@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="Main.html">Home</a><span>›</span><span>Cancel Order</span><span>›</span><span style="color:#1E2233;font-weight:500">CO-0002</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="margin:0;font-size:20px;font-weight:700">Cancel order balance CO-0002</h1><span class="chip st-draft">Draft</span></div>
+<div style="font-size:12px;color:#5E6478">Closes the part of a sales order that will never be delivered</div>
+</div>
+<div style="display:flex;gap:8px"><a class="btn b-ghost" href="SalesOrderList.html">Back</a><button class="btn b-ghost">Save draft</button><a class="btn b-red" href="SalesOrderList.html">Release cancellation</a></div>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<div style="flex-grow:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+<section class="card" style="padding:16px 20px">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px">
+<label class="fld">Sales order to cancel<select class="inp"><option>SO-0006 · Klinik Sihat Jaya</option></select></label>
+<label class="fld">Customer · C-0078<input class="inp ro" value="Klinik Sihat Jaya" readonly></label>
+<label class="fld">Cancel date<input class="inp" value="29 Sep 2026"></label>
+<label class="fld">Reason<select class="inp"><option>Customer changed requirement</option></select></label>
+<label class="fld">Asked by (customer contact)<input class="inp" value="Dr. Nurul Huda"></label>
+<label class="fld">Customer reference<input class="inp" value="Email, 28 Sep 2026"></label>
+<label class="fld" style="grid-column:span 3">Note<input class="inp" value="Clinic renovation reduced to one floor. Keep the 10 chairs already delivered."></label>
+</div>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">What is being cancelled</h2>
+<table class="tbl">
+<thead><tr><th>Item</th><th class="num">Ordered</th><th class="num">Delivered</th><th class="num">Invoiced</th><th class="num">Balance</th><th class="num">Cancel now</th><th class="num">Left after</th></tr></thead>
+<tbody><tr><td><div class="nw" style="font-weight:600">CH-OFF-02</div><div style="font-size:12px;color:#5E6478">Office chair, mesh</div></td><td class="num">25</td><td class="num">10</td><td class="num">10</td><td class="num">15</td><td class="num"><input class="cell" value="15" aria-label="Cancel now, CH-OFF-02"></td><td class="num" style="font-weight:700">0</td></tr></tbody>
+</table>
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#3A4056;background:#F7F8FB;border-radius:8px;padding:8px 12px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v5h1"></path></svg>
+Only the undelivered balance can be cancelled. Goods already delivered go back through a sales return.
+</div>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex-grow:1">
+<h2 class="h2">Recent cancellations</h2>
+<table class="tbl">
+<thead><tr><th>CO no</th><th>Date</th><th>Sales order</th><th>Customer</th><th class="num">Qty cancelled</th><th>Reason</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td class="nw" style="font-weight:600">CO-0001</td><td class="nw">16 Sep 2026</td><td class="nw">SO-L-0981</td><td>Restoran Selera Kampung</td><td class="num">4</td><td>Item discontinued</td><td><span class="chip st-rel">Released</span></td></tr>
+<tr><td class="nw" style="font-weight:600">CO-0002</td><td class="nw">29 Sep 2026</td><td class="nw">SO-0006</td><td>Klinik Sihat Jaya</td><td class="num">15</td><td>Customer changed requirement</td><td><span class="chip st-draft">Draft</span></td></tr>
+</tbody>
+</table>
+</section>
+</div>
+<aside style="width:330px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<h2 class="h2">When you release</h2>
+<div class="step"><b>1</b><span>SO-0006 closes with status <strong>Balance cancelled</strong>. Its 15 open chairs drop to 0.</span></div>
+<div class="step"><b>2</b><span>Any stock reserved for those 15 is freed. The event is saved for Inventory.</span></div>
+<div class="step"><b>3</b><span>Nothing is posted to accounts, because nothing was invoiced for the cancelled part.</span></div>
+</section>
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:8px">
+<h2 class="h2">SO-0006 today</h2>
+<div style="height:10px;border-radius:5px;background:#EEF0F4;display:flex;overflow:hidden"><div style="width:40%;background:#6D45DB"></div><div style="width:60%;background:repeating-linear-gradient(45deg,#FCA5A5 0 6px,#FEE2E2 6px 12px)"></div></div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#3A4056"><span>10 delivered</span><span>15 to cancel</span></div>
+<div style="font-size:13px;display:flex;flex-direction:column;gap:6px;padding-top:6px">
+<div style="display:flex;justify-content:space-between"><span style="color:#5E6478">Order total</span><span>RM 8,250.00</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#5E6478">Invoiced</span><span>RM 3,300.00</span></div>
+<div style="display:flex;justify-content:space-between;font-weight:700"><span>Value cancelled</span><span>RM 4,950.00</span></div>
+</div>
+</section>
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:8px;flex-grow:1">
+<h2 class="h2">Who can do this</h2>
+<p style="margin:0;font-size:13px;color:#3A4056;line-height:1.5">Permission <code style="font-size:12px">sales.cancel_order.release</code>. Sales agents can draft; a Sales Manager releases.</p>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

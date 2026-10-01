@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales · navigation map</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F6F5FA}
+a{color:#2563EB;text-decoration:none}
+.fcol>*{flex-shrink:0}
+.fh{display:flex;justify-content:space-between;align-items:flex-start;gap:32px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6D45DB}
+.fh h1{margin:6px 0 6px;font-size:30px;font-weight:800;letter-spacing:-0.01em;text-wrap:balance}
+.fh p{margin:0;font-size:15px;color:#4A5068;line-height:1.5;max-width:760px}
+.meta{display:grid;grid-template-columns:repeat(3,minmax(0,250px));gap:12px}
+.mb{background:#FFFFFF;border:1px solid #E4E1F0;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.mb span{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#8A88A0}
+.mb b{font-size:13px;font-weight:600;line-height:1.45}
+.legend{display:flex;gap:22px;align-items:center;font-size:12px;color:#5E6478}
+.legend i{display:inline-block;width:22px;height:14px;border-radius:4px;vertical-align:middle;margin-right:7px;box-sizing:border-box}
+.lanes{position:relative;background:#FFFFFF;border:1px solid #E4E1F0;border-radius:14px;overflow:hidden}
+.lane{position:absolute;left:0;right:0;border-bottom:1px solid #EEECF5}
+.lane.alt{background:#FBFAFE}
+.ll{position:absolute;left:0;top:0;bottom:0;width:156px;background:#F3F0FC;border-right:1px solid #E4E1F0;display:flex;flex-direction:column;justify-content:center;padding:0 16px;box-sizing:border-box;gap:3px}
+.ll b{font-size:13px;font-weight:700;color:#3B2A7A}
+.ll span{font-size:11px;color:#6E6A88;line-height:1.35}
+.nd{position:absolute;box-sizing:border-box;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.k-step{background:#FFFFFF;border:1.5px solid #CFC4F7;box-shadow:0 1px 2px rgba(59,42,122,0.08)}
+.k-dec{background:#FFFBEB;border:1.5px solid #F2B84B}
+.k-sys{background:#F2F4F8;border:1.5px dashed #9AA3B8}
+.k-appr{background:#FFF7ED;border:1.5px solid #F59E0B}
+.k-start{background:#2A2340;border:none;border-radius:40px;color:#FFFFFF;justify-content:center;padding:8px 16px}
+.k-end{background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:40px;color:#14532D;justify-content:center;padding:8px 16px}
+.nt{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#7A7596}
+.k-dec .nt{color:#92400E}
+.k-appr .nt{color:#9A3412}
+.no{min-width:18px;height:18px;border-radius:9px;background:#6D45DB;color:#FFFFFF;font-size:10.5px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0;padding:0 4px;box-sizing:border-box}
+.k-dec .no{background:#D97706}
+.k-appr .no{background:#EA580C}
+.k-sys .no{background:#6B7190}
+.tx{font-size:13px;font-weight:600;line-height:1.3}
+.k-start .tx,.k-end .tx{font-size:13px;text-align:center}
+.sub{font-size:11px;color:#5E6478;line-height:1.3}
+.scr{display:inline-block;align-self:flex-start;font-size:11px;font-weight:600;color:#5B35C9;background:#F3EFFE;border:1px solid #DDD6FE;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.scr:hover{background:#E9E2FD}
+.el{position:absolute;z-index:3;font-size:11px;font-weight:700;color:#3B2A7A;background:#FFFFFF;border:1px solid #D9CFFB;border-radius:10px;padding:1px 8px;white-space:nowrap}
+.el.no-{color:#991B1B;border-color:#FECACA}
+.el.yes{color:#166534;border-color:#BBF7D0}
+.nh{display:flex;justify-content:space-between;align-items:baseline}
+.nh h2{margin:0;font-size:18px;font-weight:800}
+.nh span{font-size:12px;color:#6E6A88}
+.nt2{width:100%;border-collapse:separate;border-spacing:0;background:#FFFFFF;border:1px solid #E4E1F0;border-radius:14px;overflow:hidden;font-size:13px}
+.nt2 th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#6E6A88;background:#F7F5FC;padding:10px 12px;border-bottom:1px solid #E4E1F0}
+.nt2 td{padding:11px 12px;border-bottom:1px solid #F0EEF6;vertical-align:top;line-height:1.45}
+.nt2 tr:last-child td{border-bottom:none}
+.nt2 td.n{width:28px}
+.nt2 .stp{font-weight:700}
+.nt2 td .scr{margin:0 4px 4px 0}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;background:#6D45DB;color:#FFFFFF;font-size:11px;font-weight:700;padding:0 5px;box-sizing:border-box}
+.pill.d{background:#D97706}.pill.a{background:#EA580C}.pill.s{background:#6B7190}
+
+.card{background:#FFFFFF;border:1px solid #E4E1F0;border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box}
+.card h2{margin:0;font-size:17px;font-weight:800}
+.card p{margin:0;font-size:13px;color:#4A5068;line-height:1.55}
+.tag{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6D45DB}
+.li{display:flex;gap:10px;font-size:13px;line-height:1.5;align-items:flex-start}
+.li b.k{flex-shrink:0;width:22px;height:22px;border-radius:11px;background:#6D45DB;color:#FFFFFF;font-size:11px;display:flex;align-items:center;justify-content:center}
+.wf{border:1px solid #DDD6FE;border-radius:10px;overflow:hidden;background:#FBFAFE;position:relative}
+.wf .blk{position:absolute;border-radius:4px}
+.wf .lab{position:absolute;width:20px;height:20px;border-radius:10px;background:#1E2233;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2}
+.row{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:center;font-size:13px;padding:7px 0;border-bottom:1px solid #F0EEF6;line-height:1.45}
+.row:last-child{border-bottom:none}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap;justify-self:start}
+.btnx{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:7px;font-size:12px;font-weight:600;white-space:nowrap;justify-self:start;box-sizing:border-box}
+.rt{width:100%;border-collapse:collapse;font-size:13px}
+.rt th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#6E6A88;padding:8px 10px;background:#F7F5FC;border-bottom:1px solid #E4E1F0}
+.rt td{padding:9px 10px;border-bottom:1px solid #F0EEF6;vertical-align:top;line-height:1.45}
+.rt tr:last-child td{border-bottom:none}
+.fl{display:flex;flex-direction:column;gap:4px;border:1px solid #E4E1F0;border-radius:10px;padding:12px 14px;background:#FBFAFE}
+.fl:hover{border-color:#B9A8F5}
+.fl b{font-size:14px;color:#1E2233}
+.fl span{font-size:12px;color:#5E6478;line-height:1.45}
+.tn{position:absolute;box-sizing:border-box;border-radius:9px;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:13px;font-weight:600;color:#1E2233;z-index:2;white-space:nowrap;overflow:hidden}
+.t-root{background:#2A2340;color:#FFFFFF}
+.t-home{background:#5B35C9;color:#FFFFFF}
+.t-grp{background:#EDE7FD;border:1.5px solid #C4B5FD;color:#3B2A7A}
+.t-list{background:#FFFFFF;border:1.5px solid #CFC4F7}
+.t-form{background:#FFFFFF;border:1px solid #E4E1F0}
+.t-top{background:#FFF7ED;border:1.5px solid #F59E0B}
+.code{font-size:11px;font-weight:700;color:#5B35C9;background:#F3EFFE;border-radius:5px;padding:2px 6px;flex-shrink:0}
+.t-root .code,.t-home .code{background:rgba(255,255,255,0.18);color:#FFFFFF}
+.tn em{font-style:normal;font-size:11px;font-weight:500;color:#6E6A88;margin-left:auto}
+.colh{position:absolute;top:0;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#8A88A0}
+
+</style>
+
+<div style="width:2160px;height:1480px;background:#F6F5FA;overflow:hidden;position:relative">
+<div class="fcol" style="position:absolute;inset:0;padding:36px;display:flex;flex-direction:column;gap:22px;box-sizing:border-box"><header class="fh"><div><div class="eyebrow">Sales · navigation map</div><h1>Where every Sales screen lives</h1><p>The path from the module launcher to each of the 33 screens. Tags on the right are the menu names users click; S-numbers match the artboards. Every box opens its screen.</p></div><div class="meta"><div class="mb"><span>Screens</span><b>33 in Sales</b></div><div class="mb"><span>Deepest path</span><b>4 clicks from Sales home</b></div><div class="mb"><span>Colour</span><b>Purple sidebar = Sales</b></div></div></header><div class="card" style="padding:24px 28px"><div style="position:relative;height:1090px;width:1960px"><svg width="1960" height="1090" viewBox="0 0 1960 1090" style="position:absolute;left:0;top:0;z-index:1" aria-hidden="true"><path d="M 1260 60.0 L 1280.0 60.0 L 1280.0 60.0 L 1298 60.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 185.0 L 910.0 185.0 L 910.0 60.0 L 928 60.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1600 110.0 L 1620.0 110.0 L 1620.0 110.0 L 1638 110.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 110.0 L 1280.0 110.0 L 1280.0 110.0 L 1298 110.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 185.0 L 910.0 185.0 L 910.0 110.0 L 928 110.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1600 185.0 L 1620.0 185.0 L 1620.0 160.0 L 1638 160.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1600 185.0 L 1620.0 185.0 L 1620.0 210.0 L 1638 210.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 185.0 L 1280.0 185.0 L 1280.0 185.0 L 1298 185.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 185.0 L 910.0 185.0 L 910.0 185.0 L 928 185.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 260.0 L 1280.0 260.0 L 1280.0 260.0 L 1298 260.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 185.0 L 910.0 185.0 L 910.0 260.0 L 928 260.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 310.0 L 1280.0 310.0 L 1280.0 310.0 L 1298 310.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 185.0 L 910.0 185.0 L 910.0 310.0 L 928 310.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 550 608.5 L 575.0 608.5 L 575.0 185.0 L 598 185.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 378.0 L 1280.0 378.0 L 1280.0 378.0 L 1298 378.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 503.0 L 910.0 503.0 L 910.0 378.0 L 928 378.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 453.0 L 1280.0 453.0 L 1280.0 428.0 L 1298 428.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1600 478.0 L 1620.0 478.0 L 1620.0 478.0 L 1638 478.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 453.0 L 1280.0 453.0 L 1280.0 478.0 L 1298 478.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 503.0 L 910.0 503.0 L 910.0 453.0 L 928 453.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 528.0 L 1280.0 528.0 L 1280.0 528.0 L 1298 528.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 503.0 L 910.0 503.0 L 910.0 528.0 L 928 528.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 578.0 L 1280.0 578.0 L 1280.0 578.0 L 1298 578.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 503.0 L 910.0 503.0 L 910.0 578.0 L 928 578.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 1260 628.0 L 1280.0 628.0 L 1280.0 628.0 L 1298 628.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 503.0 L 910.0 503.0 L 910.0 628.0 L 928 628.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 550 608.5 L 575.0 608.5 L 575.0 503.0 L 598 503.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 796.0 L 910.0 796.0 L 910.0 696.0 L 928 696.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 796.0 L 910.0 796.0 L 910.0 746.0 L 928 746.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 796.0 L 910.0 796.0 L 910.0 796.0 L 928 796.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 796.0 L 910.0 796.0 L 910.0 846.0 L 928 846.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 796.0 L 910.0 796.0 L 910.0 896.0 L 928 896.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 550 608.5 L 575.0 608.5 L 575.0 796.0 L 598 796.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 964.0 L 910.0 964.0 L 910.0 964.0 L 928 964.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 550 608.5 L 575.0 608.5 L 575.0 964.0 L 598 964.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 890 1032.0 L 910.0 1032.0 L 910.0 1032.0 L 928 1032.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 550 608.5 L 575.0 608.5 L 575.0 1032.0 L 598 1032.0" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path><path d="M 250 608.5 L 275.0 608.5 L 275.0 608.5 L 298 608.5" fill="none" stroke="#B3ABD0" stroke-width="1.6"></path></svg><div class="colh" style="left:0px">Start</div><div class="colh" style="left:300px">Module home</div><div class="colh" style="left:600px">Menu group</div><div class="colh" style="left:930px">Menu item → list</div><div class="colh" style="left:1300px">Opens</div><div class="colh" style="left:1640px">Opens from there</div><a class="tn t-form" href="EnquiryForm.html" style="left:1300px;top:41px;width:300px;height:38px"><span class="code">S07</span><span>New enquiry</span></a><a class="tn t-list" href="EnquiryList.html" style="left:930px;top:41px;width:330px;height:38px"><span class="code">S06</span><span>Enquiry list</span><em>Enquiry</em></a><a class="tn t-form" href="ItemPicker.html" style="left:1640px;top:91px;width:300px;height:38px"><span class="code">S04</span><span>Add item</span></a><a class="tn t-form" href="QuotationForm.html" style="left:1300px;top:91px;width:300px;height:38px"><span class="code">S09</span><span>Quotation</span></a><a class="tn t-list" href="QuotationList.html" style="left:930px;top:91px;width:330px;height:38px"><span class="code">S08</span><span>Quotation list</span><em>Quotation</em></a><a class="tn t-form" href="DocFlow.html" style="left:1640px;top:141px;width:300px;height:38px"><span class="code">S03</span><span>Document flow</span></a><a class="tn t-form" href="CreditApproval.html" style="left:1640px;top:191px;width:300px;height:38px"><span class="code">S12</span><span>Credit check failed</span></a><a class="tn t-form" href="SalesOrderForm.html" style="left:1300px;top:166px;width:300px;height:38px"><span class="code">S11</span><span>Sales order</span></a><a class="tn t-list" href="SalesOrderList.html" style="left:930px;top:166px;width:330px;height:38px"><span class="code">S10</span><span>Sales order list</span><em>Sales Order</em></a><a class="tn t-form" href="DeliveryConfirm.html" style="left:1300px;top:241px;width:300px;height:38px"><span class="code">S16</span><span>Confirm delivery</span></a><a class="tn t-list" href="DeliveryList.html" style="left:930px;top:241px;width:330px;height:38px"><span class="code">S15</span><span>Delivery orders</span><em>Delivery Order</em></a><a class="tn t-form" href="CancelOrder.html" style="left:1300px;top:291px;width:300px;height:38px"><span class="code">S14</span><span>Cancel balance</span></a><a class="tn t-list" href="CancelOrderList.html" style="left:930px;top:291px;width:330px;height:38px"><span class="code">S13</span><span>Cancel order list</span><em>Cancel Order</em></a><div class="tn t-grp" style="left:600px;top:166px;width:290px;height:38px"><span>Sales Transaction</span></div><a class="tn t-form" href="ProformaForm.html" style="left:1300px;top:359px;width:300px;height:38px"><span class="code">S22</span><span>Proforma</span></a><a class="tn t-list" href="ProformaList.html" style="left:930px;top:359px;width:330px;height:38px"><span class="code">S21</span><span>Proforma list</span><em>Proforma Invoice</em></a><a class="tn t-form" href="CreateInvoice.html" style="left:1300px;top:409px;width:300px;height:38px"><span class="code">S18</span><span>Create invoice</span></a><a class="tn t-form" href="InvoicePrint.html" style="left:1640px;top:459px;width:300px;height:38px"><span class="code">S20</span><span>Print preview</span></a><a class="tn t-form" href="InvoiceForm.html" style="left:1300px;top:459px;width:300px;height:38px"><span class="code">S19</span><span>Invoice</span></a><a class="tn t-list" href="InvoiceList.html" style="left:930px;top:434px;width:330px;height:38px"><span class="code">S17</span><span>Invoice list</span><em>Invoice</em></a><a class="tn t-form" href="CashSale.html" style="left:1300px;top:509px;width:300px;height:38px"><span class="code">S24</span><span>Cash sale</span></a><a class="tn t-list" href="CashSaleList.html" style="left:930px;top:509px;width:330px;height:38px"><span class="code">S23</span><span>Cash sales list</span><em>Cash Sales</em></a><a class="tn t-form" href="DebitNote.html" style="left:1300px;top:559px;width:300px;height:38px"><span class="code">S26</span><span>Debit note</span></a><a class="tn t-list" href="DebitNoteList.html" style="left:930px;top:559px;width:330px;height:38px"><span class="code">S25</span><span>Debit note list</span><em>Debit Note</em></a><a class="tn t-form" href="SalesReturn.html" style="left:1300px;top:609px;width:300px;height:38px"><span class="code">S28</span><span>Sales return</span></a><a class="tn t-list" href="SalesReturnList.html" style="left:930px;top:609px;width:330px;height:38px"><span class="code">S27</span><span>Sales return list</span><em>Sales Return</em></a><div class="tn t-grp" style="left:600px;top:484px;width:290px;height:38px"><span>Billing</span></div><a class="tn t-list" href="Policies.html" style="left:930px;top:677px;width:330px;height:38px"><span class="code">S29</span><span>Credit control</span></a><a class="tn t-list" href="DocTypes.html" style="left:930px;top:727px;width:330px;height:38px"><span class="code">S30</span><span>Document types</span></a><a class="tn t-list" href="EnquiryTypes.html" style="left:930px;top:777px;width:330px;height:38px"><span class="code">S31</span><span>Enquiry types</span></a><a class="tn t-list" href="ExcludedItems.html" style="left:930px;top:827px;width:330px;height:38px"><span class="code">S32</span><span>Excluded items</span></a><a class="tn t-list" href="EmailTemplates.html" style="left:930px;top:877px;width:330px;height:38px"><span class="code">S33</span><span>Email templates</span></a><div class="tn t-grp" style="left:600px;top:777px;width:290px;height:38px"><span>Operation Policies</span></div><a class="tn t-list" href="SalesReports.html" style="left:930px;top:945px;width:330px;height:38px"><span class="code">S05</span><span>Sales by customer</span><em>7 reports</em></a><div class="tn t-grp" style="left:600px;top:945px;width:290px;height:38px"><span>Reports</span></div><a class="tn t-top" href="Approvals.html" style="left:930px;top:1013px;width:330px;height:38px"><span class="code">S02</span><span>Approvals inbox</span><em>badge shows count</em></a><div class="tn t-grp" style="left:600px;top:1013px;width:290px;height:38px"><span>Top bar, on every screen</span></div><a class="tn t-home" href="Main.html" style="left:300px;top:590px;width:250px;height:38px"><span class="code">S01</span><span>Sales home</span></a><a class="tn t-root" href="Launcher.html" style="left:0px;top:590px;width:250px;height:38px"><span class="code">00</span><span>Choose a module</span></a></div></div><div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px"><div class="card" style="padding:16px 18px;gap:6px"><div class="tag">Breadcrumbs</div><p>Every screen shows Home › group › screen. Each part is a link back up.</p></div><div class="card" style="padding:16px 18px;gap:6px"><div class="tag">Numbers are links</div><p>In any list, click the document number to open it. Linked numbers inside a form open that document.</p></div><div class="card" style="padding:16px 18px;gap:6px"><div class="tag">Approvals badge</div><p>The count in the top bar is the approver’s to-do list. It is the same inbox for every document type.</p></div><div class="card" style="padding:16px 18px;gap:6px"><div class="tag">Document flow</div><p>From any order, one click shows every linked document and what is still open.</p></div><div class="card" style="padding:16px 18px;gap:6px"><div class="tag">Back to modules</div><p>‹ All modules on Sales home, or Sign out in the sidebar, returns to the module launcher.</p></div></div><div data-m="end"></div></div>
+</div>
+</div>
+
+</body>
+</html>

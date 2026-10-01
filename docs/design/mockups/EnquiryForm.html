@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales · New enquiry</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:9px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:8px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.ro{background:#F7F8FB;color:#3A4056}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.st-done{background:#DCFCE7;color:#166534}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500}
+.nav:hover{background:#6A42D6}
+.nav.on{background:#5B35C9;font-weight:700}
+.h2{margin:0;font-size:14px;font-weight:700}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-bottom:1px solid #EEF0F4}
+.kv span:first-child{color:#5E6478}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden">
+<nav aria-label="Sales transaction" style="width:220px;flex-shrink:0;background:#7B4FE0;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6D45DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M3 4h2l2.4 11h11.2L21 7H6.2"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Sales Transaction</div>
+</div>
+<a class="nav on" aria-current="page" href="EnquiryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Enquiry</a>
+<a class="nav" href="QuotationForm.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Draft Quotation</a>
+<a class="nav" href="QuotationList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Quotation</a>
+<a class="nav" href="SalesOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Sales Order</a>
+<a class="nav" href="DeliveryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11v10H3z"></path><path d="M14 10h4l3 3v3h-7"></path><circle cx="7" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg>Delivery Order</a>
+<a class="nav" href="CancelOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Cancel Order</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="Main.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Sales home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#7B4FE0;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:180px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#6A42D6;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="Approvals.html" aria-label="Approvals, 3 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#5B35C9;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">3</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">MA</span>admin@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="Main.html">Home</a><span>›</span><a class="lnk" href="EnquiryList.html">Enquiry</a><span>›</span><span style="color:#1E2233;font-weight:500">New enquiry</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;align-items:center;gap:12px"><h1 style="margin:0;font-size:20px;font-weight:700">New enquiry</h1><span class="chip st-draft">Draft</span><span style="font-size:12px;color:#5E6478">Number EQ-2609-0011 is assigned on save</span></div>
+<div style="display:flex;gap:8px"><a class="btn b-ghost" href="EnquiryList.html">Cancel</a><button class="btn b-ghost">Save draft</button><button class="btn b-blue">Save and forward to agent</button></div>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<div style="flex-grow:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<h2 class="h2">Customer</h2>
+<div role="radiogroup" aria-label="Customer type" style="display:flex;border:1px solid #D9DCE6;border-radius:8px;overflow:hidden">
+<button role="radio" aria-checked="true" style="height:32px;padding:0 14px;border:none;background:#EFE9FD;color:#5B35C9;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">Existing customer</button>
+<button role="radio" aria-checked="false" style="height:32px;padding:0 14px;border:none;background:#FFFFFF;color:#1E2233;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">New prospect</button>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px">
+<label class="fld">Customer · from Master Data<input class="inp" value="Kedai Perabot Maju (C-0031)"></label>
+<label class="fld">Contact name<input class="inp" value="Ms. Tan Mei Ling"></label>
+<label class="fld">Phone<input class="inp" value="+60 4-226 1180"></label>
+<label class="fld">Email<input class="inp" value="meiling@perabotmaju.my"></label>
+<label class="fld">Branch<select class="inp"><option>Penang Branch</option></select></label>
+<label class="fld">Enquiry date<input class="inp" value="29 Sep 2026"></label>
+</div>
+</section>
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<h2 class="h2">Enquiry details</h2>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px">
+<label class="fld">Enquiry type<select class="inp"><option>Reseller</option></select></label>
+<label class="fld">Enquiry from<select class="inp"><option>Website</option></select></label>
+<label class="fld">Sales agent<select class="inp"><option>Lim Wei Jie</option></select></label>
+<label class="fld">Customer budget (RM)<input class="inp" value="95,000.00" style="text-align:right"></label>
+<label class="fld">Needed by<input class="inp" value="31 Oct 2026"></label>
+<label class="fld">Customer reference<input class="inp" value="KPM-RFQ-0927"></label>
+</div>
+<label class="fld">Description<textarea class="inp" style="height:72px;padding:10px 12px;resize:none">Restocking two showrooms in Penang. Wants 200 oak dining chairs and 30 six-seater tables, delivered in one lot. Asked about reseller pricing.</textarea></label>
+</section>
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center"><h2 class="h2">Items of interest <span style="font-weight:500;color:#5E6478">(optional, copied to the quotation)</span></h2><button class="btn b-ghost" style="height:32px">+ Add item</button></div>
+<table class="tbl">
+<thead><tr><th style="width:18%">Item code</th><th>Description</th><th class="num" style="width:12%">Qty</th><th style="width:10%">UOM</th><th style="width:30%">Remarks</th></tr></thead>
+<tbody>
+<tr><td style="font-weight:600">CH-DIN-01</td><td>Dining chair, solid oak</td><td class="num">200</td><td>PCS</td><td>Natural finish</td></tr>
+<tr><td style="font-weight:600">TB-DIN-06</td><td>Dining table, 6-seater</td><td class="num">30</td><td>PCS</td><td>Same finish as chairs</td></tr>
+</tbody>
+</table>
+</section>
+</div>
+<aside style="width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;align-items:center"><h2 class="h2">From Master Data</h2><span class="chip st-done">Active</span></div>
+<p style="margin:0 0 6px;font-size:12px;color:#5E6478">Kedai Perabot Maju · C-0031. Read-only here; change it in Master Data.</p>
+<div class="kv"><span>Category</span><span>Reseller</span></div>
+<div class="kv"><span>Area</span><span>Northern</span></div>
+<div class="kv"><span>Credit term</span><span>30 days</span></div>
+<div class="kv"><span>Credit limit</span><span>RM 60,000.00</span></div>
+<div class="kv"><span>Owed now</span><span>RM 18,400.00</span></div>
+<div class="kv"><span>Default agent</span><span>Lim Wei Jie</span></div>
+<div class="kv" style="border-bottom:none"><span>Price list</span><span>Reseller 2026</span></div>
+</section>
+<section class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">What happens next</h2>
+<ol style="margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:#3A4056">
+<li>Save gives the enquiry its number.</li>
+<li>Forward notifies the sales agent.</li>
+<li>Create quotation copies the customer and items.</li>
+</ol>
+<p style="margin:0;font-size:12px;color:#92400E;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:10px 12px">A new prospect must be added to Master Data before a quotation can be created.</p>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

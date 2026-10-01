@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales flow · Walk-in cash sale</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F6F5FA}
+a{color:#2563EB;text-decoration:none}
+.fcol>*{flex-shrink:0}
+.fh{display:flex;justify-content:space-between;align-items:flex-start;gap:32px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6D45DB}
+.fh h1{margin:6px 0 6px;font-size:30px;font-weight:800;letter-spacing:-0.01em;text-wrap:balance}
+.fh p{margin:0;font-size:15px;color:#4A5068;line-height:1.5;max-width:760px}
+.meta{display:grid;grid-template-columns:repeat(3,minmax(0,250px));gap:12px}
+.mb{background:#FFFFFF;border:1px solid #E4E1F0;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.mb span{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#8A88A0}
+.mb b{font-size:13px;font-weight:600;line-height:1.45}
+.legend{display:flex;gap:22px;align-items:center;font-size:12px;color:#5E6478}
+.legend i{display:inline-block;width:22px;height:14px;border-radius:4px;vertical-align:middle;margin-right:7px;box-sizing:border-box}
+.lanes{position:relative;background:#FFFFFF;border:1px solid #E4E1F0;border-radius:14px;overflow:hidden}
+.lane{position:absolute;left:0;right:0;border-bottom:1px solid #EEECF5}
+.lane.alt{background:#FBFAFE}
+.ll{position:absolute;left:0;top:0;bottom:0;width:156px;background:#F3F0FC;border-right:1px solid #E4E1F0;display:flex;flex-direction:column;justify-content:center;padding:0 16px;box-sizing:border-box;gap:3px}
+.ll b{font-size:13px;font-weight:700;color:#3B2A7A}
+.ll span{font-size:11px;color:#6E6A88;line-height:1.35}
+.nd{position:absolute;box-sizing:border-box;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.k-step{background:#FFFFFF;border:1.5px solid #CFC4F7;box-shadow:0 1px 2px rgba(59,42,122,0.08)}
+.k-dec{background:#FFFBEB;border:1.5px solid #F2B84B}
+.k-sys{background:#F2F4F8;border:1.5px dashed #9AA3B8}
+.k-appr{background:#FFF7ED;border:1.5px solid #F59E0B}
+.k-start{background:#2A2340;border:none;border-radius:40px;color:#FFFFFF;justify-content:center;padding:8px 16px}
+.k-end{background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:40px;color:#14532D;justify-content:center;padding:8px 16px}
+.nt{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#7A7596}
+.k-dec .nt{color:#92400E}
+.k-appr .nt{color:#9A3412}
+.no{min-width:18px;height:18px;border-radius:9px;background:#6D45DB;color:#FFFFFF;font-size:10.5px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0;padding:0 4px;box-sizing:border-box}
+.k-dec .no{background:#D97706}
+.k-appr .no{background:#EA580C}
+.k-sys .no{background:#6B7190}
+.tx{font-size:13px;font-weight:600;line-height:1.3}
+.k-start .tx,.k-end .tx{font-size:13px;text-align:center}
+.sub{font-size:11px;color:#5E6478;line-height:1.3}
+.scr{display:inline-block;align-self:flex-start;font-size:11px;font-weight:600;color:#5B35C9;background:#F3EFFE;border:1px solid #DDD6FE;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.scr:hover{background:#E9E2FD}
+.el{position:absolute;z-index:3;font-size:11px;font-weight:700;color:#3B2A7A;background:#FFFFFF;border:1px solid #D9CFFB;border-radius:10px;padding:1px 8px;white-space:nowrap}
+.el.no-{color:#991B1B;border-color:#FECACA}
+.el.yes{color:#166534;border-color:#BBF7D0}
+.nh{display:flex;justify-content:space-between;align-items:baseline}
+.nh h2{margin:0;font-size:18px;font-weight:800}
+.nh span{font-size:12px;color:#6E6A88}
+.nt2{width:100%;border-collapse:separate;border-spacing:0;background:#FFFFFF;border:1px solid #E4E1F0;border-radius:14px;overflow:hidden;font-size:13px}
+.nt2 th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#6E6A88;background:#F7F5FC;padding:10px 12px;border-bottom:1px solid #E4E1F0}
+.nt2 td{padding:11px 12px;border-bottom:1px solid #F0EEF6;vertical-align:top;line-height:1.45}
+.nt2 tr:last-child td{border-bottom:none}
+.nt2 td.n{width:28px}
+.nt2 .stp{font-weight:700}
+.nt2 td .scr{margin:0 4px 4px 0}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;background:#6D45DB;color:#FFFFFF;font-size:11px;font-weight:700;padding:0 5px;box-sizing:border-box}
+.pill.d{background:#D97706}.pill.a{background:#EA580C}.pill.s{background:#6B7190}
+
+</style>
+
+<div style="width:2160px;height:1400px;background:#F6F5FA;overflow:hidden;position:relative">
+<div class="fcol" style="position:absolute;inset:0;padding:36px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box"><header class="fh"><div><div class="eyebrow">Sales · user flow F5</div><h1>Walk-in cash sale</h1><p>Selling at the showroom counter. One document records the sale, the payment and the stock going out, so the buyer is served in a minute.</p></div><div class="meta"><div class="mb"><span>Starts when</span><b>A buyer is at the counter</b></div><div class="mb"><span>Ends when</span><b>Paid; receipt and goods handed over</b></div><div class="mb"><span>People</span><b>Counter staff</b></div></div></header><div class="legend"><span><i style="background:#FFFFFF;border:1.5px solid #CFC4F7"></i>Step on a screen</span><span><i style="background:#FFFBEB;border:1.5px solid #F2B84B"></i>Decision</span><span><i style="background:#FFF7ED;border:1.5px solid #F59E0B"></i>Approval</span><span><i style="background:#F2F4F8;border:1.5px dashed #9AA3B8"></i>Done by the system or another module</span><span><i style="background:#2A2340;border-radius:7px"></i>Start</span><span><i style="background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:7px"></i>End</span><span style="margin-left:auto">Purple tags open the screen</span></div><div class="lanes" style="height:450px"><div class="lane" style="top:0px;height:150px"><div class="ll"><b>Walk-in buyer</b><span>No account needed</span></div></div><div class="lane alt" style="top:150px;height:150px"><div class="ll"><b>Counter staff</b><span>Showroom counter</span></div></div><div class="lane" style="top:300px;height:150px"><div class="ll"><b>System · other modules</b><span>Inventory, e-Invoice</span></div></div><svg width="2088" height="450" viewBox="0 0 2088 450" style="position:absolute;left:0;top:0;z-index:1" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7D78A0"></path></marker></defs><path d="M 388.0 75.0 L 408.0 75.0 L 408.0 225.0 L 428.0 225.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 626.0 225.0 L 666.0 225.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 864.0 225.0 L 884.0 225.0 L 884.0 75.0 L 904.0 75.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1102.0 91.0 L 1122.0 91.0 L 1122.0 225.0 L 1142.0 225.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1102.0 59.0 L 1479.0 59.0 L 1479.0 177.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1340.0 225.0 L 1380.0 225.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1578.0 225.0 L 1598.0 225.0 L 1598.0 75.0 L 1618.0 75.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1578.0 225.0 L 1598.0 225.0 L 1598.0 375.0 L 1618.0 375.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path><path d="M 1816.0 375.0 L 1856.0 375.0" fill="none" stroke="#7D78A0" stroke-width="1.8" stroke-dasharray="none" marker-end="url(#ah)"></path></svg><div class="nd k-start" style="left:190px;top:43px;width:198px;height:64px"><div class="tx">Buyer chooses items in the showroom</div></div><div class="nd k-step" style="left:428px;top:177px;width:198px;min-height:96px"><div class="nt"><span class="no">1</span></div><div class="tx">Start a cash sale</div><div class="sub">Walk-in customer, prices include tax</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="CashSaleList.html">S23 · Cash sales list</a><a class="scr" href="CashSale.html">S24 · Cash sale</a></div></div><div class="nd k-step" style="left:666px;top:177px;width:198px;min-height:96px"><div class="nt"><span class="no">2</span></div><div class="tx">Scan or add items</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="CashSale.html">S24 · Cash sale</a><a class="scr" href="ItemPicker.html">S04 · Add item</a></div></div><div class="nd k-dec" style="left:904px;top:27px;width:198px;min-height:96px"><div class="nt"><span class="no">3</span>Buyer</div><div class="tx">Wants own e-Invoice?</div></div><div class="nd k-step" style="left:1142px;top:177px;width:198px;min-height:96px"><div class="nt"><span class="no">4</span></div><div class="tx">Enter buyer name and TIN</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="CashSale.html">S24 · Cash sale</a></div></div><div class="nd k-step" style="left:1380px;top:177px;width:198px;min-height:96px"><div class="nt"><span class="no">5</span></div><div class="tx">Take payment and release</div><div class="sub">Cash, card, DuitNow QR</div><div style="display:flex;gap:4px;flex-wrap:wrap"><a class="scr" href="CashSale.html">S24 · Cash sale</a></div></div><div class="nd k-end" style="left:1618px;top:43px;width:198px;height:64px"><div class="tx">Buyer leaves with receipt and goods</div></div><div class="nd k-sys" style="left:1618px;top:327px;width:198px;min-height:96px"><div class="nt"><span class="no">6</span>System</div><div class="tx">Sale, payment and stock-out recorded</div></div><div class="nd k-sys" style="left:1856px;top:327px;width:198px;min-height:96px"><div class="nt"><span class="no">7</span>System</div><div class="tx">Own e-Invoice now, or in the monthly consolidated one</div></div><span class="el yes" style="left:1128px;top:99px">Yes</span><span class="el no-" style="left:1110px;top:35px">No</span></div><div class="nh" style="padding-top:6px"><h2>Step by step</h2><span>Numbers match the boxes above</span></div><table class="nt2"><thead><tr><th></th><th>Step · screen</th><th>What the user does and sees</th><th>Rules the screen enforces</th><th>What changes after</th></tr></thead><tbody><tr><td class="n"><span class="pill">1</span></td><td style="width:210px"><div class="stp">Start a cash sale</div><div style="padding-top:6px"><a class="scr" href="CashSaleList.html">S23 · Cash sales list</a><a class="scr" href="CashSale.html">S24 · Cash sale</a></div></td><td>Clicks <b>New cash sale</b>. Customer is preset to walk-in (C-CASH) and tax mode to Inclusive.</td><td>No credit check: the buyer pays on the spot.</td><td style="width:330px">CS number, Draft.</td></tr><tr><td class="n"><span class="pill">2</span></td><td style="width:210px"><div class="stp">Scan or add items</div><div style="padding-top:6px"><a class="scr" href="CashSale.html">S24 · Cash sale</a><a class="scr" href="ItemPicker.html">S04 · Add item</a></div></td><td>Scans a barcode or searches. Prices shown include tax.</td><td>Excluded and not-for-sale items cannot be added. Short stock only warns.</td><td style="width:330px">Totals show before tax, tax included and to pay.</td></tr><tr><td class="n"><span class="pill d">3</span></td><td style="width:210px"><div class="stp">Wants own e-Invoice?</div><div style="padding-top:6px"><span style="color:#8A88A0">—</span></div></td><td>Staff asks if the buyer needs their own e-Invoice.</td><td>—</td><td style="width:330px">Most walk-in buyers do not.</td></tr><tr><td class="n"><span class="pill">4</span></td><td style="width:210px"><div class="stp">Enter buyer name and TIN</div><div style="padding-top:6px"><a class="scr" href="CashSale.html">S24 · Cash sale</a></div></td><td>Types the buyer’s name, phone and TIN.</td><td>A TIN is required for an own e-Invoice.</td><td style="width:330px">This sale gets its own e-Invoice.</td></tr><tr><td class="n"><span class="pill">5</span></td><td style="width:210px"><div class="stp">Take payment and release</div><div style="padding-top:6px"><a class="scr" href="CashSale.html">S24 · Cash sale</a></div></td><td>Picks the payment method and enters the amount received or card reference; change is calculated. Clicks <b>Take payment and release</b>.</td><td>Balance must be 0 before release.</td><td style="width:330px">Receipt prints. Sale and payment recorded in one document.</td></tr><tr><td class="n"><span class="pill s">6</span></td><td style="width:210px"><div class="stp">Sale, payment and stock-out recorded</div><div style="padding-top:6px"><span style="color:#8A88A0">—</span></div></td><td>Nothing to click.</td><td>Stock-out event saved for Inventory.</td><td style="width:330px">Cash sales list and today’s counter total update.</td></tr><tr><td class="n"><span class="pill s">7</span></td><td style="width:210px"><div class="stp">Own e-Invoice now, or in the monthly consolidated one</div><div style="padding-top:6px"><span style="color:#8A88A0">—</span></div></td><td>Nothing to click.</td><td>Sales without their own e-Invoice go into the monthly consolidated e-Invoice, due by the 7th of next month.</td><td style="width:330px">Sent when the e-Invoice module is plugged in.</td></tr></tbody></table><div data-m="end"></div></div>
+</div>
+</div>
+
+</body>
+</html>

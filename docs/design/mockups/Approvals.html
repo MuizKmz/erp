@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales · Approvals inbox</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.btn{height:38px;padding:0 18px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-redline{background:#FFFFFF;color:#B91C1C;border-color:#F3B4B4}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-pend{background:#FEF3C7;color:#92400E}
+.st-part{background:#EDE9FE;color:#5B21B6}
+.st-canc{background:#FEE2E2;color:#991B1B}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500}
+.nav:hover{background:#6A42D6}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 0 10px;font-family:inherit;font-size:13px;font-weight:600;color:#5E6478;cursor:pointer}
+.tab.on{border-bottom-color:#6D45DB;color:#5B35C9}
+.h2{margin:0;font-size:14px;font-weight:700}
+.item{display:flex;flex-direction:column;gap:8px;padding:16px 18px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E6EE;color:#1E2233}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid #EEF0F4;font-variant-numeric:tabular-nums}
+.kv span:first-child{color:#5E6478}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden">
+<nav aria-label="Sales transaction" style="width:220px;flex-shrink:0;background:#7B4FE0;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6D45DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M3 4h2l2.4 11h11.2L21 7H6.2"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Sales Transaction</div>
+</div>
+<a class="nav" href="EnquiryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Enquiry</a>
+<a class="nav" href="QuotationForm.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Draft Quotation</a>
+<a class="nav" href="QuotationList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Quotation</a>
+<a class="nav" href="SalesOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Sales Order</a>
+<a class="nav" href="DeliveryList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11v10H3z"></path><path d="M14 10h4l3 3v3h-7"></path><circle cx="7" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg>Delivery Order</a>
+<a class="nav" href="CancelOrderList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Cancel Order</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="Main.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Sales home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#7B4FE0;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:180px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#6A42D6;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="Approvals.html" aria-current="page" aria-label="Approvals, 3 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#FFFFFF;background:#5B35C9;padding:6px 10px;border-radius:8px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#5B35C9;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">3</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">NA</span>azlina@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="Main.html">Home</a><span>›</span><span style="color:#1E2233;font-weight:500">Approvals</span></div>
+<div style="display:flex;justify-content:space-between;align-items:flex-end">
+<div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-size:20px;font-weight:700">Approvals</h1><div style="font-size:12px;color:#5E6478">Documents that a policy stopped until someone decides. Signed in as Nor Azlina, Sales Manager.</div></div>
+<div role="tablist" aria-label="Approval status" style="display:flex;gap:24px">
+<button role="tab" aria-selected="true" class="tab on">Waiting for me · 3</button>
+<button role="tab" aria-selected="false" class="tab">Approved · 12</button>
+<button role="tab" aria-selected="false" class="tab">Rejected · 2</button>
+</div>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<div style="flex-grow:1;display:flex;flex-direction:column;gap:12px;min-width:0">
+<a class="item" href="CreditApproval.html" style="border:2px solid #6D45DB;background:#F8F5FF">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:700">SO-0002 · Syarikat Delta Trading</span><span class="chip st-pend">Credit</span></div>
+<div style="font-size:13px;color:#3A4056">Credit limit over by RM 2,400.00 · overdue limit over by RM 2,000.00</div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#5E6478"><span>Requested by Faizal Omar · 26 Sep, 3:14 PM</span><strong style="color:#1E2233;font-size:13px">RM 4,400.00</strong></div>
+</a>
+<a class="item" href="QuotationForm.html">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:700">SO-0008 · Kedai Perabot Maju</span><span class="chip st-pend">Credit</span></div>
+<div style="font-size:13px;color:#3A4056">Credit limit over by RM 50,778.00 · from quotation QT-0012</div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#5E6478"><span>Requested by Lim Wei Jie · 28 Sep, 11:20 AM</span><strong style="color:#1E2233;font-size:13px">RM 92,378.00</strong></div>
+</a>
+<a class="item" href="InvoiceForm.html">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:700">INV-0003 · Klinik Sihat Jaya</span><span class="chip st-part">Price</span></div>
+<div style="font-size:13px;color:#3A4056">Unit price 12% below the price list on 1 line</div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#5E6478"><span>Requested by Faizal Omar · 29 Sep, 9:05 AM</span><strong style="color:#1E2233;font-size:13px">RM 2,904.00</strong></div>
+</a>
+<section class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex-grow:1">
+<div style="display:flex;justify-content:space-between;align-items:center"><h2 class="h2">You decided in the last 7 days</h2><span style="font-size:12px;color:#5E6478">4 decisions</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr 120px 110px;gap:8px;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:8px 0;border-bottom:1px solid #E4E6EE"><span>Document</span><span>Reason</span><span>Decision</span><span>When</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr 120px 110px;gap:8px;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4;align-items:center"><strong>QT-0010</strong><span>Discount 18%, above 15% rule</span><span class="chip" style="background:#DCFCE7;color:#166534;justify-self:start">Approved</span><span style="color:#5E6478">28 Sep</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr 120px 110px;gap:8px;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4;align-items:center"><strong>SO-0006</strong><span>Overdue limit, Klinik Sihat Jaya</span><span class="chip" style="background:#DCFCE7;color:#166534;justify-self:start">Approved</span><span style="color:#5E6478">25 Sep</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr 120px 110px;gap:8px;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4;align-items:center"><strong>INV-L-0398</strong><span>Price 20% below price list</span><span class="chip" style="background:#FEE2E2;color:#991B1B;justify-self:start">Rejected</span><span style="color:#5E6478">24 Sep</span></div>
+<div style="display:grid;grid-template-columns:110px 1fr 120px 110px;gap:8px;font-size:13px;padding:8px 0;align-items:center"><strong>SO-0004</strong><span>Credit limit, Restoran Selera Kampung</span><span class="chip" style="background:#DCFCE7;color:#166534;justify-self:start">Approved</span><span style="color:#5E6478">22 Sep</span></div>
+</section>
+</div>
+<section class="card" style="width:460px;flex-shrink:0;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0;font-size:16px;font-weight:700">SO-0002 · Syarikat Delta Trading</h2><a class="lnk" href="CreditApproval.html" style="font-size:13px;font-weight:600">Open order</a></div>
+<div>
+<div class="kv"><span>Owed now</span><span>RM 18,000.00</span></div>
+<div class="kv"><span>of which over 60 days</span><span style="color:#B91C1C;font-weight:600">RM 5,000.00</span></div>
+<div class="kv"><span>Other open orders</span><span>RM 0.00</span></div>
+<div class="kv"><span>This order</span><span>RM 4,400.00</span></div>
+<div class="kv" style="font-weight:700"><span style="color:#1E2233">Exposure after</span><span>RM 22,400.00</span></div>
+<div class="kv"><span>Credit limit</span><span>RM 20,000.00</span></div>
+<div class="kv" style="border-bottom:none"><span>Last payment</span><span>RM 3,500.00 on 2 Sep 2026</span></div>
+</div>
+<div style="background:#F7F8FB;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;color:#3A4056"><strong style="color:#1E2233">Faizal wrote:</strong> Long-standing customer. They promised RM 5,000.00 by cheque on 2 Oct.</div>
+<div>
+<div style="font-size:13px;font-weight:700;padding-bottom:4px">Recent history · Syarikat Delta Trading</div>
+<div class="kv"><span>INV-L-0412 · RM 6,200.00</span><span>Paid 12 days late</span></div>
+<div class="kv"><span>INV-L-0388 · RM 4,800.00</span><span>Paid on time</span></div>
+<div class="kv" style="border-bottom:none"><span>Last credit approval</span><span>Approved 12 Aug 2026</span></div>
+</div>
+<label class="fld">Your comment<textarea class="inp" style="height:76px;resize:none" placeholder="Visible to Faizal and in the audit trail"></textarea></label>
+<div style="flex-grow:1"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn b-redline">Reject</button><button class="btn b-green">Approve</button></div>
+<p style="margin:0;font-size:12px;color:#5E6478">Approving lets Faizal release SO-0002. Your decision is logged with the time and your comment.</p>
+</section>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

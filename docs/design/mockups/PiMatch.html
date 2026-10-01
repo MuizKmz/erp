@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Purchase · PI-0001 three-way match</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:10px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr.sel td{background:#F0FDF4}
+.nw{white-space:nowrap}
+.mut{color:#5E6478}
+.sm{font-size:12px}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.ro{background:#F7F8FB;color:#3A4056;border-color:#E4E6EE}
+.cell{width:72px;height:32px;box-sizing:border-box;border:1.5px solid #15803D;border-radius:6px;text-align:right;padding:0 8px;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;background:#FFFFFF}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-red{background:#DC2626;color:#FFFFFF}
+.b-dark{background:#4B5563;color:#FFFFFF}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-mod{background:#166534;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.b-redline{background:#FFFFFF;color:#B91C1C;border-color:#F3B4B4}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-draft{background:#EEF0F4;color:#475069}
+.st-pend{background:#FEF3C7;color:#92400E}
+.st-rel{background:#DBEAFE;color:#1E40AF}
+.st-part{background:#EDE9FE;color:#5B21B6}
+.st-done{background:#DCFCE7;color:#166534}
+.st-canc{background:#FEE2E2;color:#991B1B}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500;white-space:nowrap}
+.nav:hover{background:#17733A}
+.nav.on{background:#14532D;font-weight:700}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 0 10px;font-family:inherit;font-size:13px;font-weight:600;color:#5E6478;cursor:pointer;white-space:nowrap}
+.tab.on{border-bottom-color:#15803D;color:#166534}
+.kpi{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.kpi span:first-child{font-size:12px;font-weight:600;color:#5E6478}
+.kpi strong{font-size:22px}
+.kpi span:last-child{font-size:12px;color:#5E6478}
+.pg{width:32px;height:32px;border-radius:8px;border:1px solid #D9DCE6;background:#FFFFFF;font-family:inherit;font-size:13px;font-weight:600;color:#1E2233;cursor:pointer}
+.h2{margin:0;font-size:14px;font-weight:700}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-bottom:1px solid #EEF0F4;font-variant-numeric:tabular-nums}
+.kv span:first-child{color:#5E6478}
+.kv.tot{border-bottom:none;border-top:1px solid #1E2233;margin-top:4px;padding-top:10px;font-size:15px;font-weight:700}
+.kv.tot span:first-child{color:#1E2233}
+.step{display:flex;gap:12px;font-size:13px;line-height:1.5}
+.step b{width:24px;height:24px;border-radius:12px;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ev{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4}
+.ev time{width:112px;flex-shrink:0;color:#5E6478;font-size:12px}
+.note{display:flex;align-items:flex-start;gap:10px;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.5}
+.n-info{background:#F0FDF4;border:1px solid #BBF7D0;color:#1E2233}
+.n-warn{background:#FFFBEB;border:1px solid #FCD34D;color:#78350F}
+.n-err{background:#FEF2F2;border:1px solid #FECACA;color:#7F1D1D}
+.sw{width:40px;height:22px;border-radius:11px;border:none;padding:2px;display:flex;cursor:pointer;flex-shrink:0;box-sizing:border-box}
+.sw i{width:18px;height:18px;border-radius:9px;background:#FFFFFF;display:block}
+.sw.on{background:#15803D;justify-content:flex-end}
+.sw.off{background:#CBD0DC;justify-content:flex-start}
+.bar{height:6px;border-radius:3px;background:#EEF0F4;overflow:hidden;width:64px}
+.bar i{display:block;height:6px;background:#15803D}
+.lnkrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid #EEF0F4;gap:10px}
+.mt{display:grid;grid-template-columns:170px 1fr 1fr 1fr 190px;border:1px solid #E4E6EE;border-radius:10px;overflow:hidden;font-size:13px}
+.mt > div{padding:10px 14px;border-bottom:1px solid #EEF0F4;font-variant-numeric:tabular-nums}
+.mt .h{background:#F7F8FB;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478}
+.mt .l{color:#5E6478;font-weight:600;font-size:12px}
+.mt .bad{background:#FEF2F2}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid #E4E6EE;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.45}
+.opt.on{border-color:#15803D;background:#F0FDF4}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden;position:relative">
+<nav aria-label="Supplier Billing" style="width:220px;flex-shrink:0;background:#15803D;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Supplier Billing</div>
+</div>
+<a class="nav on" aria-current="page" href="PiList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Purchase Invoice</a>
+<a class="nav" href="CashPurchaseList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>Cash Purchase</a>
+<a class="nav" href="PurDebitNoteList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Debit Note</a>
+<a class="nav" href="PurReturnList.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l-4-4 4-4"></path><path d="M5 10h9a5 5 0 0 1 0 10h-3"></path></svg>Purchase Return</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="PurHome.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Purchase home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#15803D;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:200px">Saturday, September 26</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#166534;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="PurApprovals.html" aria-label="Approvals, 2 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#166534;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">2</span></a>
+<div style="font-size:13px">9:30 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#166534;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">LM</span>meiying@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="PurHome.html">Home</a><span>›</span><a class="lnk" href="PiList.html">Purchase Invoice</a><span>›</span><span style="color:#1E2233;font-weight:500">PI-0001</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+<div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="margin:0;font-size:20px;font-weight:700">Purchase invoice PI-0001 · match</h1><span class="chip st-pend">Needs a decision</span></div>
+<div style="font-size:12px;color:#5E6478">Kilang Kain Jaya Sdn Bhd · their invoice KKJ-INV-10442 · against <a class="lnk" href="PoForm.html">PO-0001</a> and <a class="lnk" href="GrnConfirm.html">GRN-0001</a></div>
+</div>
+<div style="display:flex;gap:8px;flex-shrink:0"><button class="btn b-ghost">Hold invoice</button><button class="btn b-ghost">Save draft</button><button class="btn b-mod">Record RM 4,180.00</button></div>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<div style="flex-grow:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;"><div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:12px 16px"><label class="fld">Supplier · S-0021<input class="inp ro" value="Kilang Kain Jaya Sdn Bhd" readonly></label><label class="fld">Their invoice no<input class="inp" value="KKJ-INV-10442"></label><label class="fld">Invoice date<input class="inp" value="26 Sep 2026"></label><label class="fld">Due date · 30 days<input class="inp ro" value="26 Oct 2026" readonly></label></div></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;"><div style="display:flex;justify-content:space-between;align-items:center"><h2 class="h2">Three-way match</h2><span class="sm mut">Filled in automatically from PO-0001 and GRN-0001</span></div><div class="mt">
+<div class="h"></div>
+<div class="h">Ordered<br><span style="text-transform:none;font-weight:500">PO-0001</span></div>
+<div class="h">Received<br><span style="text-transform:none;font-weight:500">GRN-0001</span></div>
+<div class="h">Billed<br><span style="text-transform:none;font-weight:500">KKJ-INV-10442</span></div>
+<div class="h">Result</div>
+<div class="l">Quantity</div>
+<div>100 rolls</div>
+<div>95 rolls</div>
+<div class="bad"><strong style="color:#B91C1C">100 rolls</strong></div>
+<div><span class="nw" style="color:#B91C1C;font-weight:600">✗ 5 billed, not received</span></div>
+<div class="l">Unit price</div>
+<div>40.00</div>
+<div>—</div>
+<div class="">40.00</div>
+<div><span class="nw" style="color:#166534;font-weight:600">✓ Same</span></div>
+<div class="l">Before tax</div>
+<div>4,000.00</div>
+<div>3,800.00</div>
+<div class="bad"><strong style="color:#B91C1C">4,000.00</strong></div>
+<div></div>
+<div class="l">SST 10%</div>
+<div>400.00</div>
+<div>380.00</div>
+<div class="">400.00</div>
+<div></div>
+<div class="l" style="border-bottom:none">Total</div>
+<div style="border-bottom:none"><strong>4,400.00</strong></div>
+<div style="border-bottom:none"><strong>4,180.00</strong></div>
+<div class="bad" style="border-bottom:none"><strong style="color:#B91C1C">4,400.00</strong></div>
+<div style="border-bottom:none"><span class="nw" style="color:#B91C1C;font-weight:600">RM 220.00 too much</span></div>
+</div></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;"><h2 class="h2">What should we record?</h2><label class="opt on"><input type="radio" name="dec" checked><span><strong>Record only what was received · 95 rolls · RM 4,180.00</strong><br><span class="mut">The supplier is told the last 5 rolls are billed when they arrive.</span></span></label><label class="opt"><input type="radio" name="dec"><span><strong>Hold the invoice</strong><br><span class="mut">Ask the supplier for a corrected invoice or a credit note first.</span></span></label><label class="opt"><input type="radio" name="dec"><span><strong>Accept as billed · RM 4,400.00</strong><br><span class="mut">Outside tolerance, so it goes to the Purchasing Manager for approval.</span></span></label></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex-grow:1"><div style="display:flex;justify-content:space-between;align-items:center"><h2 class="h2">Message to supplier</h2><span class="sm mut">Template: Invoice difference</span></div><textarea class="inp" aria-label="Message to supplier" style="flex-grow:1;min-height:70px;padding:10px 12px;resize:none;line-height:1.5">Dear Kilang Kain Jaya, we have recorded KKJ-INV-10442 for the 95 rolls received on 25 Sep (RM 4,180.00). Please bill the last 5 rolls when they are delivered.</textarea></section>
+</div>
+<aside style="width:330px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;"><h2 class="h2">Their invoice</h2><div style="height:150px;border:1px solid #E4E6EE;border-radius:8px;background:#F7F8FB;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:7px"><div style="display:flex;justify-content:space-between"><div style="width:90px;height:10px;background:#CBD0DC;border-radius:3px"></div><div style="width:60px;height:10px;background:#15803D;opacity:.5;border-radius:3px"></div></div><div style="width:70%;height:7px;background:#DDE1EA;border-radius:3px"></div><div style="width:55%;height:7px;background:#DDE1EA;border-radius:3px"></div><div style="width:80%;height:7px;background:#DDE1EA;border-radius:3px"></div><div style="width:40%;height:7px;background:#DDE1EA;border-radius:3px"></div><div style="flex-grow:1"></div><div style="display:flex;justify-content:flex-end"><div style="width:70px;height:10px;background:#1E2233;opacity:.35;border-radius:3px"></div></div></div><div style="display:flex;justify-content:space-between" class="sm"><a class="lnk" href="#">KKJ-INV-10442.pdf</a><span class="mut">LHDN e-Invoice · validated</span></div></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;gap:2px"><h2 class="h2">Tolerance · from Approval Rules</h2><div class="kv "><span>Price ± 2%</span><span><span class="nw" style="color:#166534;font-weight:600">✓ 0%</span></span></div><div class="kv " style="border-bottom:none"><span>Quantity · 0 over received</span><span><span class="nw" style="color:#B91C1C;font-weight:600">✗ 5 over</span></span></div></section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex-grow:1;gap:2px"><h2 class="h2">What we record</h2><div class="kv "><span>Supplier billed</span><span>4,400.00</span></div><div class="kv "><span>We record</span><span><strong>4,180.00</strong></span></div><div class="kv " style="border-bottom:none"><span>Difference</span><span><span class="nw" style="color:#B91C1C;font-weight:600">220.00</span></span></div><p style="margin:0;font-size:12px;color:#5E6478;line-height:1.5">The payable is queued for Finance. Supplier is emailed about the difference.</p></section>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>

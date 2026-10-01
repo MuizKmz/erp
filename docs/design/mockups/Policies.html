@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Operation policies · Credit control</title>
+
+</head>
+<body>
+<div class="mockup-root">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+a.lnk:hover{text-decoration:underline}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:9px 12px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:8px 12px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.sel{height:36px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 10px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#FFFFFF;font-size:13px;font-weight:500}
+.nav:hover{background:#6A42D6}
+.nav.on{background:#5B35C9;font-weight:700}
+.h2{margin:0;font-size:14px;font-weight:700}
+.row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #EEF0F4}
+.row .l{display:flex;flex-direction:column;gap:2px}
+.row .l b{font-size:13px}
+.row .l span{font-size:12px;color:#5E6478}
+.sw{width:44px;height:24px;border-radius:12px;border:none;padding:2px;display:flex;cursor:pointer;flex-shrink:0}
+.sw i{width:20px;height:20px;border-radius:10px;background:#FFFFFF;display:block}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid #E4E6EE;border-radius:10px;font-size:13px;cursor:pointer;flex:1}
+</style>
+
+<div style="width:1440px;height:1000px;display:flex;background:#F3F4F8;overflow:hidden">
+<nav aria-label="Operation policies" style="width:220px;flex-shrink:0;background:#7B4FE0;display:flex;flex-direction:column;gap:4px;padding:20px 12px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 18px">
+<div style="width:52px;height:52px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6D45DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path></svg></div>
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;text-align:center">Operation Policies</div>
+</div>
+<a class="nav on" aria-current="page" href="Policies.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path></svg>Credit Control</a>
+<a class="nav" href="DocTypes.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Document Types</a>
+<a class="nav" href="EnquiryTypes.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Enquiry Types</a>
+<a class="nav" href="ExcludedItems.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Excluded Items</a>
+<a class="nav" href="EmailTemplates.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg>Email Templates</a>
+<div style="flex-grow:1"></div>
+<a class="nav" href="Main.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Sales home</a>
+<a class="nav" href="Launcher.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path></svg>Sign out</a>
+</nav>
+<div style="flex-grow:1;display:flex;flex-direction:column;min-width:0">
+<header style="height:56px;flex-shrink:0;background:#7B4FE0;color:#FFFFFF;display:flex;align-items:center;gap:20px;padding:0 24px;box-sizing:border-box">
+<div style="font-size:13px;font-weight:600;width:180px">Tuesday, September 29</div>
+<div style="flex-grow:1;display:flex;justify-content:center"><div style="width:380px;height:34px;border-radius:17px;background:#6A42D6;display:flex;align-items:center;gap:8px;padding:0 14px;box-sizing:border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input aria-label="Search pages and modules" placeholder="Search pages, modules..." style="border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:13px;flex-grow:1;outline:none"></div></div>
+<a href="Approvals.html" aria-label="Approvals, 3 waiting" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#FFFFFF"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>Approvals<span style="background:#FFFFFF;color:#5B35C9;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">3</span></a>
+<div style="font-size:13px">10:01 AM</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:28px;height:28px;border-radius:14px;background:#FFFFFF;color:#5B35C9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">MA</span>admin@warehouse.com</div>
+</header>
+<main style="flex-grow:1;padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:0">
+<div style="font-size:12px;color:#5E6478;display:flex;gap:6px"><a class="lnk" href="Main.html">Home</a><span>›</span><span>Operation Policies</span><span>›</span><span style="color:#1E2233;font-weight:500">Credit Control</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-size:20px;font-weight:700">Credit control</h1><div style="font-size:12px;color:#5E6478">What Sales does when a customer is over their credit or overdue limit. Last changed 15 Sep 2026 by admin.</div></div>
+<div style="display:flex;gap:8px"><button class="btn b-ghost">Discard changes</button><button class="btn b-blue">Save policy</button></div>
+</div>
+<div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+<div style="flex-grow:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+<h2 class="h2">Where the limit is checked</h2>
+<div role="radiogroup" aria-label="Credit scope" style="display:flex;gap:12px">
+<label class="opt" style="border:2px solid #6D45DB;background:#F8F5FF"><input type="radio" name="scope" checked><span style="display:flex;flex-direction:column;gap:2px"><b>Group-wide</b><span style="font-size:12px;color:#5E6478">One limit across all branches for a customer</span></span></label>
+<label class="opt"><input type="radio" name="scope"><span style="display:flex;flex-direction:column;gap:2px"><b>Per branch</b><span style="font-size:12px;color:#5E6478">Each branch has its own limit for the customer</span></span></label>
+</div>
+<p style="margin:0;font-size:12px;color:#5E6478">A customer's own setting in Master Data overrides this.</p>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">What happens on a breach, per document</h2>
+<table class="tbl">
+<thead><tr><th style="width:22%">Document</th><th style="width:26%">Over credit limit</th><th style="width:26%">Over overdue limit</th><th style="width:26%">Approver</th></tr></thead>
+<tbody>
+<tr><td style="font-weight:600">Quotation</td><td><select class="sel" aria-label="Quotation, over credit limit"><option>Allow, show warning</option></select></td><td><select class="sel" aria-label="Quotation, over overdue limit"><option>Allow, show warning</option></select></td><td style="color:#5E6478">Not needed</td></tr>
+<tr style="background:#F8F5FF"><td style="font-weight:600">Sales order</td><td><select class="sel" aria-label="Sales order, over credit limit"><option>Require approval</option></select></td><td><select class="sel" aria-label="Sales order, over overdue limit"><option>Require approval</option></select></td><td><select class="sel" aria-label="Sales order approver"><option>Sales Manager</option></select></td></tr>
+<tr><td style="font-weight:600">Delivery order</td><td><select class="sel" aria-label="Delivery order, over credit limit"><option>Allow, show warning</option></select></td><td><select class="sel" aria-label="Delivery order, over overdue limit"><option>Require approval</option></select></td><td><select class="sel" aria-label="Delivery order approver"><option>Sales Manager</option></select></td></tr>
+<tr><td style="font-weight:600">Invoice</td><td><select class="sel" aria-label="Invoice, over credit limit"><option>Require approval</option></select></td><td><select class="sel" aria-label="Invoice, over overdue limit"><option>Require approval</option></select></td><td><select class="sel" aria-label="Invoice approver"><option>Finance Manager</option></select></td></tr>
+<tr><td style="font-weight:600">Cash sales</td><td><select class="sel" aria-label="Cash sales, over credit limit"><option>Allow (paid on the spot)</option></select></td><td><select class="sel" aria-label="Cash sales, over overdue limit"><option>Allow, show warning</option></select></td><td style="color:#5E6478">Not needed</td></tr>
+</tbody>
+</table>
+<p style="margin:0;font-size:12px;color:#5E6478">Choices: Allow, show warning · Require approval · Block. Block stops the save with a message.</p>
+</section>
+<section class="card" style="padding:16px 20px;display:flex;flex-direction:column;gap:8px;flex-grow:1">
+<h2 class="h2">Change history</h2>
+<table class="tbl">
+<thead><tr><th style="width:18%">When</th><th style="width:20%">Who</th><th>What changed</th></tr></thead>
+<tbody>
+<tr><td>15 Sep 2026</td><td>admin</td><td>Invoice, over credit limit: Block → Require approval</td></tr>
+<tr><td>2 Sep 2026</td><td>Nor Azlina</td><td>Sales order approver set to Sales Manager</td></tr>
+<tr><td>20 Aug 2026</td><td>admin</td><td>Credit scope: Per branch → Group-wide</td></tr>
+</tbody>
+</table>
+</section>
+</div>
+<section class="card" style="width:400px;flex-shrink:0;padding:16px 20px;display:flex;flex-direction:column">
+<h2 class="h2" style="padding-bottom:4px">Other sales rules</h2>
+<div class="row"><div class="l"><b>Stock check while entering</b><span>Warn when stock is short. Never block.</span></div><button class="sw" role="switch" aria-checked="true" aria-label="Stock check while entering" style="background:#6D45DB;justify-content:flex-end"><i></i></button></div>
+<div class="row"><div class="l"><b>Invoice from delivered quantity only</b><span>Invoices copy delivered, not ordered, qty.</span></div><button class="sw" role="switch" aria-checked="true" aria-label="Invoice from delivered quantity only" style="background:#6D45DB;justify-content:flex-end"><i></i></button></div>
+<div class="row"><div class="l"><b>Strict price list</b><span>A price below the list needs approval.</span></div><button class="sw" role="switch" aria-checked="true" aria-label="Strict price list" style="background:#6D45DB;justify-content:flex-end"><i></i></button></div>
+<div class="row"><div class="l"><b>Round totals to 5 sen</b><span>Rounding kept as its own amount.</span></div><button class="sw" role="switch" aria-checked="true" aria-label="Round totals to 5 sen" style="background:#6D45DB;justify-content:flex-end"><i></i></button></div>
+<div class="row"><div class="l"><b>Show estimated margin</b><span>Only to roles with the margin permission.</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Show estimated margin" style="background:#C9CDD8;justify-content:flex-start"><i></i></button></div>
+<div class="row" style="border-bottom:none"><div class="l"><b>Skip credit check for system-made documents</b><span>Imports and batch jobs. Every skip is logged.</span></div><button class="sw" role="switch" aria-checked="true" aria-label="Skip credit check for system-made documents" style="background:#6D45DB;justify-content:flex-end"><i></i></button></div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</body>
+</html>
