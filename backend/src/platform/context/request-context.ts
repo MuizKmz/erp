@@ -28,6 +28,7 @@ export interface ErpRequest extends Request {
 /** Looks users up for the auth guard. Implemented by the Master Data adapter (users are master data). */
 export interface UserDirectory {
   findUserByCode(tenantId: string, code: string): Promise<(CurrentUserInfo & { isActive: boolean }) | null>;
+  listUsers(tenantId: string): Promise<(CurrentUserInfo & { isActive: boolean; department: string | null })[]>;
 }
 
 export const USER_DIRECTORY = Symbol('USER_DIRECTORY');

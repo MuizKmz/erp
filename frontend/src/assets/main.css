@@ -1,0 +1,201 @@
+/* Layer order: PrimeVue sits between Tailwind's base and utilities, so utility classes can override it. */
+@layer theme, base, primevue, components, utilities;
+
+@import 'tailwindcss';
+@import './erp-theme.css';
+
+/* Tailwind names for the ERP tokens: bg-erp-card, text-erp-muted, bg-mod-primary, bg-chip-done-bg … */
+@theme inline {
+  --font-sans: var(--erp-font);
+
+  --color-erp-bg: var(--erp-bg);
+  --color-erp-card: var(--erp-card);
+  --color-erp-border: var(--erp-border);
+  --color-erp-row: var(--erp-row-border);
+  --color-erp-head: var(--erp-head-bg);
+  --color-erp-input: var(--erp-input-border);
+  --color-erp-text: var(--erp-text);
+  --color-erp-muted: var(--erp-muted);
+  --color-erp-subtle: var(--erp-subtle);
+  --color-erp-link: var(--erp-link);
+  --color-erp-track: var(--erp-track);
+  --color-erp-on-dark: var(--erp-on-dark);
+  --color-attention: var(--attention-text);
+
+  --color-btn-add: var(--btn-add);
+  --color-btn-delete: var(--btn-delete);
+  --color-btn-danger-text: var(--btn-danger-text);
+  --color-btn-danger-border: var(--btn-danger-border);
+  --color-btn-import: var(--btn-import);
+  --color-btn-export: var(--btn-export);
+
+  --color-chip-draft-bg: var(--chip-draft-bg);
+  --color-chip-draft-text: var(--chip-draft-text);
+  --color-chip-pending-bg: var(--chip-pending-bg);
+  --color-chip-pending-text: var(--chip-pending-text);
+  --color-chip-released-bg: var(--chip-released-bg);
+  --color-chip-released-text: var(--chip-released-text);
+  --color-chip-partial-bg: var(--chip-partial-bg);
+  --color-chip-partial-text: var(--chip-partial-text);
+  --color-chip-done-bg: var(--chip-done-bg);
+  --color-chip-done-text: var(--chip-done-text);
+  --color-chip-cancelled-bg: var(--chip-cancelled-bg);
+  --color-chip-cancelled-text: var(--chip-cancelled-text);
+
+  --color-note-warn-bg: var(--note-warn-bg);
+  --color-note-warn-border: var(--note-warn-border);
+  --color-note-warn-text: var(--note-warn-text);
+  --color-note-warn-strong: var(--note-warn-strong);
+  --color-note-error-bg: var(--note-error-bg);
+  --color-note-error-border: var(--note-error-border);
+  --color-note-error-text: var(--note-error-text);
+
+  --color-launcher-bg: var(--launcher-bg);
+  --color-launcher-bar: var(--launcher-bar);
+  --color-launcher-control: var(--launcher-bar-control);
+  --color-launcher-line: var(--launcher-bar-line);
+  --color-launcher-avatar: var(--launcher-avatar);
+  --color-launcher-note: var(--launcher-note-border);
+  --color-brand-dark: var(--brand-dark);
+  --color-tile-core: var(--tile-core);
+  --color-tile-purchase: var(--tile-purchase);
+  --color-tile-sales: var(--tile-sales);
+  --color-tile-mes: var(--tile-mes);
+  --color-tile-wms: var(--tile-wms);
+  --color-tile-config: var(--tile-config);
+
+  --color-mod-side: var(--mod-side);
+  --color-mod-hover: var(--mod-hover);
+  --color-mod-active: var(--mod-active);
+  --color-mod-pill: var(--mod-pill);
+  --color-mod-primary: var(--mod-primary);
+  --color-mod-accent: var(--mod-accent);
+  --color-mod-line: var(--mod-line);
+  --color-mod-light: var(--mod-light);
+  --color-mod-light-border: var(--mod-light-border);
+  --color-mod-tile-1: var(--mod-tile-1);
+  --color-mod-tile-2: var(--mod-tile-2);
+  --color-mod-tile-3: var(--mod-tile-3);
+  --color-mod-chip-bg: var(--mod-chip-bg);
+  --color-mod-chip-text: var(--mod-chip-text);
+}
+
+@layer base {
+  /* Base text 13px on body; html keeps 16px so Tailwind's rem sizes stay true (text-xs = 12px). */
+  body {
+    margin: 0;
+    font-family: var(--erp-font);
+    font-size: 13px;
+    color: var(--erp-text);
+    background: var(--erp-bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: var(--erp-link);
+    text-decoration: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  /* Card: white, 1px border, radius 12px */
+  .erp-card {
+    background: var(--erp-card);
+    border: 1px solid var(--erp-border);
+    border-radius: 12px;
+  }
+
+  .erp-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Numbers line up in columns */
+  .erp-num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Plain data table, as in the mockups (lists with sorting and paging use DataList / PrimeVue) */
+  .erp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .erp-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--erp-muted);
+    padding: 10px 12px;
+    background: var(--erp-head-bg);
+    border-bottom: 1px solid var(--erp-border);
+    white-space: nowrap;
+  }
+  .erp-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--erp-row-border);
+    vertical-align: middle;
+  }
+  .erp-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Buttons: height 36px, radius 8px, 13px semibold */
+  .erp-btn {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  .erp-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .erp-btn-add {
+    background: var(--btn-add);
+    color: var(--erp-on-dark);
+  }
+  .erp-btn-primary {
+    background: var(--mod-primary);
+    color: var(--erp-on-dark);
+  }
+  .erp-btn-secondary {
+    background: var(--erp-card);
+    color: var(--erp-text);
+    border-color: var(--erp-input-border);
+  }
+  .erp-btn-danger {
+    background: var(--erp-card);
+    color: var(--btn-danger-text);
+    border-color: var(--btn-danger-border);
+  }
+  .erp-btn-delete {
+    background: var(--btn-delete);
+    color: var(--erp-on-dark);
+  }
+  .erp-btn-import {
+    background: var(--btn-import);
+    color: var(--erp-on-dark);
+  }
+  .erp-btn-export {
+    background: var(--btn-export);
+    color: var(--erp-on-dark);
+  }
+}

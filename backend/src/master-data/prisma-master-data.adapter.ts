@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { MdmUser, Prisma } from '@prisma/client';
+import type { MdmItem, MdmSupplier, MdmUser, Prisma } from '@prisma/client';
 import { PrismaService } from '../platform/prisma/prisma.service';
-import type { MasterDataPort, MdBranch, MdUser } from './master-data.port';
+import type { MasterDataPort, MdBranch, MdItem, MdSupplier, MdUser } from './master-data.port';
 
 function stringArray(value: Prisma.JsonValue): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
@@ -18,6 +18,38 @@ function toUser(row: MdmUser): MdUser {
     branchCodes: stringArray(row.branchCodes),
     department: row.department,
     isActive: row.isActive,
+  };
+}
+
+function toSupplier(row: MdmSupplier): MdSupplier {
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    shortName: row.shortName,
+    email: row.email,
+    paymentTermDays: row.paymentTermDays,
+    currency: row.currency,
+    isWalkIn: row.isWalkIn,
+    status: row.status,
+  };
+}
+
+function toItem(row: MdmItem): MdItem {
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    itemGroup: row.itemGroup,
+    type: row.type,
+    uomCode: row.purchaseUom ?? row.baseUom,
+    purchaseTaxCode: row.purchaseTaxCode,
+    preferredSupplierCode: row.preferredSupplierCode,
+    reorderLevel: row.reorderLevel?.toFixed(4) ?? null,
+    packSize: row.packSize.toFixed(4),
+    isPurchasable: row.isPurchasable,
+    isBuyToOrder: row.isBuyToOrder,
+    status: row.status,
   };
 }
 
@@ -42,5 +74,21 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
       orderBy: { code: 'asc' },
       select: { code: true, name: true, isActive: true },
     });
+  }
+
+  async listSuppliers(tenantId: string, codes?: string[]): Promise<MdSupplier[]> {
+    const rows = await this.prisma.mdmSupplier.findMany({
+      where: { tenantId, ...(codes && { code: { in: codes } }) },
+      orderBy: { code: 'asc' },
+    });
+    return rows.map(toSupplier);
+  }
+
+  async listPurchasableItems(tenantId: string): Promise<MdItem[]> {
+    const rows = await this.prisma.mdmItem.findMany({
+      where: { tenantId, isPurchasable: true, status: 'ACTIVE' },
+      orderBy: { code: 'asc' },
+    });
+    return rows.map(toItem);
   }
 }

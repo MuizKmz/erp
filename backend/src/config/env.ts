@@ -13,6 +13,8 @@ export interface Env {
   UPLOAD_MAX_BYTES: number;
   OUTBOX_DISPATCH: boolean;
   OUTBOX_INTERVAL_MS: number;
+  /** Dev only: pretend today is this date (YYYY-MM-DD) so screens match the mockups (29 Sep 2026). */
+  DEV_TODAY: string | null;
 }
 
 function toInt(name: string, value: unknown, fallback: number, problems: string[]): number {
@@ -45,6 +47,11 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     problems.push(`OUTBOX_DISPATCH must be "on" or "off" (got "${dispatch}")`);
   }
 
+  const devToday = typeof raw.DEV_TODAY === 'string' && raw.DEV_TODAY.trim() !== '' ? raw.DEV_TODAY.trim() : null;
+  if (devToday && !/^\d{4}-\d{2}-\d{2}$/.test(devToday)) {
+    problems.push(`DEV_TODAY must look like 2026-09-29 (got "${devToday}")`);
+  }
+
   const env: Env = {
     DATABASE_URL: str('DATABASE_URL'),
     AUTH_MODE: 'dev',
@@ -56,6 +63,7 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     UPLOAD_MAX_BYTES: toInt('UPLOAD_MAX_BYTES', raw.UPLOAD_MAX_BYTES, 10 * 1024 * 1024, problems),
     OUTBOX_DISPATCH: dispatch === 'on',
     OUTBOX_INTERVAL_MS: toInt('OUTBOX_INTERVAL_MS', raw.OUTBOX_INTERVAL_MS, 5000, problems),
+    DEV_TODAY: devToday,
   };
 
   if (problems.length) {

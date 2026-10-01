@@ -1,0 +1,118 @@
+/*
+ * Zora Pro ERP design tokens (docs/design/DESIGN_TOKENS.md).
+ * The ONLY file with colour values. Views use the Tailwind names below (bg-erp-card, text-erp-muted,
+ * bg-mod-primary …) or var(--…); never hex.
+ */
+
+:root {
+  /* Type and shape */
+  --erp-font: 'Inter', system-ui, sans-serif;
+
+  /* Surfaces and text */
+  --erp-bg: #f3f4f8;
+  --erp-card: #ffffff;
+  --erp-border: #e4e6ee;
+  --erp-row-border: #eef0f4;
+  --erp-head-bg: #f7f8fb;
+  --erp-input-border: #d9dce6;
+  --erp-text: #1e2233;
+  --erp-muted: #5e6478;
+  --erp-subtle: #4a5068;
+  --erp-link: #2563eb;
+  --erp-track: #eef0f4;
+  --erp-on-dark: #ffffff; /* text and icons on coloured backgrounds */
+
+  /* Buttons (same in every module) */
+  --btn-add: #2563eb;
+  --btn-delete: #dc2626;
+  --btn-danger-text: #b91c1c;
+  --btn-danger-border: #f3b4b4;
+  --btn-import: #4b5563;
+  --btn-export: #15803d;
+
+  /* Status chips (same in every module) */
+  --chip-draft-bg: #eef0f4;
+  --chip-draft-text: #475069;
+  --chip-pending-bg: #fef3c7;
+  --chip-pending-text: #92400e;
+  --chip-released-bg: #dbeafe;
+  --chip-released-text: #1e40af;
+  --chip-partial-bg: #ede9fe;
+  --chip-partial-text: #5b21b6;
+  --chip-done-bg: #dcfce7;
+  --chip-done-text: #166534;
+  --chip-cancelled-bg: #fee2e2;
+  --chip-cancelled-text: #991b1b;
+
+  /* Notes and banners */
+  --note-warn-bg: #fffbeb;
+  --note-warn-border: #fcd34d;
+  --note-warn-text: #78350f;
+  --note-warn-strong: #92400e;
+  --note-error-bg: #fef2f2;
+  --note-error-border: #fecaca;
+  --note-error-text: #7f1d1d;
+  --attention-text: #b45309; /* "5 left · reorder 20" */
+
+  /* Launcher */
+  --launcher-bg: #dfe2e8;
+  --launcher-bar: #141a5c;
+  --launcher-bar-control: #1e2570;
+  --launcher-bar-line: #3b4280;
+  --launcher-avatar: #c7cbe0;
+  --launcher-note-border: #d5d9e2;
+  --brand-dark: #141a3c;
+  --tile-core: #4f53d6;
+  --tile-purchase: #15803d;
+  --tile-sales: #7b4fe0;
+  --tile-mes: #b45309;
+  --tile-wms: #2b35d8;
+  --tile-config: #5b6170;
+
+  /* Module colours default to Purchase until a layout sets data-module */
+  --mod-side: #15803d;
+  --mod-hover: #17733a;
+  --mod-active: #14532d;
+  --mod-pill: #166534;
+  --mod-primary: #166534;
+  --mod-accent: #166534;
+  --mod-line: #15803d;
+  --mod-light: #f0fdf4;
+  --mod-light-border: #bbf7d0;
+}
+
+/* Module themes: set data-module on the layout root. */
+[data-module='purchase'] {
+  --mod-side: #15803d;
+  --mod-hover: #17733a;
+  --mod-active: #14532d;
+  --mod-pill: #166534;
+  --mod-primary: #166534;
+  --mod-accent: #166534;
+  --mod-line: #15803d;
+  --mod-light: #f0fdf4;
+  --mod-light-border: #bbf7d0;
+  /* Home tiles, darkest first */
+  --mod-tile-1: #14532d;
+  --mod-tile-2: #166534;
+  --mod-tile-3: #15803d;
+  --mod-chip-bg: #dcfce7;
+  --mod-chip-text: #166534;
+}
+
+[data-module='sales'] {
+  --mod-side: #7b4fe0;
+  --mod-hover: #6a42d6;
+  --mod-active: #5b35c9;
+  --mod-pill: #6a42d6;
+  --mod-primary: #6d45db;
+  --mod-accent: #5b35c9;
+  --mod-line: #6d45db;
+  --mod-light: #f8f5ff;
+  --mod-light-border: #ddd6fe;
+  --mod-tile-1: #5b35c9;
+  --mod-tile-2: #6a42d6;
+  --mod-tile-3: #7b4fe0;
+  --mod-chip-bg: #ede9fe;
+  --mod-chip-text: #5b35c9;
+}
