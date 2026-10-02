@@ -12,6 +12,11 @@ import type {
   PurchaseDashboard,
   RequestDetail,
   RequestInput,
+  ReceiptDetail,
+  ReceiptInput,
+  ReceiptListItem,
+  ReceiptTemplate,
+  ReceiptWaiting,
   RequestListItem,
   ReplyInput,
   RfqDetail,
@@ -88,6 +93,18 @@ export const rfqsApi = {
     api<RfqDetail>(`/purchase/rfqs/${id}/close`, { method: 'POST', body: { version, reason } }),
 }
 
+export const receiptsApi = {
+  waiting: () => api<ReceiptWaiting>('/purchase/receipts/waiting'),
+  list: (query: ListQuery) => api<ListResponse<ReceiptListItem>>('/purchase/receipts', { query }),
+  template: (poId: string) => api<ReceiptTemplate>('/purchase/receipts/new', { query: { poId } }),
+  get: (id: string) => api<ReceiptDetail>(`/purchase/receipts/${id}`),
+  create: (body: ReceiptInput & { poId: string }) => api<ReceiptDetail>('/purchase/receipts', { method: 'POST', body }),
+  update: (id: string, body: ReceiptInput & { version: number }) => api<ReceiptDetail>(`/purchase/receipts/${id}`, { method: 'PATCH', body }),
+  remove: (id: string, version: number) =>
+    api<{ deleted: boolean; docNo: string }>(`/purchase/receipts/${id}`, { method: 'DELETE', query: { version } }),
+  confirm: (id: string, version: number) => api<ReceiptDetail>(`/purchase/receipts/${id}/confirm`, { method: 'POST', body: { version } }),
+}
+
 export const attachmentsApi = {
   upload: (file: File, kind: string) => {
     const form = new FormData()
@@ -112,6 +129,8 @@ export const lookupsApi = {
     api<{ items: ItemOption[] }>('/purchase/lookups/items', { query: { q, supplierCode } }),
   warehouses: () => api<{ items: WarehouseOption[] }>('/purchase/lookups/warehouses'),
   branches: () => api<{ items: { code: string; name: string }[] }>('/purchase/lookups/branches'),
+  locations: (warehouseCode: string) =>
+    api<{ items: { code: string; name: string; warehouseCode: string }[] }>('/purchase/lookups/locations', { query: { warehouseCode } }),
   users: (role: string, branchCode?: string) =>
     api<{ items: { code: string; name: string; email: string }[] }>('/purchase/lookups/users', {
       query: { role, branchCode },

@@ -7,6 +7,7 @@ import type {
   MdContractPrice,
   MdItem,
   MdSupplier,
+  MdLocation,
   MdTaxCode,
   MdUser,
   MdWarehouse,
@@ -151,6 +152,14 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
       where: { tenantId, ...(branchCode && { branchCode }) },
       orderBy: { code: 'asc' },
       select: { code: true, name: true, branchCode: true, isActive: true },
+    });
+  }
+
+  async listLocations(tenantId: string, warehouseCode?: string): Promise<MdLocation[]> {
+    return this.prisma.mdmLocation.findMany({
+      where: { tenantId, ...(warehouseCode && { warehouseCode }) },
+      orderBy: { code: 'asc' },
+      select: { code: true, name: true, warehouseCode: true, isActive: true },
     });
   }
 

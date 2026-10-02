@@ -64,6 +64,14 @@ export interface MdWarehouse {
   isActive: boolean;
 }
 
+/** Rack / bin inside a warehouse (HQ-MAIN/B-03). Codes match WMS location codes. */
+export interface MdLocation {
+  code: string;
+  name: string;
+  warehouseCode: string;
+  isActive: boolean;
+}
+
 export interface MdTaxCode {
   code: string;
   /** "SST 10%" */
@@ -101,6 +109,7 @@ export interface MasterDataPort {
   /** Active purchasable items matching code or name. */
   searchPurchasableItems(tenantId: string, options: SearchOptions): Promise<MdItem[]>;
   listWarehouses(tenantId: string, branchCode?: string): Promise<MdWarehouse[]>;
+  listLocations(tenantId: string, warehouseCode?: string): Promise<MdLocation[]>;
   listTaxCodes(tenantId: string): Promise<MdTaxCode[]>;
   /** Contract prices valid on a date (YYYY-MM-DD). */
   listContractPrices(tenantId: string, filter: { supplierCode?: string; itemCodes?: string[]; onDate: string }): Promise<MdContractPrice[]>;

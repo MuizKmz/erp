@@ -61,3 +61,32 @@ export function isPositiveDecimal(value: string): boolean {
   const units = toUnits(value)
   return units !== null && units > 0n
 }
+
+function unitsToQty(units: bigint): string {
+  const negative = units < 0n
+  const text = (negative ? -units : units).toString().padStart(SCALE + 1, '0')
+  return `${negative ? '-' : ''}${text.slice(0, -SCALE)}.${text.slice(-SCALE)}`
+}
+
+/** Sum of quantities with up to 4 decimals ("95" + "3.5" → "98.5000"). Invalid values count as 0. */
+export function sumQty(values: string[]): string {
+  return unitsToQty(values.reduce((sum, v) => sum + (toUnits(v) ?? 0n), 0n))
+}
+
+/** a − b for quantities ("100" − "95" → "5.0000"). Invalid values count as 0. */
+export function subQty(a: string, b: string): string {
+  return unitsToQty((toUnits(a) ?? 0n) - (toUnits(b) ?? 0n))
+}
+
+/** −1, 0 or 1, like a < b, a = b, a > b. Invalid values count as 0. */
+export function compareQty(a: string, b: string): number {
+  const x = toUnits(a) ?? 0n
+  const y = toUnits(b) ?? 0n
+  return x < y ? -1 : x > y ? 1 : 0
+}
+
+/** Is this a valid quantity with up to 4 decimals, zero allowed? */
+export function isQty(value: string): boolean {
+  const units = toUnits(value)
+  return units !== null && units >= 0n
+}

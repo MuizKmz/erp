@@ -563,3 +563,133 @@ export interface ReplyInput {
   note?: string
   attachmentIds?: string[]
 }
+
+// ── Goods receipts (P14, P15) ────────────────────────────────────────────────
+
+export type ReceiptStatus = 'DRAFT' | 'CONFIRMED'
+export type ReceiptAction = 'edit' | 'delete' | 'confirm'
+export type StockState = 'NONE' | 'QUEUED' | 'POSTED' | 'FAILED' | 'OLD_SYSTEM'
+export type ShortAction = 'KEEP_OPEN' | 'CANCEL_BALANCE'
+
+export interface WaitingOrder {
+  poId: string
+  poNo: string
+  isMigrated: boolean
+  supplierName: string
+  branchCode: string
+  item: { code: string; name: string; more: number }
+  openText: string
+  openQty: string
+  expected: string | null
+  arrivedToday: boolean
+  lateDays: number
+  note: string | null
+  draftReceipt: { id: string; docNo: string } | null
+  cancelOrder: { id: string; docNo: string } | null
+  action: 'RECEIVE' | 'CONTINUE' | null
+}
+
+export interface ReceiptWaiting {
+  items: WaitingOrder[]
+  kpis: {
+    waiting: { count: number; units: string }
+    arrivedToday: { count: number; first: string | null }
+    late: { count: number; worst: { poNo: string; days: number } | null }
+    waitingForInventory: { count: number }
+  }
+  inventoryConnected: boolean
+}
+
+export interface ReceiptListItem {
+  id: string
+  docNo: string
+  docDate: string
+  poId: string
+  poNo: string
+  supplierName: string
+  supplierDoNo: string | null
+  receivedQty: string
+  openQtyBefore: string
+  shortQty: string
+  receivedByName: string
+  stock: StockState
+  status: ReceiptStatus
+  isMigrated: boolean
+}
+
+export interface ReceiptPoSummary {
+  id: string
+  docNo: string
+  docDate: string
+  status: PoStatus
+  statusLabel: string
+  isMigrated: boolean
+  supplier: { code: string; name: string }
+  branch: { code: string; name: string }
+  expectedDate: string | null
+  ordered: string
+  received: string
+  open: string
+  uomCode: string | null
+}
+
+export interface ReceiptLineView {
+  poLineId: string
+  lineNo: number
+  itemCode: string
+  itemName: string
+  uomCode: string
+  orderedQty: string
+  receivedBeforeQty: string
+  openQty: string
+}
+
+export interface ReceiptTemplate {
+  po: ReceiptPoSummary
+  receivedBy: { code: string; name: string; title: string | null }
+  docDate: string
+  warehouseCode: string
+  warehouses: WarehouseOption[]
+  lines: ReceiptLineView[]
+  inventoryConnected: boolean
+}
+
+export interface ReceiptDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: ReceiptStatus
+  isMigrated: boolean
+  version: number
+  po: ReceiptPoSummary
+  poProblem: string | null
+  supplier: { code: string; name: string }
+  branch: { code: string; name: string }
+  warehouse: { code: string; name: string }
+  warehouses: WarehouseOption[]
+  supplierDoNo: string | null
+  vehicleNo: string | null
+  receivedBy: { code: string; name: string; title: string | null }
+  arrivedAt: string | null
+  confirmedAt: string | null
+  shortAction: ShortAction | null
+  remarks: string | null
+  lines: (ReceiptLineView & { id: string; openQtyBefore: string; receivedQty: string; condition: string; locationCode: string | null })[]
+  attachments: { id: string; fileName: string; mimeType: string; kind: string | null; downloadUrl: string }[]
+  stock: StockState
+  inventoryConnected: boolean
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: ReceiptAction[]
+}
+
+export interface ReceiptInput {
+  docDate?: string
+  supplierDoNo?: string
+  vehicleNo?: string
+  warehouseCode?: string
+  remarks?: string
+  shortAction?: ShortAction | null
+  attachmentIds?: string[]
+  lines?: { poLineId: string; receivedQty: string; condition?: string; locationCode?: string | null }[]
+}

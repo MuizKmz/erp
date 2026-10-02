@@ -29,6 +29,11 @@ class LookupQuery {
   @IsString()
   @MaxLength(10)
   branchCode?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  warehouseCode?: string;
 }
 
 /**
@@ -104,6 +109,12 @@ export class LookupsController {
         .filter((w) => w.isActive && ctx.user.branchCodes.includes(w.branchCode))
         .map((w) => ({ ...w, branchName: branches.find((b) => b.code === w.branchCode)?.name ?? w.branchCode })),
     };
+  }
+
+  /** Put-away locations (racks) of a warehouse, for goods receipts. */
+  @Get('locations')
+  async locations(@CurrentContext() ctx: RequestContext, @Query() query: LookupQuery) {
+    return { items: (await this.masterData.listLocations(ctx.tenantId, query.warehouseCode)).filter((l) => l.isActive) };
   }
 
   @Get('branches')

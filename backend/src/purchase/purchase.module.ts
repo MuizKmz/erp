@@ -12,6 +12,9 @@ import { OrdersController } from './orders/orders.controller';
 import { OrdersQuery } from './orders/orders.query';
 import { OrdersService } from './orders/orders.service';
 import { PURCHASE_ROLE_GRANTS } from './purchase.permissions';
+import { ReceiptsController } from './receipts/receipts.controller';
+import { ReceiptsQuery } from './receipts/receipts.query';
+import { ReceiptsService } from './receipts/receipts.service';
 import { RequestsController } from './requests/requests.controller';
 import { RequestsQuery } from './requests/requests.query';
 import { RequestsService } from './requests/requests.service';
@@ -27,7 +30,7 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
  * pur_ tables, and tells other modules about changes through the outbox. Never imports from sales/.
  */
 @Module({
-  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController],
+  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController],
   providers: [
     DemandService,
     DashboardService,
@@ -42,6 +45,8 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
     RequestsService,
     RfqsQuery,
     RfqsService,
+    ReceiptsQuery,
+    ReceiptsService,
   ],
 })
 export class PurchaseModule implements OnModuleInit {

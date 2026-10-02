@@ -9,6 +9,8 @@ const RequestList = () => import('./views/RequestListView.vue')
 const RequestForm = () => import('./views/RequestFormView.vue')
 const RfqList = () => import('./views/RfqListView.vue')
 const RfqCompare = () => import('./views/RfqCompareView.vue')
+const ReceiptList = () => import('./views/ReceiptListView.vue')
+const ReceiptForm = () => import('./views/ReceiptFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies'
 
@@ -41,8 +43,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'P09', path: 'orders', name: 'purchase-orders', title: 'Purchase Order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoList.html', component: OrderList },
   { code: 'P03', path: 'orders/:id/flow', name: 'purchase-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 10, mockup: 'PurDocFlow.html', parent: doc('Purchase Order', '/purchase/orders') },
   { code: 'P10', path: 'orders/:id', name: 'purchase-order', title: 'Purchase order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoForm.html', parent: doc('Purchase Order', '/purchase/orders'), component: OrderForm },
-  { code: 'P14', path: 'receipts', name: 'purchase-receipts', title: 'Goods Receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnList.html' },
-  { code: 'P15', path: 'receipts/:id', name: 'purchase-receipt', title: 'Goods receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnConfirm.html', parent: doc('Goods Receipt', '/purchase/receipts') },
+  { code: 'P14', path: 'receipts', name: 'purchase-receipts', title: 'Goods Receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnList.html', component: ReceiptList },
+  { code: 'P15', path: 'receipts/:id', name: 'purchase-receipt', title: 'Goods receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnConfirm.html', parent: doc('Goods Receipt', '/purchase/receipts'), component: ReceiptForm },
   { code: 'P12', path: 'cancel-orders', name: 'purchase-cancel-orders', title: 'Cancel Order', group: 'transaction', item: 'cancel-orders', step: 9, mockup: 'PoCancelList.html' },
   { code: 'P13', path: 'cancel-orders/:id', name: 'purchase-cancel-order', title: 'Cancel order balance', group: 'transaction', item: 'cancel-orders', step: 9, mockup: 'PoCancel.html', parent: doc('Cancel Order', '/purchase/cancel-orders') },
   { code: 'P16', path: 'invoices', name: 'purchase-invoices', title: 'Purchase Invoice', group: 'billing', item: 'invoices', step: 8, mockup: 'PiList.html' },
