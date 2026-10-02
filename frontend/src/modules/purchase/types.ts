@@ -265,6 +265,21 @@ export interface OrderPanel {
   award: { rfqNo: string; reason: string } | null
 }
 
+export interface DebitNotePanel {
+  kind: 'DEBIT_NOTE'
+  docNo: string
+  supplierName: string
+  theirNoteNo: string
+  invoiceNo: string
+  lines: { itemCode: string; itemName: string; qty: string; uomCode: string; unitPrice: string; amount: string }[]
+  subtotal: string
+  taxLines: { code: string; name: string; amount: string }[]
+  total: string
+  check: string | null
+  invoiceTotal: string | null
+  afterTotal: string | null
+}
+
 export interface InvoicePanel {
   kind: 'INVOICE'
   docNo: string
@@ -293,7 +308,7 @@ export interface InboxDetail extends InboxItem {
   }[]
   canDecide: boolean
   cannotDecideReason: string | null
-  document: OrderPanel | InvoicePanel | null
+  document: OrderPanel | InvoicePanel | DebitNotePanel | null
 }
 
 // ── Lookups ──────────────────────────────────────────────────────────────────
@@ -1050,4 +1065,73 @@ export interface ReturnInput {
   remarks?: string
   attachmentIds?: string[]
   lines?: { grnLineId: string; qty: string }[]
+}
+
+// ── Supplier debit notes (P20, P21) ──────────────────────────────────────────
+
+export type DebitNoteStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'RELEASED' | 'REJECTED'
+export type DebitNoteAction = 'edit' | 'delete' | 'submit' | 'release'
+
+export interface DebitNoteListItem {
+  id: string
+  docNo: string
+  docDate: string
+  supplierName: string
+  theirNoteNo: string
+  invoiceId: string | null
+  invoiceNo: string
+  supplierInvoiceNo: string | null
+  reasonText: string
+  total: string
+  status: DebitNoteStatus
+  isMigrated: boolean
+}
+
+export interface DebitCheck {
+  po: { id: string; docNo: string; isMigrated: boolean; what: string; statusLabel: string; status: string }
+  onPo: boolean
+  message: string
+  goesTo: string | null
+  invoice: { id: string; docNo: string; supplierInvoiceNo: string; total: string; afterTotal: string; label: string; group: Group; isMigrated: boolean }
+  paymentTermDays: number
+}
+
+export interface DebitNoteDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: DebitNoteStatus
+  isMigrated: boolean
+  version: number
+  supplier: { code: string; name: string }
+  invoice: { id: string | null; docNo: string; supplierInvoiceNo: string | null }
+  theirNoteNo: string
+  reason: string
+  reasons: string[]
+  chargeOnPo: boolean
+  dueDate: string | null
+  subtotal: string
+  taxLines: { code: string; name: string; amount: string }[]
+  taxTotal: string
+  total: string
+  remarks: string | null
+  releasedAt: string | null
+  waitingFor: string | null
+  rejection: { comment: string | null; byName: string | null } | null
+  lines: { id: string; itemCode: string; itemName: string; uomCode: string; taxCode: string; taxName: string; taxRate: string; qty: string; unitPrice: string; amount: string; taxAmount: string }[]
+  check: DebitCheck | null
+  grns: { id: string; docNo: string; docDate: string; isMigrated: boolean }[]
+  attachments: { id: string; fileName: string; mimeType: string; kind: string | null; downloadUrl: string }[]
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: DebitNoteAction[]
+}
+
+export interface DebitNoteInput {
+  theirNoteNo?: string
+  reason?: string
+  docDate?: string
+  remarks?: string
+  attachmentIds?: string[]
+  lines?: { itemCode: string; qty: string; unitPrice: string }[]
 }

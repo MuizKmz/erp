@@ -7,6 +7,8 @@ import type { RequestContext } from '../../platform/context/request-context';
 import { dec, roundMoney, toMoney, toPrice, toQty } from '../../platform/http/decimal';
 import { BusinessRuleError, NotFoundError } from '../../platform/http/errors';
 import { PrismaService } from '../../platform/prisma/prisma.service';
+import { DebitNotesQuery } from '../debit-notes/debit-notes.query';
+import { DebitNotesService } from '../debit-notes/debit-notes.service';
 import { InvoiceApprovalService } from '../invoices/invoice-approval.service';
 import { OrdersService } from '../orders/orders.service';
 import { PUR_ENTITY, SYSTEM_USER } from '../shared/purchase.constants';
@@ -35,6 +37,8 @@ export class ApprovalsInboxService {
     private readonly approvals: ApprovalsService,
     private readonly orders: OrdersService,
     private readonly invoices: InvoiceApprovalService,
+    private readonly debitNotes: DebitNotesService,
+    private readonly debitNotesQuery: DebitNotesQuery,
     private readonly settings: PurchaseSettingsService,
     private readonly clock: ClockService,
     @Inject(SALES_DEMAND_PORT) private readonly sales: SalesDemandPort,
@@ -116,6 +120,7 @@ export class ApprovalsInboxService {
       const decided = await this.approvals.decide(tx, ctx, id, decision, text);
       if (decided.entityType === PUR_ENTITY.ORDER) await this.orders.onApprovalDecision(tx, ctx, decided, text);
       else if (decided.entityType === PUR_ENTITY.INVOICE) await this.invoices.onApprovalDecision(tx, ctx, decided, text);
+      else if (decided.entityType === PUR_ENTITY.DEBIT_NOTE) await this.debitNotes.onApprovalDecision(tx, ctx, decided, text);
       else throw new BusinessRuleError('APPROVAL_UNSUPPORTED', `${decided.docNo} cannot be decided here yet.`);
       return decided;
     });
@@ -231,6 +236,25 @@ export class ApprovalsInboxService {
               marginPct: dec(so.soTotal).gt(0) ? dec(so.soTotal).sub(order.total).div(so.soTotal).mul(100).toDecimalPlaces(0).toString() : null,
             }
           : null,
+      };
+    }
+
+    if (request.entityType === PUR_ENTITY.DEBIT_NOTE) {
+      // The charges, the check against the PO and what the invoice becomes (PurDebitNote.html right panel).
+      const note = await this.debitNotesQuery.detail(ctx, request.entityId);
+      return {
+        kind: 'DEBIT_NOTE' as const,
+        docNo: note.docNo,
+        supplierName: note.supplier.name,
+        theirNoteNo: note.theirNoteNo,
+        invoiceNo: note.invoice.docNo,
+        lines: note.lines.map((l) => ({ itemCode: l.itemCode, itemName: l.itemName, qty: l.qty, uomCode: l.uomCode, unitPrice: l.unitPrice, amount: l.amount })),
+        subtotal: note.subtotal,
+        taxLines: note.taxLines,
+        total: note.total,
+        check: note.check?.message ?? null,
+        invoiceTotal: note.check?.invoice.total ?? null,
+        afterTotal: note.check?.invoice.afterTotal ?? null,
       };
     }
 

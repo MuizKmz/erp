@@ -98,13 +98,17 @@ const approveLabel = computed(() => {
   if (d.kind === 'INVOICE' && Number(d.difference.amount) !== 0) return `Approve RM ${formatMoney(d.difference.amount.replace('-', ''))}`
   return `Approve RM ${formatMoney(d.total)}`
 })
-const rejectLabel = computed(() => (doc.value?.kind === 'INVOICE' ? 'Reject · ask for new bill' : 'Reject · back to draft'))
+const rejectLabel = computed(() =>
+  doc.value?.kind === 'INVOICE' ? 'Reject · ask for new bill' : doc.value?.kind === 'DEBIT_NOTE' ? 'Reject · do not pay' : 'Reject · back to draft',
+)
+const PANEL_TITLE = { ORDER: 'order to approve', INVOICE: 'three-way match', DEBIT_NOTE: 'extra charge' } as const
+const OPEN_LABEL = { ORDER: 'Open order', INVOICE: 'Open invoice', DEBIT_NOTE: 'Open debit note' } as const
 const footnote = computed(() => {
   const d = doc.value
   if (!d || !detail.value) return ''
-  return d.kind === 'ORDER'
-    ? `Approving lets ${d.buyerName} release ${d.docNo} for RM ${formatMoney(d.total)}. Your decision is logged.`
-    : `Approving records ${d.docNo} for RM ${formatMoney(d.billedTotal)} and queues it for Finance. Your decision is logged.`
+  if (d.kind === 'ORDER') return `Approving lets ${d.buyerName} release ${d.docNo} for RM ${formatMoney(d.total)}. Your decision is logged.`
+  if (d.kind === 'DEBIT_NOTE') return `Approving adds RM ${formatMoney(d.total)} to ${d.invoiceNo} and queues it for Finance. Your decision is logged.`
+  return `Approving records ${d.docNo} for RM ${formatMoney(d.billedTotal)} and queues it for Finance. Your decision is logged.`
 })
 const openDocument = computed(() => (detail.value ? docRoute(detail.value.entityType, detail.value.entityId) : null))
 
@@ -217,14 +221,47 @@ async function decide(decision: 'approve' | 'reject') {
 
       <template v-else>
         <div class="flex items-center justify-between gap-3">
-          <h2 class="m-0 text-base font-bold">{{ doc.docNo }} · {{ doc.kind === 'INVOICE' ? 'three-way match' : 'order to approve' }}</h2>
+          <h2 class="m-0 text-base font-bold">{{ doc.docNo }} · {{ PANEL_TITLE[doc.kind] }}</h2>
           <RouterLink v-if="openDocument" :to="openDocument" class="erp-link text-[13px] font-semibold">
-            {{ doc.kind === 'INVOICE' ? 'Open invoice' : 'Open order' }}
+            {{ OPEN_LABEL[doc.kind] }}
           </RouterLink>
         </div>
 
+        <!-- Supplier debit note: the charges and the check against the PO -->
+        <template v-if="doc.kind === 'DEBIT_NOTE'">
+          <table class="erp-table">
+            <thead>
+              <tr><th>Charge</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="l in doc.lines" :key="l.itemCode">
+                <td><div class="font-bold">{{ l.itemCode }}</div><div class="text-xs text-erp-muted">{{ l.itemName }}</div></td>
+                <td class="num">{{ formatQty(l.qty) }} {{ l.uomCode }}</td>
+                <td class="num">{{ formatPrice(l.unitPrice) }}</td>
+                <td class="num">{{ formatMoney(l.amount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <NoticeBanner v-if="doc.check" kind="warning">{{ doc.check }}</NoticeBanner>
+          <div class="flex flex-col text-[13px]">
+            <div class="flex justify-between gap-3 border-b border-erp-row py-2">
+              <span class="text-erp-muted">Debit note total</span><strong class="erp-num">{{ formatRm(doc.total) }}</strong>
+            </div>
+            <div class="flex justify-between gap-3 border-b border-erp-row py-2">
+              <span class="text-erp-muted">Their note · adds to</span><span>{{ doc.theirNoteNo }} · {{ doc.invoiceNo }}</span>
+            </div>
+            <div v-if="doc.afterTotal" class="flex justify-between gap-3 border-b border-erp-row py-2">
+              <span class="text-erp-muted">{{ doc.invoiceNo }} after this note</span>
+              <span class="erp-num">RM {{ formatMoney(doc.invoiceTotal ?? '0') }} → <strong>RM {{ formatMoney(doc.afterTotal) }}</strong></span>
+            </div>
+            <div class="flex justify-between gap-3 border-b border-erp-row py-2">
+              <span class="text-erp-muted">Why approval is needed</span><span class="max-w-[65%] text-right">{{ detail.reason }}</span>
+            </div>
+          </div>
+        </template>
+
         <!-- Invoice: three-way match -->
-        <template v-if="doc.kind === 'INVOICE'">
+        <template v-else-if="doc.kind === 'INVOICE'">
           <table class="erp-table">
             <thead>
               <tr><th /><th class="num">Order</th><th class="num">Received</th><th class="num">Billed</th></tr>

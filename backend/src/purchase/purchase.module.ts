@@ -7,6 +7,9 @@ import { CancelOrdersQuery } from './cancel-orders/cancel-orders.query';
 import { CancelOrdersService } from './cancel-orders/cancel-orders.service';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardService } from './dashboard/dashboard.service';
+import { DebitNotesController } from './debit-notes/debit-notes.controller';
+import { DebitNotesQuery } from './debit-notes/debit-notes.query';
+import { DebitNotesService } from './debit-notes/debit-notes.service';
 import { DemandController } from './demand/demand.controller';
 import { DemandService } from './demand/demand.service';
 import { InvoiceApprovalService } from './invoices/invoice-approval.service';
@@ -39,7 +42,7 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
  * pur_ tables, and tells other modules about changes through the outbox. Never imports from sales/.
  */
 @Module({
-  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController, ReturnsController],
+  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController, ReturnsController, DebitNotesController],
   providers: [
     DemandService,
     DashboardService,
@@ -62,6 +65,8 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
     CancelOrdersService,
     ReturnsQuery,
     ReturnsService,
+    DebitNotesQuery,
+    DebitNotesService,
   ],
 })
 export class PurchaseModule implements OnModuleInit {

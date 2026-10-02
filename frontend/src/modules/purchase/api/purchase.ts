@@ -10,6 +10,10 @@ import type {
   CancelOrderInput,
   CancelOrderListItem,
   CancelOrderTemplate,
+  DebitCheck,
+  DebitNoteDetail,
+  DebitNoteInput,
+  DebitNoteListItem,
   InvoiceDetail,
   InvoiceInput,
   InvoiceKpis,
@@ -168,6 +172,25 @@ export const returnsApi = {
     api<ReturnDetail>(`/purchase/returns/${id}/credit-note`, { method: 'POST', body: { version, creditNoteNo } }),
   replacement: (id: string, version: number, supplierDoNo: string) =>
     api<ReturnDetail>(`/purchase/returns/${id}/replacement`, { method: 'POST', body: { version, supplierDoNo } }),
+}
+
+export const debitNotesApi = {
+  list: (query: ListQuery) =>
+    api<ListResponse<DebitNoteListItem> & { reasons: string[]; totals: { count: number; total: string; since: string | null } }>('/purchase/debit-notes', { query }),
+  invoices: (supplierCode: string) =>
+    api<{ items: { id: string; docNo: string; supplierInvoiceNo: string; docDate: string; total: string; statusLabel: string }[] }>('/purchase/debit-notes/invoices', { query: { supplierCode } }),
+  check: (invoiceId: string, items: string[], total: string) => {
+    const params = new URLSearchParams({ invoiceId, total })
+    for (const i of items) params.append('items', i)
+    return api<DebitCheck>(`/purchase/debit-notes/check?${params.toString()}`, { silent: true })
+  },
+  get: (id: string) => api<DebitNoteDetail>(`/purchase/debit-notes/${id}`),
+  create: (body: DebitNoteInput & { invoiceId: string; theirNoteNo: string; reason: string }) => api<DebitNoteDetail>('/purchase/debit-notes', { method: 'POST', body }),
+  update: (id: string, body: DebitNoteInput & { version: number }) => api<DebitNoteDetail>(`/purchase/debit-notes/${id}`, { method: 'PATCH', body }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/purchase/debit-notes/${id}`, { method: 'DELETE', query: { version } }),
+  submit: (id: string, version: number, note?: string) =>
+    api<DebitNoteDetail>(`/purchase/debit-notes/${id}/submit-for-approval`, { method: 'POST', body: { version, note } }),
+  release: (id: string, version: number) => api<DebitNoteDetail>(`/purchase/debit-notes/${id}/release`, { method: 'POST', body: { version } }),
 }
 
 export const attachmentsApi = {
