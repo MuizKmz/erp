@@ -85,7 +85,7 @@ function createPo() {
   else void router.push('/purchase/orders/new')
 }
 function createRfq() {
-  toast.add({ severity: 'info', summary: 'Request for Quote', detail: 'Asking suppliers for prices comes in the next step (RFQ).', life: 3500 })
+  void router.push({ path: '/purchase/rfqs/new', query: selected.value ? { request: selected.value.id } : {} })
 }
 
 // ── Columns ──────────────────────────────────────────────────────────────────

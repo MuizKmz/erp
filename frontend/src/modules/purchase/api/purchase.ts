@@ -13,6 +13,11 @@ import type {
   RequestDetail,
   RequestInput,
   RequestListItem,
+  ReplyInput,
+  RfqDetail,
+  RfqInput,
+  RfqListItem,
+  RfqOpenReply,
   SupplierOption,
   WarehouseOption,
 } from '../types'
@@ -65,6 +70,31 @@ export const requestsApi = {
       method: 'POST',
       body,
     }),
+}
+
+export type RfqList = ListResponse<RfqListItem> & { openReplies: RfqOpenReply[] }
+
+export const rfqsApi = {
+  list: (query: ListQuery) => api<RfqList>('/purchase/rfqs', { query }),
+  get: (id: string) => api<RfqDetail>(`/purchase/rfqs/${id}`),
+  create: (body: RfqInput) => api<RfqDetail>('/purchase/rfqs', { method: 'POST', body }),
+  recordReply: (id: string, body: ReplyInput) => api<RfqDetail>(`/purchase/rfqs/${id}/replies`, { method: 'POST', body }),
+  addSupplier: (id: string, version: number, supplierCode: string) =>
+    api<RfqDetail>(`/purchase/rfqs/${id}/suppliers`, { method: 'POST', body: { version, supplierCode } }),
+  remind: (id: string, supplierCode?: string) => api<RfqDetail>(`/purchase/rfqs/${id}/remind`, { method: 'POST', body: { supplierCode } }),
+  award: (id: string, body: { version: number; supplierCode: string; reason?: string }) =>
+    api<{ order: { id: string; docNo: string }; rfq: RfqDetail }>(`/purchase/rfqs/${id}/award`, { method: 'POST', body }),
+  close: (id: string, version: number, reason: string) =>
+    api<RfqDetail>(`/purchase/rfqs/${id}/close`, { method: 'POST', body: { version, reason } }),
+}
+
+export const attachmentsApi = {
+  upload: (file: File, kind: string) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('kind', kind)
+    return api<{ id: string; fileName: string }>('/attachments', { method: 'POST', body: form })
+  },
 }
 
 export const approvalsApi = {

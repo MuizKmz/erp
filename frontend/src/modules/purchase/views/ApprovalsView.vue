@@ -286,6 +286,10 @@ async function decide(decision: 'approve' | 'reject') {
             <div class="flex justify-between gap-3 border-b border-erp-row py-2">
               <span class="text-erp-muted">Why approval is needed</span><span class="max-w-[65%] text-right">{{ detail.reason }}</span>
             </div>
+            <div v-if="doc.award" class="flex justify-between gap-3 border-b border-erp-row py-2">
+              <span class="text-erp-muted">Why this supplier · {{ doc.award.rfqNo }}</span>
+              <span class="max-w-[65%] text-right">{{ doc.award.reason }}</span>
+            </div>
             <div v-if="doc.salesOrder" class="flex justify-between gap-3 border-b border-erp-row py-2">
               <span class="text-erp-muted">Customer order</span>
               <span class="text-right erp-num">

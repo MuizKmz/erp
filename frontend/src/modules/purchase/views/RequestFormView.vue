@@ -11,6 +11,7 @@ import FormField from '@/components/erp/FormField.vue'
 import LinkedDocs from '@/components/erp/LinkedDocs.vue'
 import MasterDataPicker from '@/components/erp/MasterDataPicker.vue'
 import MoneyText from '@/components/erp/MoneyText.vue'
+import NextSteps from '@/components/erp/NextSteps.vue'
 import NoticeBanner from '@/components/erp/NoticeBanner.vue'
 import PageHeader from '@/components/erp/PageHeader.vue'
 import SideCard from '@/components/erp/SideCard.vue'
@@ -184,7 +185,7 @@ function deleteDraft() {
 }
 
 function askSuppliers() {
-  toast.add({ severity: 'info', summary: 'Ask suppliers (RFQ)', detail: 'Requests for quote come in the next step. Use “Create PO directly” for now.', life: 4000 })
+  void router.push({ path: '/purchase/rfqs/new', query: { request: request.value!.id } })
 }
 
 function onConverted(result: { orders: { id: string; docNo: string }[]; request: RequestDetail }) {
@@ -462,18 +463,11 @@ const historyNote = (h: { unitPrice: string; note: string | null }, index: numbe
           <p class="m-0 text-xs text-erp-muted">Read from Sales. Purchase only reads it; it never changes a sales order.</p>
         </SideCard>
 
-        <SideCard v-if="request.status === 'SUBMITTED'" title="Next step for the buyer">
-          <div class="flex flex-col gap-3">
-            <div v-for="(s, i) in [
-              ['Ask suppliers', ' for prices with an RFQ when the value is high or the price may have changed.'],
-              ['Order directly', ' from the preferred supplier when the price is known.'],
-              ['', 'Either way the request is closed and linked to the new document.'],
-            ]" :key="i" class="flex gap-3 text-[13px] leading-normal">
-              <b class="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-mod-light text-xs text-mod-accent">{{ i + 1 }}</b>
-              <span><strong v-if="s[0]">{{ s[0] }}</strong>{{ s[1] }}</span>
-            </div>
-          </div>
-        </SideCard>
+        <NextSteps v-if="request.status === 'SUBMITTED'" title="Next step for the buyer">
+          <li><span><strong>Ask suppliers</strong> for prices with an RFQ when the value is high or the price may have changed.</span></li>
+          <li><span><strong>Order directly</strong> from the preferred supplier when the price is known.</span></li>
+          <li><span>Either way the request is closed and linked to the new document.</span></li>
+        </NextSteps>
 
         <SideCard v-if="request.status === 'DRAFT'" title="What happens next">
           <p class="m-0 text-[13px] leading-normal">

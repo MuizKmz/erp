@@ -84,7 +84,8 @@ async function readError(response: Response): Promise<ApiErrorBody> {
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  const isForm = options.body instanceof FormData
+  if (options.body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
   if (devUserCode) headers['x-dev-user'] = devUserCode
 
   let response: Response
@@ -92,7 +93,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     response = await fetch(buildUrl(path, options.query), {
       method: options.method ?? 'GET',
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
       signal: options.signal,
     })
   } catch (cause) {
@@ -109,4 +110,23 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   }
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
+}
+
+/**
+ * Opens a stored file (e.g. a supplier's quote PDF) in a new tab. Fetched with the dev-user header, since a
+ * plain link cannot send it.
+ */
+export async function openFile(path: string): Promise<void> {
+  const tab = window.open('', '_blank')
+  const response = await fetch(buildUrl(path), { headers: devUserCode ? { 'x-dev-user': devUserCode } : {} })
+  if (!response.ok) {
+    tab?.close()
+    const error = new ApiError(response.status, await readError(response))
+    errorListener?.(error)
+    throw error
+  }
+  const url = URL.createObjectURL(await response.blob())
+  if (tab) tab.location.href = url
+  else window.location.href = url
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }

@@ -261,6 +261,8 @@ export interface OrderPanel {
   taxTotal: string
   total: string
   salesOrder: { no: string; customerName: string; total: string; marginPct: string | null } | null
+  /** Why the buyer did not award the cheapest supplier on the RFQ. */
+  award: { rfqNo: string; reason: string } | null
 }
 
 export interface InvoicePanel {
@@ -440,4 +442,124 @@ export interface RequestInput {
   priority?: RequestDetail['priority']
   reason?: string
   lines?: { itemCode: string; qty: string }[]
+}
+
+// ── Requests for quote (P07, P08) ────────────────────────────────────────────
+
+export type RfqStatus = 'DRAFT' | 'WAITING' | 'READY' | 'AWARDED' | 'CLOSED'
+export type RfqAction = 'recordReply' | 'remind' | 'addSupplier' | 'award' | 'close'
+export interface RfqSource {
+  type: 'REQUEST' | 'SALES_ORDER' | 'BUYER'
+  no: string | null
+  id: string | null
+  label: string
+}
+
+export interface RfqListItem {
+  id: string
+  docNo: string
+  docDate: string
+  sentAt: string | null
+  summary: string | null
+  source: RfqSource
+  replies: { replied: number; asked: number }
+  replyBy: string | null
+  awardedTo: { code: string; name: string | null; order: { id: string | null; docNo: string } | null } | null
+  closeReason: string | null
+  status: RfqStatus
+  isMigrated: boolean
+  version: number
+}
+
+export interface RfqOpenReply {
+  rfqId: string
+  rfqNo: string
+  supplierCode: string
+  supplierName: string
+  askedAt: string
+  remindedAt: string | null
+  status: 'ASKED' | 'REPLIED' | 'DECLINED'
+  unitPrice: string | null
+  leadTimeText: string | null
+  dueSoon: boolean
+  replyBy: string | null
+  canRemind: boolean
+}
+
+export interface RfqSupplierReply {
+  id: string
+  code: string
+  name: string
+  shortName: string | null
+  email: string | null
+  isPreferred: boolean
+  status: 'ASKED' | 'REPLIED' | 'DECLINED'
+  askedAt: string
+  remindedAt: string | null
+  repliedAt: string | null
+  leadTimeDays: number | null
+  leadTimeText: string | null
+  deliveryBy: string | null
+  late: boolean
+  paymentTermDays: number | null
+  validUntil: string | null
+  quoteRef: string | null
+  note: string | null
+  prices: { lineNo: number; unitPrice: string; minOrderQty: string | null }[]
+  total: string | null
+  totalWithTax: string | null
+  approval: { required: boolean; reason: string; text: string } | null
+  onTime: { pct: string; deliveries: number } | null
+  quotes: { id: string; fileName: string; downloadUrl: string }[]
+  isAwarded: boolean
+}
+
+export interface RfqDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: RfqStatus
+  isMigrated: boolean
+  version: number
+  buyer: { code: string; name: string }
+  branch: { code: string; name: string }
+  source: RfqSource
+  summary: string | null
+  sentAt: string | null
+  replyBy: string | null
+  neededBy: string | null
+  remarks: string | null
+  awardReason: string | null
+  awardedAt: string | null
+  awardedSupplierCode: string | null
+  awardedOrder: { id: string | null; docNo: string } | null
+  closeReason: string | null
+  lines: { lineNo: number; itemCode: string; itemName: string; uomCode: string; taxCode: string; taxRate: string; qty: string }[]
+  suppliers: RfqSupplierReply[]
+  compare: { cheapest: string[]; fastest: string[]; lowestPrice: Record<string, string[]> }
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: RfqAction[]
+}
+
+export interface RfqInput {
+  requestId?: string
+  lines?: { itemCode: string; qty: string }[]
+  supplierCodes: string[]
+  replyBy: string
+  neededBy?: string
+  remarks?: string
+}
+
+export interface ReplyInput {
+  version: number
+  supplierCode: string
+  declined?: boolean
+  lines?: { lineNo: number; unitPrice: string; minOrderQty?: string }[]
+  leadTimeDays?: number
+  paymentTermDays?: number
+  validUntil?: string
+  quoteRef?: string
+  note?: string
+  attachmentIds?: string[]
 }

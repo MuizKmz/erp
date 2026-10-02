@@ -359,3 +359,69 @@
     background: var(--erp-card);
   }
 }
+
+/* ── Numbered steps (NextSteps.vue) ───────────────────────────────────────── */
+@layer components {
+  .erp-steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .erp-steps > li {
+    counter-increment: step;
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .erp-steps > li::before {
+    content: counter(step);
+    flex: 0 0 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--mod-light);
+    color: var(--mod-accent);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ── RFQ side-by-side compare (RfqCompare.html) ───────────────────────────── */
+@layer components {
+  .erp-compare {
+    display: grid;
+    border: 1px solid var(--erp-border);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 13px;
+    background: var(--erp-card);
+  }
+  .erp-compare > div {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--erp-row-border);
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .erp-compare > .lab {
+    background: var(--erp-head-bg);
+    color: var(--erp-muted);
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .erp-compare > .win {
+    background: var(--mod-light);
+  }
+  .erp-compare > .add {
+    background: var(--erp-off-bg);
+    color: var(--erp-off-text);
+    border-left: 1px dashed var(--erp-input-border);
+  }
+}

@@ -21,7 +21,7 @@ const GROUPS: Record<string, ChipGroup> = {
   SUBMITTED: 'released',
   RELEASED: 'released',
   WAITING: 'released',
-  READY: 'released',
+  READY: 'pending',
   SENT: 'released',
   PARTIAL: 'partial',
   DONE: 'done',

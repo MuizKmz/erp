@@ -205,8 +205,13 @@ export class ApprovalsInboxService {
       });
       if (!order) return null;
       const so = order.salesOrderNo ? await this.sales.findSalesOrder(ctx.tenantId, order.salesOrderNo) : null;
+      // Rule 5: the reason saved with the RFQ award (needed when it is not the cheapest) is shown to the approver.
+      const rfq = order.rfqId
+        ? await this.prisma.purRfq.findFirst({ where: { id: order.rfqId, tenantId: ctx.tenantId }, select: { docNo: true, awardReason: true } })
+        : null;
       return {
         kind: 'ORDER' as const,
+        award: rfq?.awardReason ? { rfqNo: rfq.docNo, reason: rfq.awardReason } : null,
         docNo: order.docNo,
         supplierName: order.supplierName,
         warehouseName: order.warehouseName,

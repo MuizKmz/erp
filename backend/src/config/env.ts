@@ -9,6 +9,8 @@ export interface Env {
   DEV_TENANT_CODE: string;
   PORT: number;
   CORS_ORIGIN: string;
+  /** Where the web app runs; used for links in emails (supplier reply links). */
+  APP_URL: string;
   UPLOAD_DIR: string;
   UPLOAD_MAX_BYTES: number;
   OUTBOX_DISPATCH: boolean;
@@ -59,6 +61,7 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     DEV_TENANT_CODE: str('DEV_TENANT_CODE', 'CLB'),
     PORT: toInt('PORT', raw.PORT, 3000, problems),
     CORS_ORIGIN: str('CORS_ORIGIN', 'http://localhost:5173'),
+    APP_URL: str('APP_URL', 'http://localhost:5173').replace(/\/+$/, ''),
     UPLOAD_DIR: str('UPLOAD_DIR', 'uploads'),
     UPLOAD_MAX_BYTES: toInt('UPLOAD_MAX_BYTES', raw.UPLOAD_MAX_BYTES, 10 * 1024 * 1024, problems),
     OUTBOX_DISPATCH: dispatch === 'on',

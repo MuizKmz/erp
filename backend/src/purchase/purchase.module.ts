@@ -15,6 +15,9 @@ import { PURCHASE_ROLE_GRANTS } from './purchase.permissions';
 import { RequestsController } from './requests/requests.controller';
 import { RequestsQuery } from './requests/requests.query';
 import { RequestsService } from './requests/requests.service';
+import { RfqsController } from './rfqs/rfqs.controller';
+import { RfqsQuery } from './rfqs/rfqs.query';
+import { RfqsService } from './rfqs/rfqs.service';
 import { LinkedDocsService } from './shared/linked-docs.service';
 import { PurchaseMailService } from './shared/purchase-mail.service';
 import { PurchaseSettingsService } from './shared/purchase-settings.service';
@@ -24,7 +27,7 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
  * pur_ tables, and tells other modules about changes through the outbox. Never imports from sales/.
  */
 @Module({
-  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController],
+  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController],
   providers: [
     DemandService,
     DashboardService,
@@ -37,6 +40,8 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
     ApprovalsInboxService,
     RequestsQuery,
     RequestsService,
+    RfqsQuery,
+    RfqsService,
   ],
 })
 export class PurchaseModule implements OnModuleInit {

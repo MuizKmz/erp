@@ -7,6 +7,8 @@ const Approvals = () => import('./views/ApprovalsView.vue')
 const Demand = () => import('./views/DemandView.vue')
 const RequestList = () => import('./views/RequestListView.vue')
 const RequestForm = () => import('./views/RequestFormView.vue')
+const RfqList = () => import('./views/RfqListView.vue')
+const RfqCompare = () => import('./views/RfqCompareView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies'
 
@@ -34,8 +36,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'P04', path: 'demand', name: 'purchase-demand', title: 'Demand', group: 'transaction', item: 'demand', step: 5, mockup: 'PurDemand.html', component: Demand },
   { code: 'P05', path: 'requests', name: 'purchase-requests', title: 'Purchase Request', group: 'transaction', item: 'requests', step: 5, mockup: 'PurRequestList.html', component: RequestList },
   { code: 'P06', path: 'requests/:id', name: 'purchase-request', title: 'Purchase request', group: 'transaction', item: 'requests', step: 5, mockup: 'PurRequestForm.html', parent: doc('Purchase Request', '/purchase/requests'), component: RequestForm },
-  { code: 'P07', path: 'rfqs', name: 'purchase-rfqs', title: 'Request for Quote', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqList.html' },
-  { code: 'P08', path: 'rfqs/:id', name: 'purchase-rfq', title: 'Compare replies', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqCompare.html', parent: doc('Request for Quote', '/purchase/rfqs') },
+  { code: 'P07', path: 'rfqs', name: 'purchase-rfqs', title: 'Request for Quote', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqList.html', component: RfqList },
+  { code: 'P08', path: 'rfqs/:id', name: 'purchase-rfq', title: 'Compare replies', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqCompare.html', parent: doc('Request for Quote', '/purchase/rfqs'), component: RfqCompare },
   { code: 'P09', path: 'orders', name: 'purchase-orders', title: 'Purchase Order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoList.html', component: OrderList },
   { code: 'P03', path: 'orders/:id/flow', name: 'purchase-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 10, mockup: 'PurDocFlow.html', parent: doc('Purchase Order', '/purchase/orders') },
   { code: 'P10', path: 'orders/:id', name: 'purchase-order', title: 'Purchase order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoForm.html', parent: doc('Purchase Order', '/purchase/orders'), component: OrderForm },
