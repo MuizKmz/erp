@@ -1135,3 +1135,79 @@ export interface DebitNoteInput {
   attachmentIds?: string[]
   lines?: { itemCode: string; qty: string; unitPrice: string }[]
 }
+
+// ── Cash purchases (P18, P19) ────────────────────────────────────────────────
+
+export type CashPurchaseAction = 'edit' | 'delete' | 'release'
+
+export interface CashPurchaseListItem {
+  id: string
+  docNo: string
+  docDate: string
+  supplierName: string
+  summary: string | null
+  paidByLabel: string
+  boughtByName: string
+  total: string
+  receipt: 'PHOTO' | 'MISSING' | 'OLD_SYSTEM'
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+}
+
+export interface CashOverview {
+  month: string
+  count: number
+  total: string
+  byMethod: { code: string; label: string; total: string }[]
+  floats: { code: string; label: string; branchCode: string; float: string; spent: string; left: string }[]
+  limit: string
+}
+
+export interface PaymentMethodOption {
+  code: string
+  kind: 'COMPANY_CARD' | 'PETTY_CASH'
+  label: string
+  branchCode: string
+  holder: string | null
+  floatAmount: string | null
+}
+
+export interface CashPurchaseDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+  supplier: { code: string; name: string }
+  boughtBy: { code: string; name: string; title: string | null }
+  branch: { code: string; name: string }
+  paymentMethodCode: string
+  paidByLabel: string
+  receiptNo: string | null
+  currency: string
+  taxMode: string
+  summary: string | null
+  subtotal: string
+  taxLines: { code: string; name: string; amount: string }[]
+  total: string
+  remarks: string | null
+  releasedAt: string | null
+  lines: { id: string; itemCode: string; itemName: string; uomCode: string; taxCode: string; taxName: string; taxRate: string; qty: string; unitPrice: string; amount: string; taxAmount: string }[]
+  checks: { key: string; ok: boolean; text: string }[]
+  stock: { itemCode: string; uomCode: string; onHand: string; after: string; reorderLevel: string | null } | null
+  attachments: { id: string; fileName: string; mimeType: string; kind: string | null; downloadUrl: string }[]
+  inventoryConnected: boolean
+  activity: ActivityItem[]
+  allowedActions: CashPurchaseAction[]
+}
+
+export interface CashPurchaseInput {
+  supplierCode?: string
+  paymentMethodCode?: string
+  docDate?: string
+  receiptNo?: string
+  remarks?: string
+  attachmentIds?: string[]
+  lines?: { itemCode: string; qty: string; unitPrice: string }[]
+}

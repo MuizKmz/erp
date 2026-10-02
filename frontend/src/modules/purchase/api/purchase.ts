@@ -7,6 +7,10 @@ import type {
   InboxList,
   BillableOrder,
   CancelOrderDetail,
+  CashOverview,
+  CashPurchaseDetail,
+  CashPurchaseInput,
+  CashPurchaseListItem,
   CancelOrderInput,
   CancelOrderListItem,
   CancelOrderTemplate,
@@ -21,6 +25,7 @@ import type {
   InvoiceTemplate,
   ItemOption,
   OpenBalance,
+  PaymentMethodOption,
   OrderDetail,
   OrderInput,
   OrderListItem,
@@ -191,6 +196,17 @@ export const debitNotesApi = {
   submit: (id: string, version: number, note?: string) =>
     api<DebitNoteDetail>(`/purchase/debit-notes/${id}/submit-for-approval`, { method: 'POST', body: { version, note } }),
   release: (id: string, version: number) => api<DebitNoteDetail>(`/purchase/debit-notes/${id}/release`, { method: 'POST', body: { version } }),
+}
+
+export const cashPurchasesApi = {
+  list: (query: ListQuery) => api<ListResponse<CashPurchaseListItem>>('/purchase/cash-purchases', { query }),
+  overview: () => api<CashOverview>('/purchase/cash-purchases/overview'),
+  paymentMethods: () => api<{ items: PaymentMethodOption[] }>('/purchase/cash-purchases/payment-methods'),
+  get: (id: string) => api<CashPurchaseDetail>(`/purchase/cash-purchases/${id}`),
+  create: (body: CashPurchaseInput & { supplierCode: string; paymentMethodCode: string }) => api<CashPurchaseDetail>('/purchase/cash-purchases', { method: 'POST', body }),
+  update: (id: string, body: CashPurchaseInput & { version: number }) => api<CashPurchaseDetail>(`/purchase/cash-purchases/${id}`, { method: 'PATCH', body }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/purchase/cash-purchases/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<CashPurchaseDetail>(`/purchase/cash-purchases/${id}/release`, { method: 'POST', body: { version } }),
 }
 
 export const attachmentsApi = {
