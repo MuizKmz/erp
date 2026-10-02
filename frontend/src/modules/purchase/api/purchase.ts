@@ -5,6 +5,12 @@ import type {
   DemandReport,
   InboxDetail,
   InboxList,
+  BillableOrder,
+  InvoiceDetail,
+  InvoiceInput,
+  InvoiceKpis,
+  InvoiceListItem,
+  InvoiceTemplate,
   ItemOption,
   OrderDetail,
   OrderInput,
@@ -103,6 +109,23 @@ export const receiptsApi = {
   remove: (id: string, version: number) =>
     api<{ deleted: boolean; docNo: string }>(`/purchase/receipts/${id}`, { method: 'DELETE', query: { version } }),
   confirm: (id: string, version: number) => api<ReceiptDetail>(`/purchase/receipts/${id}/confirm`, { method: 'POST', body: { version } }),
+}
+
+export type InvoiceList = ListResponse<InvoiceListItem> & { month: { name: string; count: number; total: string } }
+
+export const invoicesApi = {
+  list: (query: ListQuery) => api<InvoiceList>('/purchase/invoices', { query }),
+  kpis: () => api<InvoiceKpis>('/purchase/invoices/kpis'),
+  billableOrders: (supplierCode: string) => api<{ items: BillableOrder[] }>('/purchase/invoices/billable-orders', { query: { supplierCode } }),
+  template: (poId: string) => api<InvoiceTemplate>('/purchase/invoices/new', { query: { poId } }),
+  get: (id: string) => api<InvoiceDetail>(`/purchase/invoices/${id}`),
+  create: (body: InvoiceInput & { poId: string; supplierInvoiceNo: string; invoiceDate: string }) =>
+    api<InvoiceDetail>('/purchase/invoices', { method: 'POST', body }),
+  update: (id: string, body: InvoiceInput & { version: number }) => api<InvoiceDetail>(`/purchase/invoices/${id}`, { method: 'PATCH', body }),
+  remove: (id: string, version: number) =>
+    api<{ deleted: boolean; docNo: string }>(`/purchase/invoices/${id}`, { method: 'DELETE', query: { version } }),
+  decide: (id: string, body: { version: number; action: 'record' | 'hold' | 'acceptAsBilled'; message?: string; note?: string }) =>
+    api<InvoiceDetail>(`/purchase/invoices/${id}/decide`, { method: 'POST', body }),
 }
 
 export const attachmentsApi = {

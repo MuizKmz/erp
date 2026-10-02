@@ -4,7 +4,7 @@ import { checkDecision, type ApprovalDecision } from '../../platform/approvals/a
 import { ApprovalsService, type ApprovalRequestView } from '../../platform/approvals/approvals.service';
 import { ClockService } from '../../platform/clock/clock.service';
 import type { RequestContext } from '../../platform/context/request-context';
-import { dec, toMoney, toPrice, toQty } from '../../platform/http/decimal';
+import { dec, roundMoney, toMoney, toPrice, toQty } from '../../platform/http/decimal';
 import { BusinessRuleError, NotFoundError } from '../../platform/http/errors';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { InvoiceApprovalService } from '../invoices/invoice-approval.service';
@@ -244,8 +244,11 @@ export class ApprovalsInboxService {
       const orderedQty = sum((l) => l.orderedQty);
       const receivedQty = sum((l) => l.receivedQty);
       const billedQty = sum((l) => l.billedQty);
-      // Price difference on what was billed: (billed price − PO price) × billed qty
-      const priceDiff = lines.reduce((s, l) => s.add(l.billedUnitPrice.sub(l.orderedPrice).mul(l.billedQty)), dec(0));
+      // What accepting as billed pays on top, before tax: billed minus what was received at the PO price.
+      const priceDiff = lines.reduce(
+        (s, l) => s.add(l.billedAmount).sub(roundMoney((l.billedQty.lt(l.receivedQty) ? l.billedQty : l.receivedQty).mul(l.orderedPrice))),
+        dec(0),
+      );
       const pct = single && single.orderedPrice.gt(0) ? single.billedUnitPrice.sub(single.orderedPrice).div(single.orderedPrice).mul(100).toDecimalPlaces(1).toString() : null;
       return {
         kind: 'INVOICE' as const,

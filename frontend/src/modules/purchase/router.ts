@@ -11,6 +11,8 @@ const RfqList = () => import('./views/RfqListView.vue')
 const RfqCompare = () => import('./views/RfqCompareView.vue')
 const ReceiptList = () => import('./views/ReceiptListView.vue')
 const ReceiptForm = () => import('./views/ReceiptFormView.vue')
+const InvoiceList = () => import('./views/InvoiceListView.vue')
+const InvoiceForm = () => import('./views/InvoiceFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies'
 
@@ -47,8 +49,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'P15', path: 'receipts/:id', name: 'purchase-receipt', title: 'Goods receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnConfirm.html', parent: doc('Goods Receipt', '/purchase/receipts'), component: ReceiptForm },
   { code: 'P12', path: 'cancel-orders', name: 'purchase-cancel-orders', title: 'Cancel Order', group: 'transaction', item: 'cancel-orders', step: 9, mockup: 'PoCancelList.html' },
   { code: 'P13', path: 'cancel-orders/:id', name: 'purchase-cancel-order', title: 'Cancel order balance', group: 'transaction', item: 'cancel-orders', step: 9, mockup: 'PoCancel.html', parent: doc('Cancel Order', '/purchase/cancel-orders') },
-  { code: 'P16', path: 'invoices', name: 'purchase-invoices', title: 'Purchase Invoice', group: 'billing', item: 'invoices', step: 8, mockup: 'PiList.html' },
-  { code: 'P17', path: 'invoices/:id', name: 'purchase-invoice', title: 'Purchase invoice', group: 'billing', item: 'invoices', step: 8, mockup: 'PiMatch.html', parent: doc('Purchase Invoice', '/purchase/invoices') },
+  { code: 'P16', path: 'invoices', name: 'purchase-invoices', title: 'Purchase Invoice', group: 'billing', item: 'invoices', step: 8, mockup: 'PiList.html', component: InvoiceList },
+  { code: 'P17', path: 'invoices/:id', name: 'purchase-invoice', title: 'Purchase invoice', group: 'billing', item: 'invoices', step: 8, mockup: 'PiMatch.html', parent: doc('Purchase Invoice', '/purchase/invoices'), component: InvoiceForm },
   { code: 'P18', path: 'cash-purchases', name: 'purchase-cash-purchases', title: 'Cash Purchase', group: 'billing', item: 'cash-purchases', step: 9, mockup: 'CashPurchaseList.html' },
   { code: 'P19', path: 'cash-purchases/:id', name: 'purchase-cash-purchase', title: 'Cash purchase', group: 'billing', item: 'cash-purchases', step: 9, mockup: 'CashPurchase.html', parent: doc('Cash Purchase', '/purchase/cash-purchases') },
   { code: 'P20', path: 'debit-notes', name: 'purchase-debit-notes', title: 'Debit Note', group: 'billing', item: 'debit-notes', step: 9, mockup: 'PurDebitNoteList.html' },

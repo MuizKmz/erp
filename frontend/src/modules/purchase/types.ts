@@ -693,3 +693,145 @@ export interface ReceiptInput {
   attachmentIds?: string[]
   lines?: { poLineId: string; receivedQty: string; condition?: string; locationCode?: string | null }[]
 }
+
+// ── Supplier invoices (P16, P17) ─────────────────────────────────────────────
+
+export type InvoiceStatus = 'DRAFT' | 'TO_MATCH' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'PAID'
+export type InvoiceAction = 'edit' | 'delete' | 'record' | 'hold' | 'acceptAsBilled'
+export type InvoiceChoice = 'record' | 'hold' | 'acceptAsBilled'
+type Group = 'draft' | 'pending' | 'released' | 'partial' | 'done' | 'cancelled'
+
+export interface InvoiceListItem {
+  id: string
+  docNo: string
+  docDate: string
+  supplierName: string
+  supplierInvoiceNo: string
+  poId: string
+  poNo: string
+  grns: { id: string; docNo: string }[]
+  total: string
+  matchResult: 'MATCHED' | 'DIFFERENCE' | 'NOT_MATCHED'
+  matchSummary: string | null
+  matchTone: 'good' | 'warn' | 'bad' | 'muted'
+  status: InvoiceStatus
+  statusLabel: string
+  statusGroup: Group
+  isMigrated: boolean
+}
+
+export interface InvoiceKpis {
+  toMatch: { count: number; latest: { docNo: string; docDate: string | null } | null }
+  pending: { count: number; latest: { docNo: string; summary: string } | null }
+  approved: { count: number; total: string }
+  rejected: { count: number; latest: { docNo: string; why: string } | null }
+  financeConnected: boolean
+}
+
+export interface BillableOrder {
+  id: string
+  docNo: string
+  docDate: string
+  isMigrated: boolean
+  billableText: string
+}
+
+export interface InvoiceTemplate {
+  po: { id: string; docNo: string; isMigrated: boolean; paymentTermDays: number }
+  supplier: { code: string; name: string; shortName: string | null }
+  invoiceDate: string
+  grns: { id: string; docNo: string }[]
+  lines: {
+    poLineId: string
+    lineNo: number
+    itemCode: string
+    itemName: string
+    uomCode: string
+    taxCode: string
+    taxName: string
+    taxRate: string
+    orderedQty: string
+    orderedPrice: string
+    billableQty: string
+  }[]
+}
+
+export interface MatchColumn {
+  subtotal: string
+  taxLines: { code: string; name: string; amount: string }[]
+  total: string
+}
+
+export interface InvoiceDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: InvoiceStatus
+  statusLabel: string
+  statusGroup: Group
+  isMigrated: boolean
+  version: number
+  supplier: { code: string; name: string; shortName: string | null }
+  supplierInvoiceNo: string
+  invoiceDate: string
+  dueDate: string | null
+  paymentTermDays: number
+  po: { id: string; docNo: string; isMigrated: boolean }
+  grns: { id: string; docNo: string; docDate: string }[]
+  billedTax: string
+  supplierNote: string | null
+  decision: 'RECORD_RECEIVED' | 'HOLD' | 'ACCEPT_AS_BILLED' | null
+  decisionNote: string | null
+  messageToSupplier: string | null
+  eInvoiceStatus: string | null
+  matchSummary: string | null
+  rejectReason: string | null
+  approvedAt: string | null
+  approvedByName: string | null
+  waitingFor: string | null
+  lines: {
+    id: string
+    lineNo: number
+    poLineId: string
+    itemCode: string
+    itemName: string
+    uomCode: string
+    taxCode: string
+    taxName: string
+    taxRate: string
+    orderedQty: string
+    orderedPrice: string
+    receivedQty: string
+    billedQty: string
+    billedUnitPrice: string
+    recordedQty: string
+    recordedPrice: string
+    match: { qtyOk: boolean; qtyOver: string; priceOk: boolean; pricePct: string; recordQty: string; recordPrice: string }
+  }[]
+  match: {
+    matched: boolean
+    summary: string
+    taxOk: boolean
+    taxDiff: string
+    expectedTax: string
+    tolerance: { pricePct: string; qtyOver: string; taxAmount: string }
+  }
+  columns: { ordered: MatchColumn; received: MatchColumn; billed: MatchColumn }
+  totals: { billed: string; matched: string; record: string; recorded: string }
+  options: { record: { label: string; description: string }; approvalReason: string }
+  messages: { record: string; hold: string }
+  attachments: { id: string; fileName: string; mimeType: string; downloadUrl: string }[]
+  financeConnected: boolean
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: InvoiceAction[]
+}
+
+export interface InvoiceInput {
+  supplierInvoiceNo?: string
+  invoiceDate?: string
+  billedTax?: string | null
+  supplierNote?: string
+  attachmentIds?: string[]
+  lines?: { poLineId: string; billedQty: string; billedUnitPrice: string }[]
+}

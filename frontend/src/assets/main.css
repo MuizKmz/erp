@@ -425,3 +425,52 @@
     border-left: 1px dashed var(--erp-input-border);
   }
 }
+
+/* ── Three-way match table and decision options (PiMatch.html) ─────────────── */
+@layer components {
+  .erp-match {
+    display: grid;
+    grid-template-columns: 170px 1fr 1fr 1fr 190px;
+    border: 1px solid var(--erp-border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .erp-match > div {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--erp-row-border);
+    font-variant-numeric: tabular-nums;
+    min-width: 0;
+  }
+  .erp-match > .h {
+    background: var(--erp-head-bg);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--erp-muted);
+  }
+  .erp-match > .l {
+    color: var(--erp-muted);
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .erp-match > .bad {
+    background: var(--note-error-bg);
+  }
+  .erp-opt {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border: 1px solid var(--erp-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+  .erp-opt.on {
+    border-color: var(--mod-line);
+    background: var(--mod-light);
+  }
+}

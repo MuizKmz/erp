@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { ActivityService } from '../../platform/activity/activity.service';
 import type { DecisionResult } from '../../platform/approvals/approvals.service';
 import { ClockService } from '../../platform/clock/clock.service';
@@ -23,7 +24,7 @@ export class InvoiceApprovalService {
   ) {}
 
   async onApprovalDecision(tx: Tx, ctx: RequestContext, result: DecisionResult, comment: string | null) {
-    const invoice = await tx.purInvoice.findFirstOrThrow({ where: { id: result.entityId, tenantId: ctx.tenantId }, include: { lines: true } });
+    const invoice = await tx.purInvoice.findFirstOrThrow({ where: { id: result.entityId, tenantId: ctx.tenantId } });
     const log = (action: string, message: string) =>
       this.activity.log(tx, ctx, { entityType: PUR_ENTITY.INVOICE, entityId: invoice.id, docNo: invoice.docNo, action, message, comment });
 
@@ -41,19 +42,28 @@ export class InvoiceApprovalService {
       return;
     }
 
+    await this.postApproved(tx, ctx, invoice.id, { status: 'APPROVED' });
+    await log('approved', `Approved by ${ctx.user.name} · recorded as billed (${toRmText(invoice.total)})`);
+  }
+
+  /**
+   * An invoice becomes a payable: APPROVED, billed quantities move on the PO line and the goods receipt line
+   * in the same transaction, and the payable is queued for Finance. Used by the approvals inbox and by
+   * recording an invoice inside tolerance (or for what was received).
+   */
+  async postApproved(tx: Tx, ctx: RequestContext, invoiceId: string, data: Prisma.PurInvoiceUpdateInput) {
     const now = this.clock.now();
-    await tx.purInvoice.update({
-      where: { id: invoice.id },
-      data: { status: 'APPROVED', approvedAt: now, approvedByCode: ctx.user.code, version: { increment: 1 }, updatedBy: ctx.user.code },
+    const invoice = await tx.purInvoice.update({
+      where: { id: invoiceId },
+      data: { ...data, approvedAt: now, approvedByCode: ctx.user.code, version: { increment: 1 }, updatedBy: ctx.user.code },
+      include: { lines: true },
     });
-    // Billed quantities move on the PO line and the goods receipt line, in the same transaction.
     for (const line of invoice.lines) {
       await tx.purPurchaseOrderLine.update({ where: { id: line.poLineId }, data: { billedQty: { increment: line.qty } } });
       if (line.grnLineId) {
         await tx.purGoodsReceiptLine.update({ where: { id: line.grnLineId }, data: { billedQty: { increment: line.qty } } });
       }
     }
-    await log('approved', `Approved by ${ctx.user.name} · recorded as billed (${toRmText(invoice.total)})`);
     await this.outbox.publish(tx, ctx, [{
       name: 'purchase.invoice.approved',
       aggregateType: PUR_ENTITY.INVOICE,
