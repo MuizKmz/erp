@@ -1,6 +1,10 @@
 import type { RouteRecordRaw } from 'vue-router'
 
 const Placeholder = () => import('./views/PlaceholderView.vue')
+const OrderFlow = () => import('./views/OrderFlowView.vue')
+const ApprovalRules = () => import('./views/ApprovalRulesView.vue')
+const DocumentTypes = () => import('./views/DocumentTypesView.vue')
+const EmailTemplates = () => import('./views/EmailTemplatesView.vue')
 const OrderList = () => import('./views/OrderListView.vue')
 const OrderForm = () => import('./views/OrderFormView.vue')
 const Approvals = () => import('./views/ApprovalsView.vue')
@@ -51,7 +55,7 @@ const SCREENS: ScreenDef[] = [
   { code: 'P07', path: 'rfqs', name: 'purchase-rfqs', title: 'Request for Quote', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqList.html', component: RfqList },
   { code: 'P08', path: 'rfqs/:id', name: 'purchase-rfq', title: 'Compare replies', group: 'transaction', item: 'rfqs', step: 6, mockup: 'RfqCompare.html', parent: doc('Request for Quote', '/purchase/rfqs'), component: RfqCompare },
   { code: 'P09', path: 'orders', name: 'purchase-orders', title: 'Purchase Order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoList.html', component: OrderList },
-  { code: 'P03', path: 'orders/:id/flow', name: 'purchase-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 10, mockup: 'PurDocFlow.html', parent: doc('Purchase Order', '/purchase/orders') },
+  { code: 'P03', path: 'orders/:id/flow', name: 'purchase-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 10, mockup: 'PurDocFlow.html', parent: doc('Purchase Order', '/purchase/orders'), component: OrderFlow },
   { code: 'P10', path: 'orders/:id', name: 'purchase-order', title: 'Purchase order', group: 'transaction', item: 'orders', step: 4, mockup: 'PoForm.html', parent: doc('Purchase Order', '/purchase/orders'), component: OrderForm },
   { code: 'P14', path: 'receipts', name: 'purchase-receipts', title: 'Goods Receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnList.html', component: ReceiptList },
   { code: 'P15', path: 'receipts/:id', name: 'purchase-receipt', title: 'Goods receipt', group: 'transaction', item: 'receipts', step: 7, mockup: 'GrnConfirm.html', parent: doc('Goods Receipt', '/purchase/receipts'), component: ReceiptForm },
@@ -65,9 +69,9 @@ const SCREENS: ScreenDef[] = [
   { code: 'P21', path: 'debit-notes/:id', name: 'purchase-debit-note', title: 'Supplier debit note', group: 'billing', item: 'debit-notes', step: 9, mockup: 'PurDebitNote.html', parent: doc('Debit Note', '/purchase/debit-notes'), component: DebitNoteForm },
   { code: 'P22', path: 'returns', name: 'purchase-returns', title: 'Purchase Return', group: 'billing', item: 'returns', step: 9, mockup: 'PurReturnList.html', component: ReturnList },
   { code: 'P23', path: 'returns/:id', name: 'purchase-return', title: 'Purchase return', group: 'billing', item: 'returns', step: 9, mockup: 'PurReturn.html', parent: doc('Purchase Return', '/purchase/returns'), component: ReturnForm },
-  { code: 'P24', path: 'settings/approval-rules', name: 'purchase-approval-rules', title: 'Approval Rules', group: 'policies', item: 'approval-rules', step: 10, mockup: 'PurPolicies.html' },
-  { code: 'P25', path: 'settings/document-types', name: 'purchase-document-types', title: 'Document Types', group: 'policies', item: 'document-types', step: 10, mockup: 'PurDocTypes.html' },
-  { code: 'P26', path: 'settings/email-templates', name: 'purchase-email-templates', title: 'Email Templates', group: 'policies', item: 'email-templates', step: 10, mockup: 'PurEmailTemplates.html' },
+  { code: 'P24', path: 'settings/approval-rules', name: 'purchase-approval-rules', title: 'Approval Rules', group: 'policies', item: 'approval-rules', step: 10, mockup: 'PurPolicies.html', component: ApprovalRules },
+  { code: 'P25', path: 'settings/document-types', name: 'purchase-document-types', title: 'Document Types', group: 'policies', item: 'document-types', step: 10, mockup: 'PurDocTypes.html', component: DocumentTypes },
+  { code: 'P26', path: 'settings/email-templates', name: 'purchase-email-templates', title: 'Email Templates', group: 'policies', item: 'email-templates', step: 10, mockup: 'PurEmailTemplates.html', component: EmailTemplates },
 ]
 
 export const purchaseRoutes: RouteRecordRaw[] = [

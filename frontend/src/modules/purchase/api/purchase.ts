@@ -2,6 +2,14 @@ import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
 import type {
   ApprovalCheck,
+  ApprovalRulesInput,
+  ApprovalRulesSettings,
+  DocumentTypesInput,
+  DocumentTypesSettings,
+  EmailTemplateDetail,
+  EmailTemplateInput,
+  EmailTemplateSummary,
+  OrderFlow,
   DemandReport,
   InboxDetail,
   InboxList,
@@ -60,6 +68,7 @@ export const purchaseApi = {
 }
 
 export const ordersApi = {
+  flow: (id: string) => api<OrderFlow>(`/purchase/orders/${id}/flow`),
   list: (query: ListQuery) => api<OrderList>('/purchase/orders', { query }),
   get: (id: string) => api<OrderDetail>(`/purchase/orders/${id}`),
   create: (body: OrderInput) => api<OrderDetail>('/purchase/orders', { method: 'POST', body }),
@@ -239,4 +248,16 @@ export const lookupsApi = {
     api<{ items: { code: string; name: string; email: string }[] }>('/purchase/lookups/users', {
       query: { role, branchCode },
     }),
+}
+
+export const settingsApi = {
+  approvalRules: () => api<ApprovalRulesSettings>('/purchase/settings/approval-rules'),
+  saveApprovalRules: (input: ApprovalRulesInput) => api<ApprovalRulesSettings>('/purchase/settings/approval-rules', { method: 'PUT', body: input }),
+  documentTypes: () => api<DocumentTypesSettings>('/purchase/settings/document-types'),
+  saveDocumentTypes: (input: DocumentTypesInput) => api<DocumentTypesSettings>('/purchase/settings/document-types', { method: 'PUT', body: input }),
+  emailTemplates: () => api<{ items: EmailTemplateSummary[]; canEdit: boolean }>('/purchase/settings/email-templates'),
+  emailTemplate: (key: string) => api<EmailTemplateDetail>(`/purchase/settings/email-templates/${key}`),
+  saveEmailTemplate: (key: string, input: EmailTemplateInput) =>
+    api<EmailTemplateDetail>(`/purchase/settings/email-templates/${key}`, { method: 'PUT', body: input }),
+  sendTest: (key: string) => api<{ to: string }>(`/purchase/settings/email-templates/${key}/test`, { method: 'POST' }),
 }

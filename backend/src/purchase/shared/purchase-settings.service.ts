@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { MASTER_DATA_PORT, type MasterDataPort } from '../../master-data/master-data.port';
 import { ConfigurationError } from '../../platform/http/errors';
 import { PrismaService } from '../../platform/prisma/prisma.service';
+import { CASH_PURCHASE_LIMIT } from '../cash-purchases/cash-purchase.rules';
 import type { PoLimitRule } from './approval-limit.rules';
 
 /** Operation Policies (P24) as the Purchase services need them. */
@@ -41,5 +42,11 @@ export class PurchaseSettingsService {
   /** The approver for documents that go to one role "for all branches" (PI outside tolerance, PDN extra charge). */
   async ruleFor(tenantId: string, docType: 'PI' | 'PDN' | 'CP') {
     return this.prisma.purApprovalRule.findFirst({ where: { tenantId, docType, isActive: true }, orderBy: { sortOrder: 'asc' } });
+  }
+
+  /** Most a cash purchase may be ("Cash purchase blocked over RM" on Approval Rules). */
+  async cashLimit(tenantId: string): Promise<string> {
+    const rule = await this.ruleFor(tenantId, 'CP');
+    return rule?.thresholdAmount ? rule.thresholdAmount.toFixed(2) : CASH_PURCHASE_LIMIT;
   }
 }

@@ -1211,3 +1211,130 @@ export interface CashPurchaseInput {
   attachmentIds?: string[]
   lines?: { itemCode: string; qty: string; unitPrice: string }[]
 }
+
+// ── P03 Document flow ───────────────────────────────────────────────────────
+
+export interface FlowQtyRow {
+  type: string
+  id: string | null
+  docNo: string
+  date: string | null
+  fromPrevious: string
+  movedToNext: string
+  stillOpen: string
+  label: string
+  group: ChipGroup | null
+}
+
+export interface OrderFlow {
+  po: { id: string; docNo: string; status: string; supplierName: string; ordered: string; open: string; uomCode: string }
+  chain: (LinkedDoc & { current: boolean })[]
+  quantity: { itemCode: string; itemName: string; more: number; rows: FlowQtyRow[] } | null
+  audit: (ActivityItem & { docNo: string })[]
+  stillOpen: { qty: string; uomCode: string; promisedDate: string | null; canReceive: boolean; canCancel: boolean } | null
+  waiting: { finance: number; inventory: number }
+}
+
+// ── P24–P26 Operation Policies ──────────────────────────────────────────────
+
+export interface SettingChange {
+  id: string
+  message: string
+  userName: string
+  at: string
+}
+
+export interface ApprovalRuleRow {
+  id: string
+  docType: string
+  branch: string
+  document: string
+  condition: string
+  conditionLabel: string
+  thresholdAmount: string | null
+  approver: string | null
+  secondOverAmount: string | null
+  secondApprover: string | null
+  blocked: boolean
+}
+
+export interface ApprovalRulesSettings {
+  rules: ApprovalRuleRow[]
+  tolerance: { pricePct: string; qtyOver: string; taxAmount: string }
+  switches: {
+    rfqRequiredOn: boolean
+    rfqRequiredOver: string
+    rfqMinReplies: number
+    allowOverReceipt: boolean
+    autoDraftBuyToOrder: boolean
+    onlyActiveSuppliers: boolean
+    buyerCannotApproveOwnPo: boolean
+  }
+  history: SettingChange[]
+  people: { label: string; name: string }[]
+  canEdit: boolean
+}
+
+export interface ApprovalRulesInput {
+  rules: { id: string; thresholdAmount: string | null; secondOverAmount: string | null }[]
+  tolerance: { pricePct: string; qtyOver: string; taxAmount: string }
+  switches: { rfqRequiredOn: boolean; rfqRequiredOver: string; autoDraftBuyToOrder: boolean }
+}
+
+export interface SequenceRow {
+  docType: string
+  name: string
+  prefix: string
+  digits: number
+  nextValue: number
+  nextNumber: string
+}
+
+export interface PoTypeRow {
+  code: string
+  name: string
+  description: string
+  needsGoodsReceipt: boolean
+  linkedToSalesOrder: boolean
+  sendsToAssetRegister: boolean
+  isActive: boolean
+}
+
+export interface DocumentTypesSettings {
+  sequences: SequenceRow[]
+  poTypes: PoTypeRow[]
+  numberWithBranchCode: boolean
+  history: SettingChange[]
+  canEdit: boolean
+}
+
+export interface DocumentTypesInput {
+  sequences: { docType: string; prefix: string; digits: number; nextValue: number }[]
+  poTypes: { code: string; name: string; description: string; isActive: boolean }[]
+}
+
+export interface EmailTemplateSummary {
+  key: string
+  name: string
+  description: string
+  isActive: boolean
+}
+
+export interface EmailTemplateInput {
+  toTemplate: string
+  ccTemplate: string | null
+  subject: string
+  body: string
+  attachPdf: boolean
+  autoSend: boolean
+  isActive: boolean
+}
+
+export interface EmailTemplateDetail extends EmailTemplateInput {
+  key: string
+  name: string
+  description: string
+  fields: string[]
+  lastSent: { id: string; docNo: string; to: string; at: string }[]
+  canEdit: boolean
+}

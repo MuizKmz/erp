@@ -44,8 +44,12 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
  * The Purchase module. Reads shared data only through MasterDataPort and the integration ports, writes only
  * pur_ tables, and tells other modules about changes through the outbox. Never imports from sales/.
  */
+import { OrderFlowQuery } from './orders/order-flow.query';
+import { SettingsController } from './settings/settings.controller';
+import { SettingsService } from './settings/settings.service';
+
 @Module({
-  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController, ReturnsController, DebitNotesController, CashPurchasesController],
+  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController, ReturnsController, DebitNotesController, CashPurchasesController, SettingsController],
   providers: [
     DemandService,
     DashboardService,
@@ -72,6 +76,8 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
     DebitNotesService,
     CashPurchasesQuery,
     CashPurchasesService,
+    OrderFlowQuery,
+    SettingsService,
   ],
 })
 export class PurchaseModule implements OnModuleInit {

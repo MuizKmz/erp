@@ -14,7 +14,8 @@ import { summarizeLines } from '../requests/request.rules';
 import { PUR_DOC_TYPE, PUR_ENTITY } from '../shared/purchase.constants';
 import { documentTotals, lineTotals } from '../shared/totals.rules';
 import type { CashLineDto, CreateCashPurchaseDto, UpdateCashPurchaseDto } from './dto/cash-purchase.dto';
-import { CASH_PURCHASE_LIMIT, cashChecks, type CashPurchaseAction } from './cash-purchase.rules';
+import { cashChecks, type CashPurchaseAction } from './cash-purchase.rules';
+import { PurchaseSettingsService } from '../shared/purchase-settings.service';
 import { CashPurchasesQuery, type CashPurchaseWithLines } from './cash-purchases.query';
 
 const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
@@ -33,6 +34,7 @@ export class CashPurchasesService {
     private readonly attachments: AttachmentsService,
     private readonly outbox: OutboxWriter,
     private readonly clock: ClockService,
+    private readonly settings: PurchaseSettingsService,
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
@@ -111,6 +113,7 @@ export class CashPurchasesService {
       this.query.photoCount(ctx.tenantId, id),
     ]);
     const failed = cashChecks({
+      limit: await this.settings.cashLimit(ctx.tenantId),
       total: row.total,
       hasPhoto: photos > 0,
       supplierActive: supplier?.status === 'ACTIVE',
@@ -201,8 +204,9 @@ export class CashPurchasesService {
     });
     if (errors.length) throw new ValidationFailedError(errors);
     const totals = documentTotals(lines);
-    if (totals.total.gt(dec(CASH_PURCHASE_LIMIT))) {
-      throw ValidationFailedError.field('lines', `${toRmText(totals.total)} is over the ${toRmText(CASH_PURCHASE_LIMIT)} limit for a cash purchase. Raise a purchase order instead.`);
+    const limit = await this.settings.cashLimit(ctx.tenantId);
+    if (totals.total.gt(dec(limit))) {
+      throw ValidationFailedError.field('lines', `${toRmText(totals.total)} is over the ${toRmText(limit)} limit for a cash purchase. Raise a purchase order instead.`);
     }
     return {
       lines,

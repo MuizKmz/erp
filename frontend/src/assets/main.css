@@ -473,4 +473,51 @@
     border-color: var(--mod-line);
     background: var(--mod-light);
   }
+
+  /* On/off switch (Operation Policies) */
+  .erp-switch {
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    border: none;
+    padding: 2px;
+    display: flex;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    background: var(--erp-track);
+    justify-content: flex-start;
+  }
+  .erp-switch > i {
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--erp-card);
+    display: block;
+  }
+  .erp-switch.on {
+    background: var(--mod-primary);
+    justify-content: flex-end;
+  }
+  .erp-switch:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Document flow chain card */
+  .erp-node {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--erp-card);
+    border: 1px solid var(--erp-border);
+    color: var(--erp-text);
+  }
+  .erp-node.current {
+    border-color: var(--mod-line);
+    background: var(--mod-light);
+  }
 }

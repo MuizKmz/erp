@@ -12,9 +12,10 @@ import { NotFoundError } from '../../platform/http/errors';
 import { buildStatusCounts, dateRange, pageArgs, parseSort, statusFromKey, toListResponse, toOrderBy } from '../../platform/http/list';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { PURCHASE_PERMISSIONS as P } from '../purchase.permissions';
+import { PurchaseSettingsService } from '../shared/purchase-settings.service';
 import { PUR_ENTITY } from '../shared/purchase.constants';
 import type { CashPurchaseListQueryDto } from './dto/cash-purchase.dto';
-import { allowedCashPurchaseActions, CASH_PURCHASE_LIMIT, cashChecks, type CashPurchaseStatus } from './cash-purchase.rules';
+import { allowedCashPurchaseActions, cashChecks, type CashPurchaseStatus } from './cash-purchase.rules';
 
 export const CASH_PURCHASE_STATUSES = ['DRAFT', 'RELEASED'] as const;
 export type CashPurchaseWithLines = PurCashPurchase & { lines: PurCashPurchaseLine[] };
@@ -31,6 +32,7 @@ export class CashPurchasesQuery {
     private readonly attachments: AttachmentsService,
     private readonly permissions: PermissionRegistry,
     private readonly clock: ClockService,
+    private readonly settings: PurchaseSettingsService,
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
     @Inject(STOCK_PORT) private readonly stock: StockPort,
   ) {}
@@ -109,9 +111,10 @@ export class CashPurchasesQuery {
   async overview(ctx: RequestContext) {
     const today = this.clock.today();
     const monthStart = new Date(`${today.slice(0, 7)}-01T00:00:00.000Z`);
-    const [methods, month] = await Promise.all([
+    const [methods, month, limit] = await Promise.all([
       this.paymentMethods(ctx),
       this.prisma.purCashPurchase.findMany({ where: { tenantId: ctx.tenantId, docDate: { gte: monthStart }, branchCode: { in: ctx.user.branchCodes } }, select: { paymentMethodCode: true, total: true } }),
+      this.settings.cashLimit(ctx.tenantId),
     ]);
     const spent = (code: string) => sum(month.filter((m) => m.paymentMethodCode === code).map((m) => m.total));
     const monthTotal = sum(month.map((m) => m.total));
@@ -125,7 +128,7 @@ export class CashPurchasesQuery {
       floats: methods
         .filter((m) => m.kind === 'PETTY_CASH' && m.floatAmount)
         .map((m) => ({ code: m.code, label: m.label, branchCode: m.branchCode, float: toMoney(m.floatAmount!), spent: toMoney(spent(m.code)), left: toMoney(m.floatAmount!.sub(spent(m.code))) })),
-      limit: CASH_PURCHASE_LIMIT,
+      limit,
     };
   }
 
@@ -144,7 +147,7 @@ export class CashPurchasesQuery {
       this.stock.listStock(ctx.tenantId, codes),
       this.masterData.listUsers(ctx.tenantId),
     ]);
-    const taxes = await this.masterData.listTaxCodes(ctx.tenantId);
+    const [taxes, limit] = await Promise.all([this.masterData.listTaxCodes(ctx.tenantId), this.settings.cashLimit(ctx.tenantId)]);
     const taxName = (code: string) => taxes.find((t) => t.code === code)?.name ?? code;
     const first = row.lines[0];
     const firstItem = first ? items.find((i) => i.code === first.itemCode) : null;
@@ -185,6 +188,7 @@ export class CashPurchasesQuery {
         taxAmount: toMoney(l.taxAmount),
       })),
       checks: cashChecks({
+        limit,
         total: row.total,
         hasPhoto: row.isMigrated || files.some((f) => f.mimeType.startsWith('image/')),
         supplierActive: supplier?.status === 'ACTIVE',

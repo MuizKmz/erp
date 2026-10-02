@@ -4,6 +4,7 @@ import { CurrentContext, RequirePermission } from '../../platform/context/contex
 import type { RequestContext } from '../../platform/context/request-context';
 import { PURCHASE_PERMISSIONS as P } from '../purchase.permissions';
 import { CreateOrderDto, OrderListQueryDto, SubmitOrderDto, UpdateOrderDto, VersionDto } from './dto/order.dto';
+import { OrderFlowQuery } from './order-flow.query';
 import { OrdersQuery } from './orders.query';
 import { OrdersService } from './orders.service';
 
@@ -14,6 +15,7 @@ export class OrdersController {
     private readonly query: OrdersQuery,
     private readonly orders: OrdersService,
     private readonly clock: ClockService,
+    private readonly flowQuery: OrderFlowQuery,
   ) {}
 
   @Get()
@@ -44,6 +46,13 @@ export class OrdersController {
   @RequirePermission(P.ORDER_EDIT)
   remove(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string, @Query() q: VersionDto) {
     return this.orders.remove(ctx, id, q.version);
+  }
+
+  /** P03 · Document flow */
+  @Get(':id/flow')
+  @RequirePermission(P.VIEW)
+  flow(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.flowQuery.flow(ctx, id);
   }
 
   @Get(':id/approval-check')
