@@ -6,12 +6,17 @@ import type {
   InboxDetail,
   InboxList,
   BillableOrder,
+  CancelOrderDetail,
+  CancelOrderInput,
+  CancelOrderListItem,
+  CancelOrderTemplate,
   InvoiceDetail,
   InvoiceInput,
   InvoiceKpis,
   InvoiceListItem,
   InvoiceTemplate,
   ItemOption,
+  OpenBalance,
   OrderDetail,
   OrderInput,
   OrderListItem,
@@ -126,6 +131,20 @@ export const invoicesApi = {
     api<{ deleted: boolean; docNo: string }>(`/purchase/invoices/${id}`, { method: 'DELETE', query: { version } }),
   decide: (id: string, body: { version: number; action: 'record' | 'hold' | 'acceptAsBilled'; message?: string; note?: string }) =>
     api<InvoiceDetail>(`/purchase/invoices/${id}/decide`, { method: 'POST', body }),
+}
+
+export const cancelOrdersApi = {
+  list: (query: ListQuery) => api<ListResponse<CancelOrderListItem> & { reasons: string[] }>('/purchase/cancel-orders', { query }),
+  openBalances: () => api<{ items: OpenBalance[] }>('/purchase/cancel-orders/open-balances'),
+  cancellableOrders: () =>
+    api<{ items: { id: string; docNo: string; isMigrated: boolean; supplierName: string; openText: string }[] }>('/purchase/cancel-orders/cancellable-orders'),
+  template: (poId: string) => api<CancelOrderTemplate>('/purchase/cancel-orders/new', { query: { poId } }),
+  get: (id: string) => api<CancelOrderDetail>(`/purchase/cancel-orders/${id}`),
+  create: (body: CancelOrderInput & { poId: string; reason: string }) => api<CancelOrderDetail>('/purchase/cancel-orders', { method: 'POST', body }),
+  update: (id: string, body: CancelOrderInput & { version: number }) => api<CancelOrderDetail>(`/purchase/cancel-orders/${id}`, { method: 'PATCH', body }),
+  remove: (id: string, version: number) =>
+    api<{ deleted: boolean; docNo: string }>(`/purchase/cancel-orders/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<CancelOrderDetail>(`/purchase/cancel-orders/${id}/release`, { method: 'POST', body: { version } }),
 }
 
 export const attachmentsApi = {

@@ -835,3 +835,111 @@ export interface InvoiceInput {
   attachmentIds?: string[]
   lines?: { poLineId: string; billedQty: string; billedUnitPrice: string }[]
 }
+
+// ── Cancel orders (P12, P13) ─────────────────────────────────────────────────
+
+export type CancelOrderAction = 'edit' | 'delete' | 'release'
+
+export interface CancelOrderListItem {
+  id: string
+  docNo: string
+  docDate: string
+  poId: string | null
+  poNo: string
+  supplierName: string
+  summary: string | null
+  totalValue: string
+  reason: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+}
+
+export interface OpenBalance {
+  poId: string
+  poNo: string
+  isMigrated: boolean
+  supplierName: string
+  openText: string
+  expected: string | null
+  late: boolean
+  supplierSays: string | null
+  cancelOrder: { id: string; docNo: string } | null
+  action: 'RECEIVE' | 'CANCEL' | null
+}
+
+export interface CancelPoSummary {
+  id: string | null
+  docNo: string
+  isMigrated: boolean
+  status: PoStatus | null
+  statusLabel: string | null
+  supplier: { code: string; name: string }
+  total: string | null
+  receivedValue: string | null
+  ordered: string | null
+  received: string | null
+  open: string | null
+  uomCode: string | null
+}
+
+export interface SupplierRecord {
+  code: string
+  status: 'ACTIVE' | 'BLOCKED' | null
+  onTimePct: string | null
+  cancelledThisYear: number
+}
+
+export interface CancelLine {
+  poLineId: string | null
+  itemCode: string
+  itemName: string
+  uomCode: string
+  taxRate: string
+  orderedQty: string
+  receivedQty: string
+  openQty: string
+  unitPrice: string
+}
+
+export interface CancelOrderTemplate {
+  po: CancelPoSummary
+  docDate: string
+  askedBy: { code: string; name: string }
+  reasons: string[]
+  lines: CancelLine[]
+  supplier: SupplierRecord
+}
+
+export interface CancelOrderDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+  po: CancelPoSummary
+  supplierName: string
+  reason: string
+  reasons: string[]
+  supplierLetter: string | null
+  askedBy: { code: string; name: string }
+  summary: string | null
+  totalValue: string
+  remarks: string | null
+  releasedAt: string | null
+  releasedByCode: string | null
+  lines: (CancelLine & { id: string; cancelQty: string; amount: string; taxAmount: string })[]
+  attachments: { id: string; fileName: string; mimeType: string; kind: string | null; downloadUrl: string }[]
+  supplier: SupplierRecord
+  activity: ActivityItem[]
+  links: LinkedDoc[]
+  allowedActions: CancelOrderAction[]
+}
+
+export interface CancelOrderInput {
+  reason?: string
+  docDate?: string
+  remarks?: string
+  attachmentIds?: string[]
+  lines?: { poLineId: string; cancelQty: string }[]
+}

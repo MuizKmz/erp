@@ -10,8 +10,8 @@ import { BusinessRuleError, StaleVersionError, ValidationFailedError, type Field
 import { NumberingService } from '../../platform/numbering/numbering.service';
 import { OutboxWriter } from '../../platform/outbox/outbox.writer';
 import { PrismaService, type Tx } from '../../platform/prisma/prisma.service';
+import { CancelOrdersService } from '../cancel-orders/cancel-orders.service';
 import { DOC_LINK, PUR_DOC_TYPE, PUR_ENTITY } from '../shared/purchase.constants';
-import { documentTotals, lineTotals } from '../shared/totals.rules';
 import { plainQty, qtyWithUnit } from '../shared/text.rules';
 import type { CreateReceiptDto, ReceiptLineDto, UpdateReceiptDto } from './dto/receipt.dto';
 import { confirmProblems, openQty, poStatusAfter, quantityProblems, shortQty, type ReceiptAction } from './receipt.rules';
@@ -43,6 +43,7 @@ export class ReceiptsService {
     private readonly attachments: AttachmentsService,
     private readonly outbox: OutboxWriter,
     private readonly clock: ClockService,
+    private readonly cancelOrders: CancelOrdersService,
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
@@ -223,7 +224,17 @@ export class ReceiptsService {
       await this.log(tx, ctx, receipt.id, receipt.docNo, 'confirmed', `Confirmed by ${ctx.user.name} · ${receivedText} received${shortText ? ` · ${shortText} short` : ''}`);
 
       let cancelNo: string | null = null;
-      if (shortAction === 'CANCEL_BALANCE') cancelNo = await this.draftCancelOrder(tx, ctx, po, after, receipt.docNo);
+      // "Cancel the balance" (FlowP4 step 4): a draft cancel order for what is still open; the Purchasing Manager releases it.
+      if (shortAction === 'CANCEL_BALANCE') {
+        const open = after.map((l) => ({ poLine: l, cancelQty: openQty(l) })).filter((l) => l.cancelQty.gt(0));
+        const created = await this.cancelOrders.insertDraft(tx, ctx, po, open, {
+          reason: 'Short delivery',
+          docDate: this.clock.today(),
+          remarks: `Short on ${receipt.docNo}.`,
+          message: `Drafted from ${receipt.docNo} by ${ctx.user.name} · waiting for the Purchasing Manager`,
+        });
+        cancelNo = created.docNo;
+      }
       const poMessage = shortText
         ? `${receipt.docNo}: ${receivedText} received · ${shortText} short, ${cancelNo ? `${cancelNo} drafted to cancel the balance` : 'kept open'}`
         : `${receipt.docNo}: ${receivedText} received · nothing left open`;
@@ -256,79 +267,6 @@ export class ReceiptsService {
       }]);
     });
     return this.query.detail(ctx, id);
-  }
-
-  /**
-   * "Cancel the balance" (FlowP4 step 4): a draft cancel order for what is still open. Only the Purchasing
-   * Manager releases it (rule 8); until then the PO stays Partially received.
-   */
-  private async draftCancelOrder(
-    tx: Tx,
-    ctx: RequestContext,
-    po: { id: string; docNo: string; branchCode: string; supplierCode: string; supplierName: string },
-    lines: PurPurchaseOrderLine[],
-    grnNo: string,
-  ): Promise<string> {
-    const open = lines.map((l) => ({ l, qty: openQty(l) })).filter((x) => x.qty.gt(0));
-    const priced = open.map(({ l, qty }) => ({ l, qty, ...lineTotals({ qty, unitPrice: l.unitPrice, taxRate: l.taxRate }) }));
-    const totals = documentTotals(priced);
-    const ordered = open.reduce((s, x) => s.add(x.l.orderedQty), dec(0));
-    const cancelled = open.reduce((s, x) => s.add(x.qty), dec(0));
-    const summary = new Set(open.map((x) => x.l.uomCode)).size === 1
-      ? `${plainQty(cancelled)} of ${qtyWithUnit(ordered, open[0]!.l.uomCode)}`
-      : `${open.length} lines`;
-    const docNo = await this.numbering.next(tx, ctx.tenantId, PUR_DOC_TYPE.CANCEL_ORDER);
-    const cancel = await tx.purCancelOrder.create({
-      data: {
-        tenantId: ctx.tenantId,
-        docNo,
-        docDate: day(this.clock.today()),
-        status: 'DRAFT',
-        branchCode: po.branchCode,
-        poId: po.id,
-        poNo: po.docNo,
-        supplierCode: po.supplierCode,
-        supplierName: po.supplierName,
-        reason: `Short delivery on ${grnNo}`,
-        askedByCode: ctx.user.code,
-        askedByName: ctx.user.name,
-        summary,
-        totalValue: totals.total,
-        createdBy: ctx.user.code,
-        updatedBy: ctx.user.code,
-        lines: {
-          create: priced.map(({ l, qty, amount, taxAmount }, i) => ({
-            tenantId: ctx.tenantId,
-            poLineId: l.id,
-            lineNo: i + 1,
-            itemId: l.itemId,
-            itemCode: l.itemCode,
-            itemName: l.itemName,
-            uomCode: l.uomCode,
-            taxCode: l.taxCode,
-            taxRate: l.taxRate,
-            unitPrice: l.unitPrice,
-            orderedQty: l.orderedQty,
-            receivedQty: l.receivedQty,
-            openQty: qty,
-            cancelQty: qty,
-            amount,
-            taxAmount,
-          })),
-        },
-      },
-    });
-    await tx.sysDocLink.create({
-      data: {
-        tenantId: ctx.tenantId, fromType: PUR_ENTITY.ORDER, fromId: po.id, fromNo: po.docNo,
-        toType: PUR_ENTITY.CANCEL_ORDER, toId: cancel.id, toNo: docNo, linkType: DOC_LINK.CANCELLED,
-      },
-    });
-    await this.activity.log(tx, ctx, {
-      entityType: PUR_ENTITY.CANCEL_ORDER, entityId: cancel.id, docNo, action: 'created',
-      message: `${docNo} drafted from ${grnNo} by ${ctx.user.name} · waiting for the Purchasing Manager`,
-    });
-    return docNo;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

@@ -2,6 +2,9 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { PermissionRegistry } from '../platform/context/permission.registry';
 import { PurchaseApprovalsController } from './approvals/approvals.controller';
 import { ApprovalsInboxService } from './approvals/approvals-inbox.service';
+import { CancelOrdersController } from './cancel-orders/cancel-orders.controller';
+import { CancelOrdersQuery } from './cancel-orders/cancel-orders.query';
+import { CancelOrdersService } from './cancel-orders/cancel-orders.service';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardService } from './dashboard/dashboard.service';
 import { DemandController } from './demand/demand.controller';
@@ -33,7 +36,7 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
  * pur_ tables, and tells other modules about changes through the outbox. Never imports from sales/.
  */
 @Module({
-  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController],
+  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController],
   providers: [
     DemandService,
     DashboardService,
@@ -52,6 +55,8 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
     ReceiptsService,
     InvoicesQuery,
     InvoicesService,
+    CancelOrdersQuery,
+    CancelOrdersService,
   ],
 })
 export class PurchaseModule implements OnModuleInit {
