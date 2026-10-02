@@ -90,3 +90,8 @@ export function isQty(value: string): boolean {
   const units = toUnits(value)
   return units !== null && units >= 0n
 }
+
+/** a − b for money strings ("4180.00" − "440.00" → "3740.00"). Invalid values count as 0. */
+export function subMoney(a: string, b: string): string {
+  return centsToString((toUnits(a, 2) ?? 0n) - (toUnits(b, 2) ?? 0n))
+}

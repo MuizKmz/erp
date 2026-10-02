@@ -29,6 +29,11 @@ import type {
   ReceiptTemplate,
   ReceiptWaiting,
   RequestListItem,
+  ReturnDetail,
+  ReturnInput,
+  ReturnListItem,
+  ReturnOverview,
+  ReturnTemplate,
   ReplyInput,
   RfqDetail,
   RfqInput,
@@ -145,6 +150,24 @@ export const cancelOrdersApi = {
   remove: (id: string, version: number) =>
     api<{ deleted: boolean; docNo: string }>(`/purchase/cancel-orders/${id}`, { method: 'DELETE', query: { version } }),
   release: (id: string, version: number) => api<CancelOrderDetail>(`/purchase/cancel-orders/${id}/release`, { method: 'POST', body: { version } }),
+}
+
+export const returnsApi = {
+  list: (query: ListQuery) => api<ListResponse<ReturnListItem> & { reasons: string[] }>('/purchase/returns', { query }),
+  overview: () => api<ReturnOverview>('/purchase/returns/overview'),
+  returnableReceipts: () =>
+    api<{ items: { id: string; docNo: string; docDate: string; poNo: string; supplierName: string; returnableText: string }[] }>('/purchase/returns/returnable-receipts'),
+  template: (grnId: string) => api<ReturnTemplate>('/purchase/returns/new', { query: { grnId } }),
+  get: (id: string) => api<ReturnDetail>(`/purchase/returns/${id}`),
+  create: (body: ReturnInput & { grnId: string; reason: string }) => api<ReturnDetail>('/purchase/returns', { method: 'POST', body }),
+  update: (id: string, body: ReturnInput & { version: number }) => api<ReturnDetail>(`/purchase/returns/${id}`, { method: 'PATCH', body }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/purchase/returns/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<ReturnDetail>(`/purchase/returns/${id}/release`, { method: 'POST', body: { version } }),
+  remind: (id: string) => api<ReturnDetail>(`/purchase/returns/${id}/remind`, { method: 'POST', body: {} }),
+  creditNote: (id: string, version: number, creditNoteNo: string) =>
+    api<ReturnDetail>(`/purchase/returns/${id}/credit-note`, { method: 'POST', body: { version, creditNoteNo } }),
+  replacement: (id: string, version: number, supplierDoNo: string) =>
+    api<ReturnDetail>(`/purchase/returns/${id}/replacement`, { method: 'POST', body: { version, supplierDoNo } }),
 }
 
 export const attachmentsApi = {

@@ -943,3 +943,111 @@ export interface CancelOrderInput {
   attachmentIds?: string[]
   lines?: { poLineId: string; cancelQty: string }[]
 }
+
+// ── Purchase returns (P22, P23) ──────────────────────────────────────────────
+
+export type ReturnStatus = 'DRAFT' | 'RELEASED' | 'SETTLED'
+export type ReturnAction = 'edit' | 'delete' | 'release' | 'remind' | 'settle'
+export type SettleBy = 'CREDIT_NOTE' | 'REPLACEMENT'
+
+export interface ReturnListItem {
+  id: string
+  docNo: string
+  docDate: string
+  supplierName: string
+  summary: string | null
+  grnId: string | null
+  grnNo: string
+  reason: string
+  total: string
+  settledBy: string
+  status: ReturnStatus
+  isMigrated: boolean
+}
+
+export interface ReturnOverview {
+  kpis: {
+    waitingCredit: { total: string; first: string | null; count: number }
+    thisMonth: { count: number; units: string }
+    topReason: { name: string; count: number; of: number } | null
+    waitingInventory: { count: number }
+  }
+  chase: { id: string; docNo: string; supplierName: string; total: string; settleBy: SettleBy; collection: string | null; rmaNo: string | null; canRemind: boolean }[]
+  stats: { averageDaysToCredit: number | null; byReplacement: number; byCreditNote: number; of: number }
+  inventoryConnected: boolean
+}
+
+export interface ReturnOriginals {
+  grn: { id: string; docNo: string; isMigrated: boolean; received: string; chip: { label: string; group: Group } } | null
+  invoices: { id: string; docNo: string; isMigrated: boolean; total: string; label: string; group: Group }[]
+  po: { id: string; docNo: string; isMigrated: boolean; label: string; status: string } | null
+}
+
+export interface ReturnLine {
+  grnLineId: string | null
+  itemCode: string
+  itemName: string
+  uomCode: string
+  taxCode: string
+  taxRate: string
+  receivedQty: string
+  returnedBeforeQty: string
+  unitPrice: string
+}
+
+export interface ReturnTemplate {
+  grn: { id: string; docNo: string; poId: string; poNo: string; isMigrated: boolean }
+  supplier: { code: string; name: string }
+  docDate: string
+  reasons: string[]
+  lines: ReturnLine[]
+  originals: ReturnOriginals
+  taxNames: Record<string, string>
+  inventoryConnected: boolean
+}
+
+export interface ReturnDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: ReturnStatus
+  isMigrated: boolean
+  version: number
+  grn: { id: string | null; docNo: string }
+  po: { id: string | null; docNo: string | null }
+  supplier: { code: string; name: string }
+  reason: string
+  reasons: string[]
+  settleBy: SettleBy
+  rmaNo: string | null
+  collection: string | null
+  summary: string | null
+  subtotal: string
+  taxTotal: string
+  total: string
+  releasedAt: string | null
+  creditNoteNo: string | null
+  replacementGrnNo: string | null
+  settledAt: string | null
+  settledBy: string
+  remarks: string | null
+  lines: (ReturnLine & { id: string; qty: string; amount: string; taxAmount: string })[]
+  taxNames: Record<string, string>
+  attachments: { id: string; fileName: string; mimeType: string; kind: string | null; downloadUrl: string }[]
+  originals: ReturnOriginals
+  inventoryConnected: boolean
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: ReturnAction[]
+}
+
+export interface ReturnInput {
+  reason?: string
+  docDate?: string
+  settleBy?: SettleBy
+  rmaNo?: string
+  collection?: string
+  remarks?: string
+  attachmentIds?: string[]
+  lines?: { grnLineId: string; qty: string }[]
+}

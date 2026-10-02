@@ -15,6 +15,8 @@ const InvoiceList = () => import('./views/InvoiceListView.vue')
 const InvoiceForm = () => import('./views/InvoiceFormView.vue')
 const CancelOrderList = () => import('./views/CancelOrderListView.vue')
 const CancelOrderForm = () => import('./views/CancelOrderFormView.vue')
+const ReturnList = () => import('./views/ReturnListView.vue')
+const ReturnForm = () => import('./views/ReturnFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies'
 
@@ -57,8 +59,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'P19', path: 'cash-purchases/:id', name: 'purchase-cash-purchase', title: 'Cash purchase', group: 'billing', item: 'cash-purchases', step: 9, mockup: 'CashPurchase.html', parent: doc('Cash Purchase', '/purchase/cash-purchases') },
   { code: 'P20', path: 'debit-notes', name: 'purchase-debit-notes', title: 'Debit Note', group: 'billing', item: 'debit-notes', step: 9, mockup: 'PurDebitNoteList.html' },
   { code: 'P21', path: 'debit-notes/:id', name: 'purchase-debit-note', title: 'Supplier debit note', group: 'billing', item: 'debit-notes', step: 9, mockup: 'PurDebitNote.html', parent: doc('Debit Note', '/purchase/debit-notes') },
-  { code: 'P22', path: 'returns', name: 'purchase-returns', title: 'Purchase Return', group: 'billing', item: 'returns', step: 9, mockup: 'PurReturnList.html' },
-  { code: 'P23', path: 'returns/:id', name: 'purchase-return', title: 'Purchase return', group: 'billing', item: 'returns', step: 9, mockup: 'PurReturn.html', parent: doc('Purchase Return', '/purchase/returns') },
+  { code: 'P22', path: 'returns', name: 'purchase-returns', title: 'Purchase Return', group: 'billing', item: 'returns', step: 9, mockup: 'PurReturnList.html', component: ReturnList },
+  { code: 'P23', path: 'returns/:id', name: 'purchase-return', title: 'Purchase return', group: 'billing', item: 'returns', step: 9, mockup: 'PurReturn.html', parent: doc('Purchase Return', '/purchase/returns'), component: ReturnForm },
   { code: 'P24', path: 'settings/approval-rules', name: 'purchase-approval-rules', title: 'Approval Rules', group: 'policies', item: 'approval-rules', step: 10, mockup: 'PurPolicies.html' },
   { code: 'P25', path: 'settings/document-types', name: 'purchase-document-types', title: 'Document Types', group: 'policies', item: 'document-types', step: 10, mockup: 'PurDocTypes.html' },
   { code: 'P26', path: 'settings/email-templates', name: 'purchase-email-templates', title: 'Email Templates', group: 'policies', item: 'email-templates', step: 10, mockup: 'PurEmailTemplates.html' },

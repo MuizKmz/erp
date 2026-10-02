@@ -21,6 +21,9 @@ import { PURCHASE_ROLE_GRANTS } from './purchase.permissions';
 import { ReceiptsController } from './receipts/receipts.controller';
 import { ReceiptsQuery } from './receipts/receipts.query';
 import { ReceiptsService } from './receipts/receipts.service';
+import { ReturnsController } from './returns/returns.controller';
+import { ReturnsQuery } from './returns/returns.query';
+import { ReturnsService } from './returns/returns.service';
 import { RequestsController } from './requests/requests.controller';
 import { RequestsQuery } from './requests/requests.query';
 import { RequestsService } from './requests/requests.service';
@@ -36,7 +39,7 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
  * pur_ tables, and tells other modules about changes through the outbox. Never imports from sales/.
  */
 @Module({
-  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController],
+  controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController, ReturnsController],
   providers: [
     DemandService,
     DashboardService,
@@ -57,6 +60,8 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
     InvoicesService,
     CancelOrdersQuery,
     CancelOrdersService,
+    ReturnsQuery,
+    ReturnsService,
   ],
 })
 export class PurchaseModule implements OnModuleInit {
