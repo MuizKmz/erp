@@ -25,6 +25,16 @@ const dateText = (d: Date | null) => {
   return `${d.getUTCDate()} ${month} ${d.getUTCFullYear()}`;
 };
 
+/** Where a new draft PO comes from (shown as "Source" on the list and in the subtitle). */
+export interface DraftSource {
+  sourceType: 'BUYER' | 'REQUEST' | 'RFQ';
+  sourceNo?: string;
+  requestId?: string;
+  rfqId?: string;
+  /** First activity line, e.g. "Created from PRQ-0006 by Lim Mei Ying" */
+  message?: string;
+}
+
 const LOCKED_MESSAGE =
   'Released orders are locked. Fix them with a Cancel order, a Purchase return or a Supplier debit note.';
 
@@ -50,50 +60,73 @@ export class OrdersService {
   // ── Create and save ───────────────────────────────────────────────────────
 
   async create(ctx: RequestContext, dto: CreateOrderDto) {
+    const prepared = await this.prepareDraft(ctx, dto);
+    const { id } = await this.prisma.$transaction((tx) => this.insertDraft(tx, ctx, prepared, { sourceType: 'BUYER' }));
+    return this.query.detail(ctx, id);
+  }
+
+  /**
+   * Validates a new draft against Master Data (supplier active, items purchasable, warehouse in the
+   * user's branches) and builds the line snapshots. Done before the transaction so it stays short.
+   */
+  async prepareDraft(ctx: RequestContext, dto: CreateOrderDto) {
     const docDate = dto.docDate ?? this.clock.today();
     this.checkDates(docDate, dto.expectedDate ?? null);
     const header = await this.resolveHeader(ctx, dto.supplierCode, dto.warehouseCode);
     const lines = await this.buildLines(ctx, dto.lines);
-    const totals = documentTotals(lines);
+    return { dto, docDate, header, lines, totals: documentTotals(lines) };
+  }
 
-    const id = await this.prisma.$transaction(async (tx) => {
-      const docNo = await this.numbering.next(tx, ctx.tenantId, PUR_DOC_TYPE.ORDER);
-      const order = await tx.purPurchaseOrder.create({
-        data: {
-          tenantId: ctx.tenantId,
-          docNo,
-          docDate: day(docDate),
-          status: 'DRAFT',
-          branchCode: header.warehouse.branchCode,
-          poTypeCode: dto.poTypeCode ?? 'STD',
-          supplierId: header.supplier.id,
-          supplierCode: header.supplier.code,
-          supplierName: header.supplier.name,
-          buyerCode: ctx.user.code,
-          buyerName: ctx.user.name,
-          warehouseCode: header.warehouse.code,
-          warehouseName: header.warehouse.name,
-          expectedDate: dto.expectedDate ? day(dto.expectedDate) : null,
-          paymentTermDays: header.supplier.paymentTermDays,
-          currency: header.supplier.currency,
-          supplierQuoteRef: dto.supplierQuoteRef?.trim() || null,
-          noteToSupplier: dto.noteToSupplier?.trim() || null,
-          remarks: dto.remarks?.trim() || null,
-          sourceType: 'BUYER',
-          subtotal: totals.subtotal,
-          taxTotal: totals.taxTotal,
-          total: totals.total,
-          createdBy: ctx.user.code,
-          updatedBy: ctx.user.code,
-          lines: { create: lines.map((l, i) => ({ ...l, tenantId: ctx.tenantId, lineNo: i + 1 })) },
-        },
-      });
-      await this.activity.log(tx, ctx, {
-        entityType: PUR_ENTITY.ORDER, entityId: order.id, docNo, action: 'created', message: `Created by ${ctx.user.name}`,
-      });
-      return order.id;
+  /** Writes a prepared draft PO in the caller's transaction: number, lines, activity. */
+  async insertDraft(
+    tx: Tx,
+    ctx: RequestContext,
+    prepared: Awaited<ReturnType<OrdersService['prepareDraft']>>,
+    source: DraftSource,
+  ): Promise<{ id: string; docNo: string }> {
+    const { dto, docDate, header, lines, totals } = prepared;
+    const docNo = await this.numbering.next(tx, ctx.tenantId, PUR_DOC_TYPE.ORDER);
+    const order = await tx.purPurchaseOrder.create({
+      data: {
+        tenantId: ctx.tenantId,
+        docNo,
+        docDate: day(docDate),
+        status: 'DRAFT',
+        branchCode: header.warehouse.branchCode,
+        poTypeCode: dto.poTypeCode ?? 'STD',
+        supplierId: header.supplier.id,
+        supplierCode: header.supplier.code,
+        supplierName: header.supplier.name,
+        buyerCode: ctx.user.code,
+        buyerName: ctx.user.name,
+        warehouseCode: header.warehouse.code,
+        warehouseName: header.warehouse.name,
+        expectedDate: dto.expectedDate ? day(dto.expectedDate) : null,
+        paymentTermDays: header.supplier.paymentTermDays,
+        currency: header.supplier.currency,
+        supplierQuoteRef: dto.supplierQuoteRef?.trim() || null,
+        noteToSupplier: dto.noteToSupplier?.trim() || null,
+        remarks: dto.remarks?.trim() || null,
+        sourceType: source.sourceType,
+        sourceNo: source.sourceNo ?? null,
+        requestId: source.requestId ?? null,
+        rfqId: source.rfqId ?? null,
+        subtotal: totals.subtotal,
+        taxTotal: totals.taxTotal,
+        total: totals.total,
+        createdBy: ctx.user.code,
+        updatedBy: ctx.user.code,
+        lines: { create: lines.map((l, i) => ({ ...l, tenantId: ctx.tenantId, lineNo: i + 1 })) },
+      },
     });
-    return this.query.detail(ctx, id);
+    await this.activity.log(tx, ctx, {
+      entityType: PUR_ENTITY.ORDER,
+      entityId: order.id,
+      docNo,
+      action: 'created',
+      message: source.message ?? `Created by ${ctx.user.name}`,
+    });
+    return { id: order.id, docNo };
   }
 
   async update(ctx: RequestContext, id: string, dto: UpdateOrderDto) {

@@ -109,6 +109,7 @@ async function seedRequests(ctx: SeedCtx): Promise<void> {
         branchCode: r.branch,
         requestedByCode: r.by,
         requestedByName: nameOf(ctx, r.by),
+        requesterTitle: ctx.users.get(r.by)?.jobTitle ?? null,
         department: r.department,
         neededBy: day(r.neededBy),
         source: r.source,

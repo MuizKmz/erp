@@ -24,6 +24,8 @@ export interface Me {
     email: string
     roles: string[]
     branchCodes: string[]
+    department: string | null
+    jobTitle: string | null
   }
   tenantId: string
   branchCode: string

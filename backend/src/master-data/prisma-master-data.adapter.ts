@@ -30,6 +30,7 @@ function toUser(row: MdmUser): MdUser {
     roles: stringArray(row.roles),
     branchCodes: stringArray(row.branchCodes),
     department: row.department,
+    jobTitle: row.jobTitle,
     isActive: row.isActive,
   };
 }

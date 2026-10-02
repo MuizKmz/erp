@@ -62,9 +62,10 @@ export class LookupsController {
 
   @Get('items')
   async items(@CurrentContext() ctx: RequestContext, @Query() query: LookupQuery) {
-    const [items, taxes] = await Promise.all([
+    const [items, taxes, suppliers] = await Promise.all([
       this.masterData.searchPurchasableItems(ctx.tenantId, { q: query.q, limit: 20 }),
       this.masterData.listTaxCodes(ctx.tenantId),
+      this.masterData.listSuppliers(ctx.tenantId),
     ]);
     const codes = items.map((i) => i.code);
     const [lastPrices, contracts] = await Promise.all([
@@ -86,6 +87,7 @@ export class LookupsController {
           taxName: tax?.name ?? i.purchaseTaxCode,
           taxRate: tax?.rate ?? '0.0000',
           preferredSupplierCode: i.preferredSupplierCode,
+          preferredSupplierName: suppliers.find((s) => s.code === i.preferredSupplierCode)?.name ?? null,
           lastPrice: last ? toPrice(last) : null,
           contractPrice: contracts.find((c) => c.itemCode === i.code)?.unitPrice ?? null,
         };

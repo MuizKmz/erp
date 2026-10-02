@@ -20,6 +20,8 @@
   --color-erp-link: var(--erp-link);
   --color-erp-track: var(--erp-track);
   --color-erp-on-dark: var(--erp-on-dark);
+  --color-erp-off-text: var(--erp-off-text);
+  --color-erp-off-bg: var(--erp-off-bg);
   --color-attention: var(--attention-text);
 
   --color-btn-add: var(--btn-add);
@@ -146,6 +148,10 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+  .erp-table tr.off td {
+    color: var(--erp-off-text);
+    background: var(--erp-off-bg);
   }
 
   /* Buttons: height 36px, radius 8px, 13px semibold */

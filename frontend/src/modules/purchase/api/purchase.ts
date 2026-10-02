@@ -2,6 +2,7 @@ import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
 import type {
   ApprovalCheck,
+  DemandReport,
   InboxDetail,
   InboxList,
   ItemOption,
@@ -9,6 +10,9 @@ import type {
   OrderInput,
   OrderListItem,
   PurchaseDashboard,
+  RequestDetail,
+  RequestInput,
+  RequestListItem,
   SupplierOption,
   WarehouseOption,
 } from '../types'
@@ -34,6 +38,33 @@ export const ordersApi = {
   release: (id: string, version: number) =>
     api<OrderDetail>(`/purchase/orders/${id}/release`, { method: 'POST', body: { version } }),
   email: (id: string) => api<{ sentTo: string }>(`/purchase/orders/${id}/email`, { method: 'POST', body: {} }),
+}
+
+export type RequestList = ListResponse<RequestListItem> & { departments: string[] }
+
+export const demandApi = {
+  get: (branch?: string) => api<DemandReport>('/purchase/demand', { query: { branch } }),
+}
+
+export const requestsApi = {
+  list: (query: ListQuery) => api<RequestList>('/purchase/requests', { query }),
+  get: (id: string) => api<RequestDetail>(`/purchase/requests/${id}`),
+  create: (body: RequestInput) => api<RequestDetail>('/purchase/requests', { method: 'POST', body }),
+  fromDemand: (lines: { itemCode: string; qty: string }[]) =>
+    api<RequestDetail>('/purchase/requests/from-demand', { method: 'POST', body: { lines } }),
+  update: (id: string, body: RequestInput & { version: number }) =>
+    api<RequestDetail>(`/purchase/requests/${id}`, { method: 'PATCH', body }),
+  remove: (id: string, version: number) =>
+    api<{ deleted: boolean; docNo: string }>(`/purchase/requests/${id}`, { method: 'DELETE', query: { version } }),
+  submit: (id: string, version: number) =>
+    api<RequestDetail>(`/purchase/requests/${id}/submit`, { method: 'POST', body: { version } }),
+  reject: (id: string, version: number, reason: string) =>
+    api<RequestDetail>(`/purchase/requests/${id}/reject`, { method: 'POST', body: { version, reason } }),
+  toPo: (id: string, body: { version: number; groups: { supplierCode: string; lineNos: number[] }[] }) =>
+    api<{ orders: { id: string; docNo: string }[]; request: RequestDetail }>(`/purchase/requests/${id}/to-po`, {
+      method: 'POST',
+      body,
+    }),
 }
 
 export const approvalsApi = {

@@ -18,6 +18,8 @@ export interface MdUser {
   roles: string[];
   branchCodes: string[];
   department: string | null;
+  /** "Store", "Admin" — shown next to the name on requests */
+  jobTitle: string | null;
   isActive: boolean;
 }
 

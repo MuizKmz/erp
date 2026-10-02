@@ -15,16 +15,17 @@ const BRANCHES = [
 ];
 
 // Branch assignments are not in SEED_DATA.md: Penang manager → PNG only, requesters → HQ, the rest → both.
-const USERS: { code: string; name: string; email: string; roles: string[]; branchCodes: string[]; department?: string }[] = [
-  { code: 'LMY', name: 'Lim Mei Ying', email: 'meiying@warehouse.com', roles: ['PURCHASE_BUYER', 'AP_CLERK'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing' },
-  { code: 'AZ', name: 'Ahmad Zaki', email: 'zaki@warehouse.com', roles: ['PURCHASE_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing' },
-  { code: 'TWL', name: 'Tan Wei Ling', email: 'weiling@warehouse.com', roles: ['BRANCH_MANAGER'], branchCodes: ['PNG'], department: 'Penang' },
-  { code: 'RI', name: 'Rosnah Ismail', email: 'rosnah@warehouse.com', roles: ['FINANCE_DIRECTOR'], branchCodes: ['HQ', 'PNG'], department: 'Finance' },
-  { code: 'RAH', name: 'Rahim', email: 'rahim@warehouse.com', roles: ['STORE', 'REQUESTER'], branchCodes: ['HQ', 'PNG'], department: 'Warehouse' },
+// Job titles follow the mockups: "Rahim · Store", "Siti · Admin"; Nurul and Hafiz show only their department.
+const USERS: { code: string; name: string; email: string; roles: string[]; branchCodes: string[]; department?: string; jobTitle?: string }[] = [
+  { code: 'LMY', name: 'Lim Mei Ying', email: 'meiying@warehouse.com', roles: ['PURCHASE_BUYER', 'AP_CLERK'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing', jobTitle: 'Buyer' },
+  { code: 'AZ', name: 'Ahmad Zaki', email: 'zaki@warehouse.com', roles: ['PURCHASE_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing', jobTitle: 'Purchasing Manager' },
+  { code: 'TWL', name: 'Tan Wei Ling', email: 'weiling@warehouse.com', roles: ['BRANCH_MANAGER'], branchCodes: ['PNG'], department: 'Penang', jobTitle: 'Branch Manager' },
+  { code: 'RI', name: 'Rosnah Ismail', email: 'rosnah@warehouse.com', roles: ['FINANCE_DIRECTOR'], branchCodes: ['HQ', 'PNG'], department: 'Finance', jobTitle: 'Finance Director' },
+  { code: 'RAH', name: 'Rahim', email: 'rahim@warehouse.com', roles: ['STORE', 'REQUESTER'], branchCodes: ['HQ', 'PNG'], department: 'Warehouse', jobTitle: 'Store' },
   { code: 'NUR', name: 'Nurul', email: 'nurul@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Production' },
   { code: 'HAF', name: 'Hafiz', email: 'hafiz@warehouse.com', roles: ['REQUESTER', 'STORE'], branchCodes: ['HQ'], department: 'Production' },
-  { code: 'SIT', name: 'Siti', email: 'siti@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Office' },
-  { code: 'ADM', name: 'Admin', email: 'admin@warehouse.com', roles: ['ADMIN'], branchCodes: ['HQ', 'PNG'] },
+  { code: 'SIT', name: 'Siti', email: 'siti@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Office', jobTitle: 'Admin' },
+  { code: 'ADM', name: 'Admin', email: 'admin@warehouse.com', roles: ['ADMIN'], branchCodes: ['HQ', 'PNG'], jobTitle: 'Admin' },
 ];
 
 const WAREHOUSES = [
@@ -130,7 +131,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
   }
 
   for (const u of USERS) {
-    const data = { name: u.name, email: u.email, roles: u.roles, branchCodes: u.branchCodes, department: u.department ?? null, isActive: true };
+    const data = { name: u.name, email: u.email, roles: u.roles, branchCodes: u.branchCodes, department: u.department ?? null, jobTitle: u.jobTitle ?? null, isActive: true };
     const row = await prisma.mdmUser.upsert({
       where: { tenantId_code: { tenantId, code: u.code } },
       update: data,

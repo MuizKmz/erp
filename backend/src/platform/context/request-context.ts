@@ -9,6 +9,8 @@ export interface CurrentUserInfo {
   email: string;
   roles: string[];
   branchCodes: string[];
+  department: string | null;
+  jobTitle: string | null;
 }
 
 /** Everything a service needs to know about who is acting, where. Pass it into services; never read headers there. */

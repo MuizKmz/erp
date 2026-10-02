@@ -315,6 +315,7 @@ export interface ItemOption {
   taxName: string
   taxRate: string
   preferredSupplierCode: string | null
+  preferredSupplierName: string | null
   lastPrice: string | null
   contractPrice: string | null
 }
@@ -324,4 +325,119 @@ export interface WarehouseOption {
   name: string
   branchCode: string
   branchName: string
+}
+
+// ── Demand (P04) ─────────────────────────────────────────────────────────────
+
+export interface DemandLine {
+  itemCode: string
+  itemName: string
+  uomCode: string
+  preferredSupplierCode: string | null
+  preferredSupplierName: string | null
+  onHand: string
+  onOrder: string
+  reorderLevel: string | null
+  salesNeed: string
+  salesOrders: { soNo: string; qty: string; customerName: string | null }[]
+  reason: 'BELOW_REORDER' | 'SALES_ORDER'
+  isBuyToOrder: boolean
+  status: 'NEEDS_BUYING' | 'COVERED'
+  suggestedQty: string
+  lastPrice: string | null
+  estValue: string
+  coveredBy: string[]
+}
+
+export interface DemandReport {
+  lines: DemandLine[]
+  asOf: string | null
+  kpis: { toBuy: number; belowReorder: number; forSalesOrders: number; covered: number; estimatedValue: string }
+  connections: { inventory: boolean; sales: boolean }
+}
+
+// ── Purchase requests (P05, P06) ─────────────────────────────────────────────
+
+export type RequestStatus = 'DRAFT' | 'SUBMITTED' | 'CONVERTED' | 'REJECTED'
+export type RequestAction = 'edit' | 'delete' | 'submit' | 'reject' | 'toPo' | 'toRfq'
+export interface DocRef {
+  type: string
+  id: string | null
+  docNo: string
+}
+
+export interface RequestListItem {
+  id: string
+  docNo: string
+  docDate: string
+  requestedByName: string
+  requesterTitle: string | null
+  department: string | null
+  branchCode: string
+  summary: string | null
+  neededBy: string | null
+  estValue: string
+  /** Each chain is one thing the request became: [RFQ-0002, PO-0005] or [PO-0004]. */
+  turnedInto: DocRef[][]
+  rejectReason: string | null
+  status: RequestStatus
+  isMigrated: boolean
+  allowedActions: RequestAction[]
+  version: number
+}
+
+export interface RequestItemInsight {
+  uomCode: string | null
+  stock: { onHand: string; usedLast30Days: string; reorderLevel: string | null; onOrder: string }
+  salesOrders: { soNo: string; customerName: string | null; qty: string; kind: string }[]
+  lastPrice: string | null
+  priceHistory: { docNo: string; docDate: string; supplierName: string | null; qty: string | null; unitPrice: string; note: string | null }[]
+}
+
+export interface RequestLine {
+  id: string
+  lineNo: number
+  itemCode: string
+  itemName: string
+  uomCode: string
+  taxCode: string
+  qty: string
+  lastPrice: string
+  estAmount: string
+  preferredSupplierCode: string | null
+  preferredSupplierName: string | null
+}
+
+export interface RequestDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: RequestStatus
+  isMigrated: boolean
+  version: number
+  requestedBy: { code: string; name: string; title: string | null }
+  department: string | null
+  branch: { code: string; name: string }
+  neededBy: string | null
+  priority: 'NORMAL' | 'URGENT'
+  source: 'STAFF' | 'DEMAND' | 'SALES_ORDER'
+  reason: string | null
+  summary: string | null
+  estValue: string
+  rejectReason: string | null
+  submittedAt: string | null
+  decidedAt: string | null
+  lines: RequestLine[]
+  insights: Record<string, RequestItemInsight>
+  turnedInto: DocRef[][]
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: RequestAction[]
+}
+
+export interface RequestInput {
+  neededBy?: string | null
+  priority?: RequestDetail['priority']
+  reason?: string
+  lines?: { itemCode: string; qty: string }[]
 }

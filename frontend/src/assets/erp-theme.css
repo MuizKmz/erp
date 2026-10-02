@@ -21,6 +21,8 @@
   --erp-link: #2563eb;
   --erp-track: #eef0f4;
   --erp-on-dark: #ffffff; /* text and icons on coloured backgrounds */
+  --erp-off-text: #8a90a2; /* rows that need nothing (PurDemand.html "already covered") */
+  --erp-off-bg: #fafafb;
 
   /* Buttons (same in every module) */
   --btn-add: #2563eb;

@@ -253,6 +253,7 @@ model MdmUser {
   roles       Json // string[]: PURCHASE_BUYER, PURCHASE_MANAGER …
   branchCodes Json // string[]: HQ, PNG
   department  String?  @db.VarChar(50) // Production, Office …
+  jobTitle    String?  @db.VarChar(50) // "Store", "Admin": shown as "Rahim · Store"
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now()) @db.DateTime(3)
   updatedAt   DateTime @updatedAt @db.DateTime(3)
@@ -491,6 +492,7 @@ model PurRequest {
   requestedByCode String             @db.VarChar(20)
   requestedByName String             @db.VarChar(100)
   department      String?            @db.VarChar(50)
+  requesterTitle  String?            @db.VarChar(50) // snapshot of the requester's job title
   neededBy        DateTime?          @db.Date
   priority        PurRequestPriority @default(NORMAL)
   source          PurRequestSource   @default(STAFF)
