@@ -79,7 +79,7 @@ watch(selectedId, (id) => void loadDetail(id), { immediate: true })
 const signedInAs = computed(() => (user.value ? `Signed in as ${user.value.name}, ${roleLabel(user.value.roles[0] ?? '')}.` : ''))
 const firstName = (name: string) => name.split(' ')[0]
 
-const OPEN_LABEL: Record<string, string> = { SAL_ORDER: 'Open order', SAL_INVOICE: 'Open invoice', SAL_QUOTATION: 'Open quotation' }
+const OPEN_LABEL: Record<string, string> = { SAL_ORDER: 'Open order', SAL_INVOICE: 'Open invoice', SAL_QUOTATION: 'Open quotation', SAL_DELIVERY: 'Open delivery order' }
 const openDocument = computed(() => (detail.value ? docRoute(detail.value.entityType, detail.value.entityId) : null))
 const footnote = computed(() => {
   const d = detail.value

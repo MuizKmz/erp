@@ -1777,6 +1777,9 @@ model SalDelivery {
   confirmedAt     DateTime?         @db.DateTime(3)
   confirmedByCode String?           @db.VarChar(20)
   confirmedByName String?           @db.VarChar(100)
+  creditResult    String?           @db.VarChar(20) // PASSED, WARNED, OVER_LIMIT, APPROVED
+  creditSnapshot  Json? // "Credit at save" for this delivery
+  approvedAt      DateTime?         @db.DateTime(3) // credit approval (overdue limit → Sales Manager)
   remarks         String?           @db.Text
   version         Int               @default(1)
   isMigrated      Boolean           @default(false)

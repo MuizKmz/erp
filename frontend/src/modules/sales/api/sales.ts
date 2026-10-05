@@ -3,6 +3,10 @@ import type { ListQuery, ListResponse } from '@/api/list'
 import type {
   CustomerCardData,
   CustomerOption,
+  DeliveryDetail,
+  DeliveryInput,
+  DeliveryListItem,
+  DeliveryOverview,
   EnquiryDetail,
   EnquiryInput,
   EnquiryListItem,
@@ -63,6 +67,30 @@ export const salesEnquiriesApi = {
   createQuotation: (id: string) => api<QuotationDetail>(`/sales/enquiries/${id}/quotation`, { method: 'POST' }),
   lost: (id: string, version: number, reason: string) => api<EnquiryDetail>(`/sales/enquiries/${id}/lost`, { method: 'POST', body: { version, reason } }),
   customerCard: (code: string) => api<CustomerCardData | null>(`/sales/enquiries/customer-card/${encodeURIComponent(code)}`),
+}
+
+export const salesDeliveriesApi = {
+  overview: () => api<DeliveryOverview>('/sales/deliveries/overview'),
+  list: (query: ListQuery) => api<ListResponse<DeliveryListItem>>('/sales/deliveries', { query }),
+  get: (id: string) => api<DeliveryDetail>(`/sales/deliveries/${id}`),
+  create: (salesOrderId: string) => api<DeliveryDetail>('/sales/deliveries', { method: 'POST', body: { salesOrderId } }),
+  update: (id: string, input: DeliveryInput) => api<DeliveryDetail>(`/sales/deliveries/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/deliveries/${id}`, { method: 'DELETE', query: { version } }),
+  requestApproval: (id: string, version: number, reason: string) =>
+    api<DeliveryDetail>(`/sales/deliveries/${id}/request-approval`, { method: 'POST', body: { version, reason } }),
+  confirm: (id: string, version: number) => api<DeliveryDetail>(`/sales/deliveries/${id}/confirm`, { method: 'POST', body: { version } }),
+}
+
+/** Files on a Sales document: uploaded straight onto the document (proof of delivery, photos). */
+export const salesFilesApi = {
+  upload: (file: File, kind: string, entityType: string, entityId: string) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('kind', kind)
+    form.append('entityType', entityType)
+    form.append('entityId', entityId)
+    return api<{ id: string; fileName: string; mimeType: string; downloadUrl: string }>('/attachments', { method: 'POST', body: form })
+  },
 }
 
 export const salesApprovalsApi = {

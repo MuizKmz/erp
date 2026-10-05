@@ -9,6 +9,8 @@ const EnquiryList = () => import('./views/EnquiryListView.vue')
 const EnquiryForm = () => import('./views/EnquiryFormView.vue')
 const QuotationList = () => import('./views/QuotationListView.vue')
 const QuotationForm = () => import('./views/QuotationFormView.vue')
+const DeliveryList = () => import('./views/DeliveryListView.vue')
+const DeliveryForm = () => import('./views/DeliveryFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -40,8 +42,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'S10', path: 'orders', name: 'sales-orders', title: 'Sales Order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderList.html', component: OrderList },
   { code: 'S03', path: 'orders/:id/flow', name: 'sales-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 9, mockup: 'DocFlow.html', parent: doc('Sales Order', '/sales/orders') },
   { code: 'S11', path: 'orders/:id', name: 'sales-order', title: 'Sales order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderForm.html', parent: doc('Sales Order', '/sales/orders'), component: OrderForm },
-  { code: 'S15', path: 'deliveries', name: 'sales-deliveries', title: 'Delivery Order', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryList.html' },
-  { code: 'S16', path: 'deliveries/:id', name: 'sales-delivery', title: 'Confirm delivery', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryConfirm.html', parent: doc('Delivery Order', '/sales/deliveries') },
+  { code: 'S15', path: 'deliveries', name: 'sales-deliveries', title: 'Delivery Order', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryList.html', component: DeliveryList },
+  { code: 'S16', path: 'deliveries/:id', name: 'sales-delivery', title: 'Confirm delivery', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryConfirm.html', parent: doc('Delivery Order', '/sales/deliveries'), component: DeliveryForm },
   { code: 'S13', path: 'cancel-orders', name: 'sales-cancel-orders', title: 'Cancel Order', group: 'transaction', item: 'cancel-orders', step: 8, mockup: 'CancelOrderList.html' },
   { code: 'S14', path: 'cancel-orders/:id', name: 'sales-cancel-order', title: 'Cancel order balance', group: 'transaction', item: 'cancel-orders', step: 8, mockup: 'CancelOrder.html', parent: doc('Cancel Order', '/sales/cancel-orders') },
   { code: 'S21', path: 'proformas', name: 'sales-proformas', title: 'Proforma Invoice', group: 'billing', item: 'proformas', step: 7, mockup: 'ProformaList.html' },

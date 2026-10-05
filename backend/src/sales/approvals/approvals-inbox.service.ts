@@ -92,14 +92,17 @@ export class SalesApprovalsInboxService {
       requesterNote: request.requesterNote,
       canDecide,
       decision: decided ? { byName: decided.decidedByName, at: decided.decidedAt, comment: decided.comment, status: decided.status } : null,
-      panel: kind === 'CREDIT' && request.entityType === SAL_ENTITY.ORDER ? await this.creditPanel(ctx, request) : kind === 'PRICE' ? await this.pricePanel(ctx, request) : await this.discountPanel(ctx, request),
+      panel: kind === 'CREDIT' && (request.entityType === SAL_ENTITY.ORDER || request.entityType === SAL_ENTITY.DELIVERY) ? await this.creditPanel(ctx, request) : kind === 'PRICE' ? await this.pricePanel(ctx, request) : await this.discountPanel(ctx, request),
     };
   }
 
   /** Exposure, overdue, last payment and payment history of the customer (Approvals.html right panel). */
   private async creditPanel(ctx: RequestContext, request: ApprovalRequestView) {
-    const order = await this.prisma.salSalesOrder.findFirst({ where: { id: request.entityId, tenantId: ctx.tenantId } });
+    // A delivery's credit request shows its order's customer, with the delivery's value as "this document".
+    const delivery = request.entityType === SAL_ENTITY.DELIVERY ? await this.prisma.salDelivery.findFirst({ where: { id: request.entityId, tenantId: ctx.tenantId } }) : null;
+    const order = await this.prisma.salSalesOrder.findFirst({ where: { id: delivery ? (delivery.salesOrderId ?? '') : request.entityId, tenantId: ctx.tenantId } });
     if (!order) throw new NotFoundError('Sales order');
+    const thisDocument = delivery ? dec(request.amount ?? 0) : order.total;
     const today = this.clock.today();
     const customer = await this.masterData.findCustomer(ctx.tenantId, order.customerCode);
     const open = await this.receivables.openInvoices(ctx.tenantId, today, [order.customerCode]);
@@ -129,8 +132,8 @@ export class SalesApprovalsInboxService {
       owedNow: toMoney(owed),
       over60: toMoney(over60),
       otherOpen: toMoney(otherOpen),
-      thisOrder: toMoney(order.total),
-      exposureAfter: toMoney(owed.add(otherOpen).add(order.total)),
+      thisOrder: toMoney(thisDocument),
+      exposureAfter: toMoney(owed.add(otherOpen).add(thisDocument)),
       creditLimit: customer?.creditLimit ? toMoney(customer.creditLimit) : null,
       overdue: toMoney(open.filter((x) => x.overdue).reduce((s, x) => s.add(x.balance), dec(0))),
       overdueLimit: customer?.overdueLimit ? toMoney(customer.overdueLimit) : null,
@@ -194,9 +197,15 @@ export class SalesApprovalsInboxService {
     const data = { status: 'DRAFT' as const, approvedAt: approved ? this.clock.now() : null, version: { increment: 1 }, updatedBy: ctx.user.code };
     if (result.entityType === SAL_ENTITY.INVOICE) await tx.salInvoice.update({ where: { id: result.entityId }, data });
     else if (result.entityType === SAL_ENTITY.QUOTATION) await tx.salQuotation.update({ where: { id: result.entityId }, data });
+    else if (result.entityType === SAL_ENTITY.DELIVERY) {
+      await tx.salDelivery.update({
+        where: { id: result.entityId },
+        data: { approvedAt: data.approvedAt, creditResult: approved ? 'APPROVED' : 'OVER_LIMIT', version: { increment: 1 }, updatedBy: ctx.user.code },
+      });
+    }
     await this.activity.log(tx, ctx, {
       entityType: result.entityType, entityId: result.entityId, docNo: result.docNo, action: approved ? 'approved' : 'rejected',
-      message: approved ? `Approved by ${ctx.user.name} · ready to release` : `Rejected by ${ctx.user.name} · back to draft`, comment,
+      message: approved ? `Approved by ${ctx.user.name} · ready to ${result.entityType === SAL_ENTITY.DELIVERY ? 'confirm' : 'release'}` : `Rejected by ${ctx.user.name} · back to draft`, comment,
     });
   }
 }

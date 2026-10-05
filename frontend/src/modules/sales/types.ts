@@ -493,3 +493,103 @@ export interface QuotationInput {
   enquiryId?: string
   lines: OrderLineInput[]
 }
+
+// ── Delivery orders (S15, S16) ──────────────────────────────────────────────
+
+export type DeliveryAction = 'edit' | 'delete' | 'requestApproval' | 'confirm' | 'attach'
+export type WaitingState = 'READY' | 'NO_STOCK' | 'PURCHASE' | 'DEPOSIT'
+
+export interface DeliveryOverview {
+  kpis: {
+    waiting: { orders: number; units: string }
+    dueSoon: { orders: number; orderNos: string[] }
+    drafts: { count: number; docNos: string[] }
+    deliveredThisMonth: { units: string; deliveries: number }
+  }
+  waiting: {
+    orderId: string
+    orderNo: string
+    customerName: string
+    lineNo: number
+    itemCode: string
+    itemName: string
+    uomCode: string
+    balance: string
+    wantedBy: string | null
+    onHand: string
+    isBuyToOrder: boolean
+    purchaseOrderNo: string | null
+    state: WaitingState
+    proforma: { docNo: string; amount: string } | null
+    draft: { id: string; docNo: string } | null
+  }[]
+  inventoryConnected: boolean
+}
+
+export interface DeliveryListItem {
+  id: string
+  docNo: string
+  docDate: string
+  customerName: string
+  salesOrderId: string | null
+  salesOrderNo: string
+  qty: string
+  vehicle: string | null
+  driver: string | null
+  consignmentNote: string | null
+  status: string
+  statusLabel: string
+  isMigrated: boolean
+  version: number
+}
+
+export interface DeliveryDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: 'DRAFT' | 'CONFIRMED'
+  statusLabel: string
+  isMigrated: boolean
+  version: number
+  customer: { code: string; name: string }
+  branchCode: string
+  warehouseCode: string
+  vehicle: string | null
+  driver: string | null
+  consignmentNote: string | null
+  deliverTo: string | null
+  receiver: string | null
+  warehouseNote: string | null
+  order: { id: string | null; no: string; status: string | null; wantedBy: string | null; agentName: string | null; ordered: string; deliveredAfter: string; pct: number; leftAfter: string }
+  lines: { id: string; lineNo: number; itemCode: string; itemName: string; uomCode: string; orderedQty: string; deliveredBeforeQty: string; balanceQty: string; qty: string; leftAfterQty: string; inStock: string }[]
+  depositHold: { proformaNo: string; amount: string } | null
+  credit: {
+    result: string | null
+    snapshot: CreditSnapshot | null
+    live: boolean
+    warning: CreditSnapshot | null
+    needsApproval: boolean
+    blocked: boolean
+    approverRole: string | null
+  }
+  approval: { state: 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED'; reason: string | null; waitingFor: string | null; decidedBy: string | null; comment: string | null }
+  attachments: { id: string; fileName: string; mimeType: string; kind: string | null; downloadUrl: string }[]
+  inventoryConnected: boolean
+  confirmedAt: string | null
+  confirmedByName: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: DeliveryAction[]
+}
+
+export interface DeliveryInput {
+  version: number
+  docDate?: string
+  vehicle?: string
+  driver?: string
+  consignmentNote?: string
+  deliverTo?: string
+  receiver?: string
+  warehouseNote?: string
+  lines?: { lineNo: number; qty: string }[]
+}
