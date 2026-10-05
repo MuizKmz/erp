@@ -722,6 +722,7 @@ const SALES_ACTIVITY: Act[] = [
   ['QT-0001', kl('2026-09-18', '10:05'), 'AR', 'ordered', 'Turned into SO-0001'],
   ['SO-0001', kl('2026-09-18', '10:05'), 'AR', 'created', 'Created from QT-0001 by Aina Rahman'],
   ['SO-0001', kl('2026-09-18', '10:06'), 'AR', 'credit_check', 'Credit check passed: owed RM 12,000.00 + this order RM 27,500.00 = RM 39,500.00 of RM 50,000.00'],
+  ['SO-0001', kl('2026-09-18', '10:12'), 'AR', 'stock_warning', 'At release: 60 in stock, 40 short. Warned, not blocked (policy: stock check warns).'],
   ['SO-0001', kl('2026-09-18', '10:12'), 'AR', 'released', 'Released by Aina Rahman · event sales.order.released saved'],
   ['SO-0001', kl('2026-09-21', '09:30'), 'AR', 'delivered', 'DO-0001 confirmed: 60 delivered, balance 40'],
   ['SO-0001', kl('2026-09-21', '14:02'), 'AR', 'invoiced', 'INV-0001 released: 60 invoiced, RM 16,500.00'],

@@ -2,6 +2,9 @@ import type { RouteRecordRaw } from 'vue-router'
 import { SALES_REPORTS } from './menu'
 
 const Placeholder = () => import('./views/PlaceholderView.vue')
+const Approvals = () => import('./views/ApprovalsView.vue')
+const OrderList = () => import('./views/OrderListView.vue')
+const OrderForm = () => import('./views/OrderFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -25,14 +28,14 @@ const doc = (title: string, to: string) => ({ title, to })
  * Screens not built yet show a placeholder that names the step which delivers them.
  */
 const SCREENS: ScreenDef[] = [
-  { code: 'S02', path: 'approvals', name: 'sales-approvals', title: 'Approvals', group: 'transaction', step: 3, mockup: 'Approvals.html' },
+  { code: 'S02', path: 'approvals', name: 'sales-approvals', title: 'Approvals', group: 'transaction', step: 3, mockup: 'Approvals.html', component: Approvals },
   { code: 'S06', path: 'enquiries', name: 'sales-enquiries', title: 'Enquiry', group: 'transaction', item: 'enquiries', step: 4, mockup: 'EnquiryList.html' },
   { code: 'S07', path: 'enquiries/:id', name: 'sales-enquiry', title: 'Enquiry', group: 'transaction', item: 'enquiries', step: 4, mockup: 'EnquiryForm.html', parent: doc('Enquiry', '/sales/enquiries') },
   { code: 'S08', path: 'quotations', name: 'sales-quotations', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationList.html' },
   { code: 'S09', path: 'quotations/:id', name: 'sales-quotation', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationForm.html', parent: doc('Quotation', '/sales/quotations') },
-  { code: 'S10', path: 'orders', name: 'sales-orders', title: 'Sales Order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderList.html' },
+  { code: 'S10', path: 'orders', name: 'sales-orders', title: 'Sales Order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderList.html', component: OrderList },
   { code: 'S03', path: 'orders/:id/flow', name: 'sales-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 9, mockup: 'DocFlow.html', parent: doc('Sales Order', '/sales/orders') },
-  { code: 'S11', path: 'orders/:id', name: 'sales-order', title: 'Sales order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderForm.html', parent: doc('Sales Order', '/sales/orders') },
+  { code: 'S11', path: 'orders/:id', name: 'sales-order', title: 'Sales order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderForm.html', parent: doc('Sales Order', '/sales/orders'), component: OrderForm },
   { code: 'S15', path: 'deliveries', name: 'sales-deliveries', title: 'Delivery Order', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryList.html' },
   { code: 'S16', path: 'deliveries/:id', name: 'sales-delivery', title: 'Confirm delivery', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryConfirm.html', parent: doc('Delivery Order', '/sales/deliveries') },
   { code: 'S13', path: 'cancel-orders', name: 'sales-cancel-orders', title: 'Cancel Order', group: 'transaction', item: 'cancel-orders', step: 8, mockup: 'CancelOrderList.html' },

@@ -50,6 +50,34 @@ export function previewLine(qty: string, unitPrice: string, taxRate: string): Li
   return { amount: centsToString(amountCents), taxAmount: centsToString(taxCents) }
 }
 
+export interface SaleLinePreview extends LinePreview {
+  grossAmount: string
+  discountAmount: string
+}
+
+/**
+ * Sales line preview (sales/shared/totals.rules.ts): gross = round(qty × price, 2),
+ * discount = round(gross × pct / 100, 2), amount = gross − discount, tax = round(amount × rate, 2).
+ */
+export function previewSaleLine(qty: string, unitPrice: string, discountPct: string, taxRate: string): SaleLinePreview | null {
+  const q = toUnits(qty)
+  const p = toUnits(unitPrice)
+  const d = toUnits(discountPct || '0')
+  const r = toUnits(taxRate)
+  if (q === null || p === null || d === null || r === null) return null
+  const grossCents = divRound(q * p, 10n ** 6n)
+  // cents × pct (4 decimals) / 100 → round(/10^6)
+  const discountCents = divRound(grossCents * d, 10n ** 6n)
+  const amountCents = grossCents - discountCents
+  const taxCents = divRound(amountCents * r, 10n ** 4n)
+  return {
+    grossAmount: centsToString(grossCents),
+    discountAmount: centsToString(discountCents),
+    amount: centsToString(amountCents),
+    taxAmount: centsToString(taxCents),
+  }
+}
+
 /** Sum of money strings ("4000.00" + "400.00"). */
 export function sumMoney(values: string[]): string {
   const cents = values.reduce((sum, v) => sum + (toUnits(v, 2) ?? 0n), 0n)

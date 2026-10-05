@@ -106,6 +106,12 @@ const ROLE_LABELS: Record<string, string> = {
   AP_CLERK: 'AP clerk',
   REQUESTER: 'Requester',
   ADMIN: 'Admin',
+  SALES_AGENT: 'Sales agent',
+  SALES_BILLING: 'Billing clerk',
+  SALES_STORE: 'Store · delivery',
+  COUNTER_STAFF: 'Counter staff',
+  SALES_MANAGER: 'Sales Manager',
+  FINANCE_MANAGER: 'Finance Manager',
 }
 
 export function roleLabel(role: string): string {
