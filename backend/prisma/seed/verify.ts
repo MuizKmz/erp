@@ -12,7 +12,7 @@ import { suggestPurchase } from '../../src/purchase/demand/demand.rules';
 import { documentTotals } from '../../src/purchase/shared/totals.rules';
 import type { SeedCtx } from './util';
 
-interface Check {
+export interface Check {
   check: string;
   expected: string;
   actual: string;
@@ -130,7 +130,7 @@ export async function verifySeed(ctx: SeedCtx, uploadRoot: string): Promise<Chec
   });
 
   // ── Numbering ──
-  const seqs = await prisma.sysNumberSequence.findMany({ where, orderBy: { docType: 'asc' } });
+  const seqs = await prisma.sysNumberSequence.findMany({ where: { tenantId, module: 'purchase' }, orderBy: { docType: 'asc' } });
   expect('Next numbers', 'CP-0003 GRN-0004 PCO-0002 PDN-0002 PI-0004 PO-0007 PRQ-0007 PRT-0002 RFQ-0005',
     seqs.map((s) => formatDocNo(s.prefix, s.digits, s.nextValue)).join(' '));
 
@@ -167,9 +167,9 @@ export async function verifySeed(ctx: SeedCtx, uploadRoot: string): Promise<Chec
   expect('PO running quantities = receipts, returns, invoices', 'all agree', qtyIssues.length ? qtyIssues.join('; ') : 'all agree');
 
   // ── Outbox and attachments ──
-  const events = await prisma.sysOutbox.findMany({ where, select: { name: true, status: true } });
+  const events = await prisma.sysOutbox.findMany({ where: { tenantId, name: { startsWith: 'purchase.' } }, select: { name: true, status: true } });
   expect('Outbox events waiting (no module connected yet)', '13 PENDING', `${events.filter((e) => e.status === 'PENDING').length} ${events.every((e) => e.status === 'PENDING') ? 'PENDING' : 'mixed'}`);
-  const files = await prisma.sysAttachment.findMany({ where });
+  const files = await prisma.sysAttachment.findMany({ where: { tenantId, entityType: { startsWith: 'PUR_' } } });
   const missing = files.filter((f) => !existsSync(path.join(uploadRoot, ...f.storageKey.split('/'))));
   expect('Attachments with a file on disk', '15 / 15', `${files.length - missing.length} / ${files.length}`);
 

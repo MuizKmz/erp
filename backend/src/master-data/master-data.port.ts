@@ -54,7 +54,55 @@ export interface MdItem {
   packSize: string;
   isPurchasable: boolean;
   isBuyToOrder: boolean;
+  isSellable: boolean;
+  /** Sales unit (falls back to the base unit) and sales tax code, for Sales documents. */
+  salesUomCode: string;
+  salesTaxCode: string | null;
+  barcode: string | null;
+  /** For the estimated margin on sales documents. */
+  standardCost: string | null;
   status: 'ACTIVE' | 'BLOCKED' | 'DISCONTINUED';
+}
+
+export interface MdCustomer {
+  id: string;
+  code: string;
+  name: string;
+  tin: string | null;
+  billingAddress: string | null;
+  deliveryAddress: string | null;
+  contactName: string | null;
+  email: string | null;
+  phone: string | null;
+  category: string | null;
+  area: string | null;
+  branchCode: string;
+  defaultAgentCode: string | null;
+  creditTermDays: number;
+  /** null = no limit */
+  creditLimit: string | null;
+  overdueLimit: string | null;
+  /** GROUP / BRANCH when the customer overrides Credit Control, else null */
+  creditScope: string | null;
+  priceListCode: string;
+  taxMode: 'EXCLUSIVE' | 'INCLUSIVE';
+  isCash: boolean;
+  status: 'ACTIVE' | 'BLOCKED' | 'PROSPECT';
+}
+
+export interface MdPriceList {
+  code: string;
+  name: string;
+  currency: string;
+  taxInclusive: boolean;
+}
+
+export interface MdPrice {
+  priceListCode: string;
+  itemCode: string;
+  uomCode: string;
+  /** before tax, "235.0000" */
+  unitPrice: string;
 }
 
 export interface MdWarehouse {
@@ -113,4 +161,16 @@ export interface MasterDataPort {
   listTaxCodes(tenantId: string): Promise<MdTaxCode[]>;
   /** Contract prices valid on a date (YYYY-MM-DD). */
   listContractPrices(tenantId: string, filter: { supplierCode?: string; itemCodes?: string[]; onDate: string }): Promise<MdContractPrice[]>;
+
+  // ── Sales ──
+  findCustomer(tenantId: string, code: string): Promise<MdCustomer | null>;
+  /** All customers, or only the given codes. */
+  listCustomers(tenantId: string, codes?: string[]): Promise<MdCustomer[]>;
+  /** Customers matching code or name. activeOnly hides BLOCKED and PROSPECT ones. */
+  searchCustomers(tenantId: string, options: SearchOptions & { activeOnly?: boolean }): Promise<MdCustomer[]>;
+  listPriceLists(tenantId: string): Promise<MdPriceList[]>;
+  /** Prices of one price list valid on a date, for the given items or all. */
+  listPrices(tenantId: string, filter: { priceListCode: string; itemCodes?: string[]; onDate: string }): Promise<MdPrice[]>;
+  /** Items matching code, name or barcode. sellableOnly hides items that cannot be sold. */
+  searchSellableItems(tenantId: string, options: SearchOptions & { itemGroup?: string; sellableOnly?: boolean }): Promise<MdItem[]>;
 }

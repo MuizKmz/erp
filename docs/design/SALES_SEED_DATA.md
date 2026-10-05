@@ -493,7 +493,7 @@ The SO-0002 panel shows:
 
 | Event | Document |
 |---|---|
-| `sales.order.released` | SO-0001, SO-0003, SO-0004, SO-0007 |
+| `sales.order.released` | SO-0001, SO-0003, SO-0004, SO-0006, SO-0007 |
 | `sales.shipment.requested` | DO-0001, DO-0002 |
 | `sales.invoice.released` | INV-0001, INV-0002 |
 | `sales.return.released` | SR-0001 |

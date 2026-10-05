@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import type { MdmItem, MdmSupplier, MdmUser, Prisma } from '@prisma/client';
+import type { MdmCustomer, MdmItem, MdmSupplier, MdmUser, Prisma } from '@prisma/client';
 import { PrismaService } from '../platform/prisma/prisma.service';
 import type {
   MasterDataPort,
   MdBranch,
   MdContractPrice,
+  MdCustomer,
   MdItem,
+  MdPrice,
+  MdPriceList,
   MdSupplier,
   MdLocation,
   MdTaxCode,
@@ -64,6 +67,37 @@ function toItem(row: MdmItem): MdItem {
     packSize: row.packSize.toFixed(4),
     isPurchasable: row.isPurchasable,
     isBuyToOrder: row.isBuyToOrder,
+    isSellable: row.isSellable,
+    salesUomCode: row.salesUom ?? row.baseUom,
+    salesTaxCode: row.salesTaxCode,
+    barcode: row.barcode,
+    standardCost: row.standardCost?.toFixed(4) ?? null,
+    status: row.status,
+  };
+}
+
+function toCustomer(row: MdmCustomer): MdCustomer {
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    tin: row.tin,
+    billingAddress: row.billingAddress,
+    deliveryAddress: row.deliveryAddress,
+    contactName: row.contactName,
+    email: row.email,
+    phone: row.phone,
+    category: row.category,
+    area: row.area,
+    branchCode: row.branchCode,
+    defaultAgentCode: row.defaultAgentCode,
+    creditTermDays: row.creditTermDays,
+    creditLimit: row.creditLimit?.toFixed(2) ?? null,
+    overdueLimit: row.overdueLimit?.toFixed(2) ?? null,
+    creditScope: row.creditScope,
+    priceListCode: row.priceListCode,
+    taxMode: row.taxMode === 'INCLUSIVE' ? 'INCLUSIVE' : 'EXCLUSIVE',
+    isCash: row.isCash,
     status: row.status,
   };
 }
@@ -189,5 +223,67 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
       validFrom: isoDate(r.validFrom),
       validTo: r.validTo ? isoDate(r.validTo) : null,
     }));
+  }
+
+  // ── Sales ──
+
+  async findCustomer(tenantId: string, code: string): Promise<MdCustomer | null> {
+    const row = await this.prisma.mdmCustomer.findUnique({ where: { tenantId_code: { tenantId, code } } });
+    return row ? toCustomer(row) : null;
+  }
+
+  async listCustomers(tenantId: string, codes?: string[]): Promise<MdCustomer[]> {
+    const rows = await this.prisma.mdmCustomer.findMany({ where: { tenantId, ...(codes && { code: { in: codes } }) }, orderBy: { name: 'asc' } });
+    return rows.map(toCustomer);
+  }
+
+  async searchCustomers(tenantId: string, options: SearchOptions & { activeOnly?: boolean }): Promise<MdCustomer[]> {
+    const q = options.q?.trim();
+    const rows = await this.prisma.mdmCustomer.findMany({
+      where: {
+        tenantId,
+        ...(options.activeOnly && { status: 'ACTIVE' as const }),
+        ...(q && { OR: [{ code: { contains: q } }, { name: { contains: q } }] }),
+      },
+      orderBy: { name: 'asc' },
+      take: options.limit ?? 20,
+    });
+    return rows.map(toCustomer);
+  }
+
+  async listPriceLists(tenantId: string): Promise<MdPriceList[]> {
+    return this.prisma.mdmPriceList.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: { code: 'asc' },
+      select: { code: true, name: true, currency: true, taxInclusive: true },
+    });
+  }
+
+  async listPrices(tenantId: string, filter: { priceListCode: string; itemCodes?: string[]; onDate: string }): Promise<MdPrice[]> {
+    const on = day(filter.onDate);
+    const list = await this.prisma.mdmPriceList.findFirst({
+      where: { tenantId, code: filter.priceListCode, isActive: true, validFrom: { lte: on }, OR: [{ validTo: null }, { validTo: { gte: on } }] },
+    });
+    if (!list) return [];
+    const rows = await this.prisma.mdmPriceListItem.findMany({
+      where: { tenantId, priceListCode: list.code, ...(filter.itemCodes && { itemCode: { in: filter.itemCodes } }) },
+    });
+    return rows.map((r) => ({ priceListCode: r.priceListCode, itemCode: r.itemCode, uomCode: r.uomCode, unitPrice: r.unitPrice.toFixed(4) }));
+  }
+
+  async searchSellableItems(tenantId: string, options: SearchOptions & { itemGroup?: string; sellableOnly?: boolean }): Promise<MdItem[]> {
+    const q = options.q?.trim();
+    const rows = await this.prisma.mdmItem.findMany({
+      where: {
+        tenantId,
+        status: 'ACTIVE',
+        ...(options.sellableOnly !== false && { isSellable: true }),
+        ...(options.itemGroup && { itemGroup: options.itemGroup }),
+        ...(q && { OR: [{ code: { contains: q } }, { name: { contains: q } }, { barcode: q }] }),
+      },
+      orderBy: { code: 'asc' },
+      take: options.limit ?? 20,
+    });
+    return rows.map(toItem);
   }
 }

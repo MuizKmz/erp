@@ -32,15 +32,22 @@ model SysTenant {
 /// One running number per document type. NumberingService locks the row (SELECT … FOR UPDATE)
 /// inside the caller's transaction, so numbers are never handed out twice.
 model SysNumberSequence {
-  id        String   @id @default(uuid()) @db.Char(36)
-  tenantId  String   @db.Char(36)
-  module    String   @default("purchase") @db.VarChar(20)
-  docType   String   @db.VarChar(20) // PO, PRQ, GRN …
-  name      String   @default("") @db.VarChar(60) // "Purchase order", shown on Document types
-  prefix    String   @db.VarChar(20) // "PO-"
-  digits    Int      @default(4)
-  nextValue Int      @default(1)
-  updatedAt DateTime @updatedAt @db.DateTime(3)
+  id            String   @id @default(uuid()) @db.Char(36)
+  tenantId      String   @db.Char(36)
+  module        String   @default("purchase") @db.VarChar(20)
+  docType       String   @db.VarChar(20) // PO, PRQ, GRN …
+  name          String   @default("") @db.VarChar(60) // "Purchase order", shown on Document types
+  prefix        String   @db.VarChar(20) // "PO-"
+  digits        Int      @default(4)
+  nextValue     Int      @default(1)
+  /// Optional pattern with {YYMM} {YYYY} {BR} {####}, e.g. "EQ-{YYMM}-{####}". Null = prefix + running number.
+  format        String?  @db.VarChar(40)
+  /// NEVER or MONTH. MONTH starts again at 1 when the month (periodKey) changes.
+  resetEvery    String   @default("NEVER") @db.VarChar(10)
+  periodKey     String?  @db.VarChar(10) // "2609" for the month nextValue belongs to
+  perBranch     Boolean  @default(false) // shown on Document types; one sequence per type in this phase
+  printTemplate String?  @db.VarChar(40)
+  updatedAt     DateTime @updatedAt @db.DateTime(3)
 
   @@unique([tenantId, docType])
   @@map("sys_number_sequence")
@@ -393,6 +400,8 @@ model MdmItem {
   preferredSupplierCode String?       @db.VarChar(20)
   reorderLevel          Decimal?      @db.Decimal(18, 4)
   packSize              Decimal       @default(1) @db.Decimal(18, 4)
+  barcode               String?       @db.VarChar(30)
+  standardCost          Decimal?      @db.Decimal(18, 4) // for the estimated margin on sales documents
   status                MdmItemStatus @default(ACTIVE)
   createdAt             DateTime      @default(now()) @db.DateTime(3)
   updatedAt             DateTime      @updatedAt @db.DateTime(3)
@@ -1388,4 +1397,976 @@ model PurSupplierStat {
 
   @@unique([tenantId, supplierCode])
   @@map("pur_supplier_stat")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// mdm_ · master data for Sales (seed only, read through MasterDataPort)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum MdmCustomerStatus {
+  ACTIVE
+  BLOCKED
+  PROSPECT
+}
+
+model MdmCustomer {
+  id               String            @id @default(uuid()) @db.Char(36)
+  tenantId         String            @db.Char(36)
+  code             String            @db.VarChar(20) // C-0012, C-CASH
+  name             String            @db.VarChar(150)
+  tin              String?           @db.VarChar(30)
+  billingAddress   String?           @db.VarChar(300)
+  deliveryAddress  String?           @db.VarChar(300)
+  contactName      String?           @db.VarChar(100)
+  email            String?           @db.VarChar(150)
+  phone            String?           @db.VarChar(30)
+  category         String?           @db.VarChar(50) // Reseller, Hospitality …
+  area             String?           @db.VarChar(50) // Northern, Central
+  branchCode       String            @db.VarChar(10)
+  defaultAgentCode String?           @db.VarChar(20)
+  creditTermDays   Int               @default(30)
+  creditLimit      Decimal?          @db.Decimal(18, 2) // null = no limit
+  overdueLimit     Decimal?          @db.Decimal(18, 2)
+  creditScope      String?           @db.VarChar(10) // GROUP / BRANCH; null = use Credit Control
+  priceListCode    String            @db.VarChar(20)
+  taxMode          String            @default("EXCLUSIVE") @db.VarChar(10)
+  isCash           Boolean           @default(false) // the walk-in customer for cash sales
+  status           MdmCustomerStatus @default(ACTIVE)
+  createdAt        DateTime          @default(now()) @db.DateTime(3)
+  updatedAt        DateTime          @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@map("mdm_customer")
+}
+
+model MdmPriceList {
+  id           String    @id @default(uuid()) @db.Char(36)
+  tenantId     String    @db.Char(36)
+  code         String    @db.VarChar(20) // STD-2026
+  name         String    @db.VarChar(60) // "Standard 2026"
+  currency     String    @default("MYR") @db.Char(3)
+  taxInclusive Boolean   @default(false)
+  validFrom    DateTime  @db.Date
+  validTo      DateTime? @db.Date
+  isActive     Boolean   @default(true)
+
+  @@unique([tenantId, code])
+  @@map("mdm_price_list")
+}
+
+model MdmPriceListItem {
+  id            String  @id @default(uuid()) @db.Char(36)
+  tenantId      String  @db.Char(36)
+  priceListCode String  @db.VarChar(20)
+  itemCode      String  @db.VarChar(30)
+  uomCode       String  @db.VarChar(10)
+  unitPrice     Decimal @db.Decimal(18, 4) // before tax
+
+  @@unique([tenantId, priceListCode, itemCode])
+  @@index([tenantId, itemCode])
+  @@map("mdm_price_list_item")
+}
+
+/// Payments recorded in Finance, read only, until Finance is connected. Sales never changes a balance by hand.
+model FinReceiptStub {
+  id            String   @id @default(uuid()) @db.Char(36)
+  tenantId      String   @db.Char(36)
+  receiptNo     String   @db.VarChar(30)
+  receiptDate   DateTime @db.Date
+  customerCode  String   @db.VarChar(20)
+  appliesToType String   @db.VarChar(20) // INVOICE, PROFORMA
+  appliesToNo   String   @db.VarChar(30) // INV-0001, PF-0003
+  amount        Decimal  @db.Decimal(18, 2)
+  method        String   @db.VarChar(20) // TRANSFER, CHEQUE, CARD
+  note          String?  @db.VarChar(200)
+
+  @@index([tenantId, appliesToNo])
+  @@index([tenantId, customerCode])
+  @@map("fin_receipt_stub")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// sal_ · Sales
+// Lines keep references and snapshots. Money: gross = round(qty × price, 2), discount = round(gross × pct / 100, 2),
+// amount = gross − discount, tax = round(amount × rate, 2) (inclusive: round(amount × rate / (1 + rate), 2)).
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum SalEnquiryStatus {
+  NEW
+  FORWARDED
+  QUOTED
+  LOST
+}
+
+model SalEnquiry {
+  id              String           @id @default(uuid()) @db.Char(36)
+  tenantId        String           @db.Char(36)
+  docNo           String           @db.VarChar(30) // EQ-2609-0011
+  docDate         DateTime         @db.Date
+  status          SalEnquiryStatus @default(NEW)
+  branchCode      String           @db.VarChar(10)
+  customerId      String?          @db.Char(36)
+  customerCode    String?          @db.VarChar(20)
+  customerName    String           @db.VarChar(150)
+  isProspect      Boolean          @default(false)
+  contactName     String?          @db.VarChar(100)
+  phone           String?          @db.VarChar(30)
+  email           String?          @db.VarChar(150)
+  enquiryTypeCode String           @db.VarChar(20)
+  sourceCode      String           @db.VarChar(20)
+  agentCode       String           @db.VarChar(20)
+  agentName       String           @db.VarChar(100)
+  budget          Decimal?         @db.Decimal(18, 2)
+  neededBy        DateTime?        @db.Date
+  customerRef     String?          @db.VarChar(50)
+  description     String?          @db.Text
+  details         Json? // answers to the enquiry type's extra details
+  quotationNo     String?          @db.VarChar(30)
+  lostReason      String?          @db.VarChar(200)
+  forwardedAt     DateTime?        @db.DateTime(3)
+  remarks         String?          @db.Text
+  version         Int              @default(1)
+  isMigrated      Boolean          @default(false)
+  createdAt       DateTime         @default(now()) @db.DateTime(3)
+  createdBy       String           @db.VarChar(20)
+  updatedAt       DateTime         @updatedAt @db.DateTime(3)
+  updatedBy       String           @db.VarChar(20)
+  items           SalEnquiryItem[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("sal_enquiry")
+}
+
+model SalEnquiryItem {
+  id        String     @id @default(uuid()) @db.Char(36)
+  tenantId  String     @db.Char(36)
+  enquiryId String     @db.Char(36)
+  lineNo    Int
+  itemId    String?    @db.Char(36)
+  itemCode  String     @db.VarChar(30)
+  itemName  String     @db.VarChar(150)
+  uomCode   String     @db.VarChar(10)
+  qty       Decimal    @db.Decimal(18, 4)
+  remarks   String?    @db.VarChar(200)
+  enquiry   SalEnquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+
+  @@unique([enquiryId, lineNo])
+  @@index([tenantId, itemCode])
+  @@map("sal_enquiry_item")
+}
+
+enum SalQuotationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  RELEASED
+  ORDERED
+  LOST
+  SUPERSEDED
+}
+
+model SalQuotation {
+  id               String             @id @default(uuid()) @db.Char(36)
+  tenantId         String             @db.Char(36)
+  docNo            String             @db.VarChar(30)
+  revision         Int                @default(0) // revisions keep the number
+  docDate          DateTime           @db.Date
+  validUntil       DateTime?          @db.Date
+  status           SalQuotationStatus @default(DRAFT)
+  branchCode       String             @db.VarChar(10)
+  customerId       String             @db.Char(36)
+  customerCode     String             @db.VarChar(20)
+  customerName     String             @db.VarChar(150)
+  contactName      String?            @db.VarChar(100)
+  agentCode        String             @db.VarChar(20)
+  agentName        String             @db.VarChar(100)
+  currency         String             @default("MYR") @db.Char(3)
+  taxMode          String             @default("EXCLUSIVE") @db.VarChar(10)
+  creditTermDays   Int                @default(30)
+  priceListCode    String             @db.VarChar(20)
+  enquiryId        String?            @db.Char(36)
+  enquiryNo        String?            @db.VarChar(30)
+  customerNote     String?            @db.Text // printed
+  internalNote     String?            @db.Text
+  subtotal         Decimal            @default(0) @db.Decimal(18, 2) // sum of gross
+  discountTotal    Decimal            @default(0) @db.Decimal(18, 2)
+  taxTotal         Decimal            @default(0) @db.Decimal(18, 2)
+  rounding         Decimal            @default(0) @db.Decimal(18, 2)
+  total            Decimal            @default(0) @db.Decimal(18, 2)
+  costTotal        Decimal?           @db.Decimal(18, 2) // for the estimated margin
+  creditSnapshot   Json? // warning shown at save
+  approvalRequired Boolean            @default(false)
+  approvedAt       DateTime?          @db.DateTime(3)
+  releasedAt       DateTime?          @db.DateTime(3)
+  releasedByCode   String?            @db.VarChar(20)
+  emailedAt        DateTime?          @db.DateTime(3)
+  salesOrderNo     String?            @db.VarChar(30)
+  lostReason       String?            @db.VarChar(200)
+  remarks          String?            @db.Text
+  version          Int                @default(1)
+  isMigrated       Boolean            @default(false)
+  createdAt        DateTime           @default(now()) @db.DateTime(3)
+  createdBy        String             @db.VarChar(20)
+  updatedAt        DateTime           @updatedAt @db.DateTime(3)
+  updatedBy        String             @db.VarChar(20)
+  lines            SalQuotationLine[]
+
+  @@unique([tenantId, docNo, revision])
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, customerCode])
+  @@map("sal_quotation")
+}
+
+model SalQuotationLine {
+  id             String       @id @default(uuid()) @db.Char(36)
+  tenantId       String       @db.Char(36)
+  quotationId    String       @db.Char(36)
+  lineNo         Int
+  heading        String?      @db.VarChar(150) // a heading line printed above this line
+  itemId         String       @db.Char(36)
+  itemCode       String       @db.VarChar(30)
+  itemName       String       @db.VarChar(150)
+  uomCode        String       @db.VarChar(10)
+  taxCode        String       @db.VarChar(20)
+  taxRate        Decimal      @db.Decimal(7, 4)
+  qty            Decimal      @db.Decimal(18, 4)
+  listPrice      Decimal?     @db.Decimal(18, 4) // price list at the moment it was added
+  unitPrice      Decimal      @db.Decimal(18, 4)
+  discountPct    Decimal      @default(0) @db.Decimal(7, 4) // 5.0000 = 5%
+  grossAmount    Decimal      @db.Decimal(18, 2)
+  discountAmount Decimal      @default(0) @db.Decimal(18, 2)
+  amount         Decimal      @db.Decimal(18, 2) // after discount, before tax (exclusive mode)
+  taxAmount      Decimal      @db.Decimal(18, 2)
+  unitCost       Decimal?     @db.Decimal(18, 4)
+  quotation      SalQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@unique([quotationId, lineNo])
+  @@index([tenantId, itemCode])
+  @@map("sal_quotation_line")
+}
+
+enum SalOrderStatus {
+  DRAFT
+  PENDING_APPROVAL
+  RELEASED
+  PARTIAL
+  DONE
+  CANCELLED
+}
+
+model SalSalesOrder {
+  id               String              @id @default(uuid()) @db.Char(36)
+  tenantId         String              @db.Char(36)
+  docNo            String              @db.VarChar(30)
+  revision         Int                 @default(0)
+  docDate          DateTime            @db.Date
+  status           SalOrderStatus      @default(DRAFT)
+  balanceCancelled Boolean             @default(false)
+  branchCode       String              @db.VarChar(10)
+  orderTypeCode    String              @default("STD") @db.VarChar(10)
+  customerId       String              @db.Char(36)
+  customerCode     String              @db.VarChar(20)
+  customerName     String              @db.VarChar(150)
+  contactName      String?             @db.VarChar(100)
+  agentCode        String              @db.VarChar(20)
+  agentName        String              @db.VarChar(100)
+  warehouseCode    String              @db.VarChar(20) // deliver from
+  deliveryWantedBy DateTime?           @db.Date
+  promisedDate     DateTime?           @db.Date
+  currency         String              @default("MYR") @db.Char(3)
+  taxMode          String              @default("EXCLUSIVE") @db.VarChar(10)
+  creditTermDays   Int                 @default(30)
+  priceListCode    String              @db.VarChar(20)
+  customerPoRef    String?             @db.VarChar(50)
+  project          String?             @db.VarChar(100)
+  deliveryAddress  String?             @db.VarChar(300)
+  quotationId      String?             @db.Char(36)
+  quotationNo      String?             @db.VarChar(30)
+  enquiryNo        String?             @db.VarChar(30)
+  subtotal         Decimal             @default(0) @db.Decimal(18, 2)
+  discountTotal    Decimal             @default(0) @db.Decimal(18, 2)
+  taxTotal         Decimal             @default(0) @db.Decimal(18, 2)
+  rounding         Decimal             @default(0) @db.Decimal(18, 2)
+  total            Decimal             @default(0) @db.Decimal(18, 2)
+  creditResult     String?             @db.VarChar(20) // PASSED, OVER_LIMIT, WARNED
+  creditSnapshot   Json? // "Credit at save": limits, owed, this order, headroom, scope, checkedAt
+  approvalRequired Boolean             @default(false)
+  approvedAt       DateTime?           @db.DateTime(3)
+  releasedAt       DateTime?           @db.DateTime(3)
+  releasedByCode   String?             @db.VarChar(20)
+  releasedByName   String?             @db.VarChar(100)
+  remarks          String?             @db.Text
+  version          Int                 @default(1)
+  isMigrated       Boolean             @default(false)
+  createdAt        DateTime            @default(now()) @db.DateTime(3)
+  createdBy        String              @db.VarChar(20)
+  updatedAt        DateTime            @updatedAt @db.DateTime(3)
+  updatedBy        String              @db.VarChar(20)
+  lines            SalSalesOrderLine[]
+  deliveries       SalDelivery[]
+  proformas        SalProforma[]
+  cancelOrders     SalCancelOrder[]
+
+  @@unique([tenantId, docNo, revision])
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, customerCode])
+  @@map("sal_sales_order")
+}
+
+model SalSalesOrderLine {
+  id              String               @id @default(uuid()) @db.Char(36)
+  tenantId        String               @db.Char(36)
+  salesOrderId    String               @db.Char(36)
+  lineNo          Int
+  heading         String?              @db.VarChar(150)
+  itemId          String               @db.Char(36)
+  itemCode        String               @db.VarChar(30)
+  itemName        String               @db.VarChar(150)
+  uomCode         String               @db.VarChar(10)
+  taxCode         String               @db.VarChar(20)
+  taxRate         Decimal              @db.Decimal(7, 4)
+  listPrice       Decimal?             @db.Decimal(18, 4)
+  unitPrice       Decimal              @db.Decimal(18, 4)
+  discountPct     Decimal              @default(0) @db.Decimal(7, 4)
+  orderedQty      Decimal              @db.Decimal(18, 4)
+  deliveredQty    Decimal              @default(0) @db.Decimal(18, 4)
+  invoicedQty     Decimal              @default(0) @db.Decimal(18, 4)
+  returnedQty     Decimal              @default(0) @db.Decimal(18, 4)
+  cancelledQty    Decimal              @default(0) @db.Decimal(18, 4)
+  grossAmount     Decimal              @db.Decimal(18, 2)
+  discountAmount  Decimal              @default(0) @db.Decimal(18, 2)
+  amount          Decimal              @db.Decimal(18, 2)
+  taxAmount       Decimal              @db.Decimal(18, 2)
+  isBuyToOrder    Boolean              @default(false)
+  purchaseOrderNo String?              @db.VarChar(30) // the PO Purchase drafted for a buy-to-order line (from its events)
+  quotationLineId String?              @db.Char(36)
+  salesOrder      SalSalesOrder        @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+  deliveryLines   SalDeliveryLine[]
+  invoiceLines    SalInvoiceLine[]
+  cancelLines     SalCancelOrderLine[]
+
+  @@unique([salesOrderId, lineNo])
+  @@index([tenantId, itemCode])
+  @@map("sal_sales_order_line")
+}
+
+enum SalDeliveryStatus {
+  DRAFT
+  CONFIRMED
+}
+
+model SalDelivery {
+  id              String            @id @default(uuid()) @db.Char(36)
+  tenantId        String            @db.Char(36)
+  docNo           String            @db.VarChar(30)
+  docDate         DateTime          @db.Date
+  status          SalDeliveryStatus @default(DRAFT)
+  branchCode      String            @db.VarChar(10)
+  salesOrderId    String?           @db.Char(36)
+  salesOrderNo    String            @db.VarChar(30)
+  customerCode    String            @db.VarChar(20)
+  customerName    String            @db.VarChar(150)
+  warehouseCode   String            @db.VarChar(20)
+  vehicle         String?           @db.VarChar(30)
+  driver          String?           @db.VarChar(60)
+  consignmentNote String?           @db.VarChar(50)
+  deliverTo       String?           @db.VarChar(300)
+  receiver        String?           @db.VarChar(100)
+  warehouseNote   String?           @db.Text
+  confirmedAt     DateTime?         @db.DateTime(3)
+  confirmedByCode String?           @db.VarChar(20)
+  confirmedByName String?           @db.VarChar(100)
+  remarks         String?           @db.Text
+  version         Int               @default(1)
+  isMigrated      Boolean           @default(false)
+  createdAt       DateTime          @default(now()) @db.DateTime(3)
+  createdBy       String            @db.VarChar(20)
+  updatedAt       DateTime          @updatedAt @db.DateTime(3)
+  updatedBy       String            @db.VarChar(20)
+  salesOrder      SalSalesOrder?    @relation(fields: [salesOrderId], references: [id])
+  lines           SalDeliveryLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, salesOrderId])
+  @@map("sal_delivery")
+}
+
+model SalDeliveryLine {
+  id                 String             @id @default(uuid()) @db.Char(36)
+  tenantId           String             @db.Char(36)
+  deliveryId         String             @db.Char(36)
+  soLineId           String?            @db.Char(36)
+  lineNo             Int
+  itemId             String             @db.Char(36)
+  itemCode           String             @db.VarChar(30)
+  itemName           String             @db.VarChar(150)
+  uomCode            String             @db.VarChar(10)
+  orderedQty         Decimal            @db.Decimal(18, 4) // SO line snapshot
+  deliveredBeforeQty Decimal            @default(0) @db.Decimal(18, 4)
+  qty                Decimal            @db.Decimal(18, 4) // delivered now
+  invoicedQty        Decimal            @default(0) @db.Decimal(18, 4)
+  delivery           SalDelivery        @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  soLine             SalSalesOrderLine? @relation(fields: [soLineId], references: [id])
+  invoiceLines       SalInvoiceLine[]
+
+  @@unique([deliveryId, lineNo])
+  @@index([tenantId, soLineId])
+  @@map("sal_delivery_line")
+}
+
+enum SalInvoiceStatus {
+  DRAFT
+  PENDING_APPROVAL
+  RELEASED
+}
+
+model SalInvoice {
+  id               String           @id @default(uuid()) @db.Char(36)
+  tenantId         String           @db.Char(36)
+  docNo            String           @db.VarChar(30)
+  docDate          DateTime         @db.Date
+  status           SalInvoiceStatus @default(DRAFT)
+  kind             String           @default("FROM_ORDER") @db.VarChar(12) // FROM_ORDER, DIRECT
+  branchCode       String           @db.VarChar(10)
+  customerId       String           @db.Char(36)
+  customerCode     String           @db.VarChar(20)
+  customerName     String           @db.VarChar(150)
+  billTo           String?          @db.VarChar(300)
+  contactName      String?          @db.VarChar(100)
+  agentCode        String           @db.VarChar(20)
+  agentName        String           @db.VarChar(100)
+  creditTermDays   Int              @default(30)
+  dueDate          DateTime?        @db.Date
+  currency         String           @default("MYR") @db.Char(3)
+  taxMode          String           @default("EXCLUSIVE") @db.VarChar(10)
+  salesOrderId     String?          @db.Char(36)
+  salesOrderNo     String?          @db.VarChar(30)
+  deliveryNos      String?          @db.VarChar(200) // "DO-0001"
+  customerPoRef    String?          @db.VarChar(50)
+  note             String?          @db.Text // printed
+  subtotal         Decimal          @default(0) @db.Decimal(18, 2)
+  discountTotal    Decimal          @default(0) @db.Decimal(18, 2)
+  taxTotal         Decimal          @default(0) @db.Decimal(18, 2)
+  rounding         Decimal          @default(0) @db.Decimal(18, 2)
+  total            Decimal          @default(0) @db.Decimal(18, 2)
+  creditedAmount   Decimal          @default(0) @db.Decimal(18, 2) // released sales returns
+  debitedAmount    Decimal          @default(0) @db.Decimal(18, 2) // released debit notes
+  depositApplied   Decimal          @default(0) @db.Decimal(18, 2) // paid proforma used on this invoice
+  proformaNo       String?          @db.VarChar(30)
+  creditSnapshot   Json?
+  approvalRequired Boolean          @default(false)
+  approvedAt       DateTime?        @db.DateTime(3)
+  releasedAt       DateTime?        @db.DateTime(3)
+  releasedByCode   String?          @db.VarChar(20)
+  emailedAt        DateTime?        @db.DateTime(3)
+  remarks          String?          @db.Text
+  version          Int              @default(1)
+  isMigrated       Boolean          @default(false)
+  createdAt        DateTime         @default(now()) @db.DateTime(3)
+  createdBy        String           @db.VarChar(20)
+  updatedAt        DateTime         @updatedAt @db.DateTime(3)
+  updatedBy        String           @db.VarChar(20)
+  lines            SalInvoiceLine[]
+  debitNotes       SalDebitNote[]
+  returns          SalReturn[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, customerCode])
+  @@map("sal_invoice")
+}
+
+model SalInvoiceLine {
+  id             String             @id @default(uuid()) @db.Char(36)
+  tenantId       String             @db.Char(36)
+  invoiceId      String             @db.Char(36)
+  soLineId       String?            @db.Char(36)
+  deliveryLineId String?            @db.Char(36)
+  lineNo         Int
+  itemId         String             @db.Char(36)
+  itemCode       String             @db.VarChar(30)
+  itemName       String             @db.VarChar(150)
+  uomCode        String             @db.VarChar(10)
+  taxCode        String             @db.VarChar(20)
+  taxRate        Decimal            @db.Decimal(7, 4)
+  qty            Decimal            @db.Decimal(18, 4)
+  listPrice      Decimal?           @db.Decimal(18, 4)
+  unitPrice      Decimal            @db.Decimal(18, 4)
+  discountPct    Decimal            @default(0) @db.Decimal(7, 4)
+  grossAmount    Decimal            @db.Decimal(18, 2)
+  discountAmount Decimal            @default(0) @db.Decimal(18, 2)
+  amount         Decimal            @db.Decimal(18, 2)
+  taxAmount      Decimal            @db.Decimal(18, 2)
+  returnedQty    Decimal            @default(0) @db.Decimal(18, 4)
+  invoice        SalInvoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  soLine         SalSalesOrderLine? @relation(fields: [soLineId], references: [id])
+  deliveryLine   SalDeliveryLine?   @relation(fields: [deliveryLineId], references: [id])
+  returnLines    SalReturnLine[]
+
+  @@unique([invoiceId, lineNo])
+  @@index([tenantId, itemCode])
+  @@index([tenantId, soLineId])
+  @@map("sal_invoice_line")
+}
+
+enum SalProformaStatus {
+  DRAFT
+  SENT
+  PAID
+  USED
+  CANCELLED
+}
+
+model SalProforma {
+  id             String            @id @default(uuid()) @db.Char(36)
+  tenantId       String            @db.Char(36)
+  docNo          String            @db.VarChar(30)
+  docDate        DateTime          @db.Date
+  status         SalProformaStatus @default(DRAFT)
+  branchCode     String            @db.VarChar(10)
+  customerId     String            @db.Char(36)
+  customerCode   String            @db.VarChar(20)
+  customerName   String            @db.VarChar(150)
+  attention      String?           @db.VarChar(100)
+  agentCode      String            @db.VarChar(20)
+  agentName      String            @db.VarChar(100)
+  salesOrderId   String?           @db.Char(36)
+  salesOrderNo   String            @db.VarChar(30)
+  payBy          DateTime?         @db.Date
+  currency       String            @default("MYR") @db.Char(3)
+  requestKind    String            @db.VarChar(20) // DEPOSIT_PCT, PAY_BEFORE_RELEASE
+  depositPct     Decimal?          @db.Decimal(7, 4) // 30.0000 = 30%
+  orderSubtotal  Decimal           @db.Decimal(18, 2)
+  orderTax       Decimal           @db.Decimal(18, 2)
+  orderTotal     Decimal           @db.Decimal(18, 2)
+  amount         Decimal           @db.Decimal(18, 2) // requested
+  usedOnInvoice  String?           @db.VarChar(30)
+  usedAt         DateTime?         @db.DateTime(3)
+  note           String?           @db.Text
+  releasedAt     DateTime?         @db.DateTime(3)
+  releasedByCode String?           @db.VarChar(20)
+  remarks        String?           @db.Text
+  version        Int               @default(1)
+  isMigrated     Boolean           @default(false)
+  createdAt      DateTime          @default(now()) @db.DateTime(3)
+  createdBy      String            @db.VarChar(20)
+  updatedAt      DateTime          @updatedAt @db.DateTime(3)
+  updatedBy      String            @db.VarChar(20)
+  salesOrder     SalSalesOrder?    @relation(fields: [salesOrderId], references: [id])
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@index([tenantId, salesOrderId])
+  @@map("sal_proforma")
+}
+
+enum SalCashSaleStatus {
+  DRAFT
+  RELEASED
+}
+
+model SalCashSale {
+  id             String            @id @default(uuid()) @db.Char(36)
+  tenantId       String            @db.Char(36)
+  docNo          String            @db.VarChar(30)
+  docDate        DateTime          @db.Date
+  status         SalCashSaleStatus @default(DRAFT)
+  branchCode     String            @db.VarChar(10)
+  counterName    String?           @db.VarChar(60) // "HQ Shah Alam showroom counter"
+  customerId     String            @db.Char(36)
+  customerCode   String            @db.VarChar(20)
+  customerName   String            @db.VarChar(150)
+  servedByCode   String            @db.VarChar(20)
+  servedByName   String            @db.VarChar(100)
+  buyerName      String?           @db.VarChar(100)
+  buyerPhone     String?           @db.VarChar(30)
+  buyerTin       String?           @db.VarChar(30)
+  ownEInvoice    Boolean           @default(false)
+  warehouseCode  String            @db.VarChar(20)
+  taxMode        String            @default("INCLUSIVE") @db.VarChar(10)
+  currency       String            @default("MYR") @db.Char(3)
+  paymentMethod  String            @db.VarChar(20) // CASH, CARD, DUITNOW, TRANSFER
+  paymentRef     String?           @db.VarChar(60)
+  amountReceived Decimal           @default(0) @db.Decimal(18, 2)
+  changeAmount   Decimal           @default(0) @db.Decimal(18, 2)
+  summary        String?           @db.VarChar(200)
+  subtotal       Decimal           @default(0) @db.Decimal(18, 2) // before tax
+  discountTotal  Decimal           @default(0) @db.Decimal(18, 2)
+  taxTotal       Decimal           @default(0) @db.Decimal(18, 2)
+  rounding       Decimal           @default(0) @db.Decimal(18, 2)
+  total          Decimal           @default(0) @db.Decimal(18, 2) // to pay
+  releasedAt     DateTime?         @db.DateTime(3)
+  releasedByCode String?           @db.VarChar(20)
+  remarks        String?           @db.Text
+  version        Int               @default(1)
+  isMigrated     Boolean           @default(false)
+  createdAt      DateTime          @default(now()) @db.DateTime(3)
+  createdBy      String            @db.VarChar(20)
+  updatedAt      DateTime          @updatedAt @db.DateTime(3)
+  updatedBy      String            @db.VarChar(20)
+  lines          SalCashSaleLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("sal_cash_sale")
+}
+
+model SalCashSaleLine {
+  id             String      @id @default(uuid()) @db.Char(36)
+  tenantId       String      @db.Char(36)
+  cashSaleId     String      @db.Char(36)
+  lineNo         Int
+  itemId         String      @db.Char(36)
+  itemCode       String      @db.VarChar(30)
+  itemName       String      @db.VarChar(150)
+  uomCode        String      @db.VarChar(10)
+  taxCode        String      @db.VarChar(20)
+  taxRate        Decimal     @db.Decimal(7, 4)
+  qty            Decimal     @db.Decimal(18, 4)
+  unitPrice      Decimal     @db.Decimal(18, 4) // including tax
+  discountPct    Decimal     @default(0) @db.Decimal(7, 4)
+  grossAmount    Decimal     @db.Decimal(18, 2)
+  discountAmount Decimal     @default(0) @db.Decimal(18, 2)
+  amount         Decimal     @db.Decimal(18, 2) // including tax
+  taxAmount      Decimal     @db.Decimal(18, 2) // tax included in amount
+  cashSale       SalCashSale @relation(fields: [cashSaleId], references: [id], onDelete: Cascade)
+
+  @@unique([cashSaleId, lineNo])
+  @@index([tenantId, itemCode])
+  @@map("sal_cash_sale_line")
+}
+
+enum SalDebitNoteStatus {
+  DRAFT
+  RELEASED
+}
+
+model SalDebitNote {
+  id             String             @id @default(uuid()) @db.Char(36)
+  tenantId       String             @db.Char(36)
+  docNo          String             @db.VarChar(30)
+  docDate        DateTime           @db.Date
+  status         SalDebitNoteStatus @default(DRAFT)
+  branchCode     String             @db.VarChar(10)
+  customerId     String             @db.Char(36)
+  customerCode   String             @db.VarChar(20)
+  customerName   String             @db.VarChar(150)
+  invoiceId      String?            @db.Char(36)
+  invoiceNo      String             @db.VarChar(30)
+  dueDate        DateTime?          @db.Date
+  reason         String             @db.VarChar(100)
+  summary        String?            @db.VarChar(200) // "Extra delivery trip, Klang Valley"
+  note           String?            @db.Text // printed
+  subtotal       Decimal            @default(0) @db.Decimal(18, 2)
+  taxTotal       Decimal            @default(0) @db.Decimal(18, 2)
+  total          Decimal            @default(0) @db.Decimal(18, 2)
+  releasedAt     DateTime?          @db.DateTime(3)
+  releasedByCode String?            @db.VarChar(20)
+  remarks        String?            @db.Text
+  version        Int                @default(1)
+  isMigrated     Boolean            @default(false)
+  createdAt      DateTime           @default(now()) @db.DateTime(3)
+  createdBy      String             @db.VarChar(20)
+  updatedAt      DateTime           @updatedAt @db.DateTime(3)
+  updatedBy      String             @db.VarChar(20)
+  invoice        SalInvoice?        @relation(fields: [invoiceId], references: [id])
+  lines          SalDebitNoteLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("sal_debit_note")
+}
+
+model SalDebitNoteLine {
+  id          String       @id @default(uuid()) @db.Char(36)
+  tenantId    String       @db.Char(36)
+  debitNoteId String       @db.Char(36)
+  lineNo      Int
+  itemId      String       @db.Char(36)
+  itemCode    String       @db.VarChar(30)
+  itemName    String       @db.VarChar(150)
+  uomCode     String       @db.VarChar(10)
+  taxCode     String       @db.VarChar(20)
+  taxRate     Decimal      @db.Decimal(7, 4)
+  qty         Decimal      @db.Decimal(18, 4)
+  unitPrice   Decimal      @db.Decimal(18, 4)
+  amount      Decimal      @db.Decimal(18, 2)
+  taxAmount   Decimal      @db.Decimal(18, 2)
+  debitNote   SalDebitNote @relation(fields: [debitNoteId], references: [id], onDelete: Cascade)
+
+  @@unique([debitNoteId, lineNo])
+  @@map("sal_debit_note_line")
+}
+
+enum SalReturnStatus {
+  DRAFT
+  RELEASED
+}
+
+model SalReturn {
+  id             String          @id @default(uuid()) @db.Char(36)
+  tenantId       String          @db.Char(36)
+  docNo          String          @db.VarChar(30)
+  docDate        DateTime        @db.Date
+  status         SalReturnStatus @default(DRAFT)
+  branchCode     String          @db.VarChar(10)
+  customerId     String          @db.Char(36)
+  customerCode   String          @db.VarChar(20)
+  customerName   String          @db.VarChar(150)
+  invoiceId      String?         @db.Char(36)
+  invoiceNo      String          @db.VarChar(30)
+  salesOrderNo   String?         @db.VarChar(30)
+  reason         String          @db.VarChar(100)
+  goodsTo        String          @db.VarChar(10) // DAMAGED, STOCK
+  warehouseCode  String          @db.VarChar(20)
+  locationCode   String?         @db.VarChar(30)
+  creditMethod   String          @default("CREDIT_NOTE") @db.VarChar(20)
+  customerRef    String?         @db.VarChar(50)
+  summary        String?         @db.VarChar(200) // "5 dining chairs"
+  note           String?         @db.Text
+  subtotal       Decimal         @default(0) @db.Decimal(18, 2)
+  taxTotal       Decimal         @default(0) @db.Decimal(18, 2)
+  total          Decimal         @default(0) @db.Decimal(18, 2) // credit
+  releasedAt     DateTime?       @db.DateTime(3)
+  releasedByCode String?         @db.VarChar(20)
+  remarks        String?         @db.Text
+  version        Int             @default(1)
+  isMigrated     Boolean         @default(false)
+  createdAt      DateTime        @default(now()) @db.DateTime(3)
+  createdBy      String          @db.VarChar(20)
+  updatedAt      DateTime        @updatedAt @db.DateTime(3)
+  updatedBy      String          @db.VarChar(20)
+  invoice        SalInvoice?     @relation(fields: [invoiceId], references: [id])
+  lines          SalReturnLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("sal_return")
+}
+
+model SalReturnLine {
+  id                String          @id @default(uuid()) @db.Char(36)
+  tenantId          String          @db.Char(36)
+  returnId          String          @db.Char(36)
+  invoiceLineId     String?         @db.Char(36)
+  lineNo            Int
+  itemId            String          @db.Char(36)
+  itemCode          String          @db.VarChar(30)
+  itemName          String          @db.VarChar(150)
+  uomCode           String          @db.VarChar(10)
+  taxCode           String          @db.VarChar(20)
+  taxRate           Decimal         @db.Decimal(7, 4)
+  invoicedQty       Decimal         @db.Decimal(18, 4) // invoice line snapshot
+  returnedBeforeQty Decimal         @default(0) @db.Decimal(18, 4)
+  qty               Decimal         @db.Decimal(18, 4)
+  unitPrice         Decimal         @db.Decimal(18, 4)
+  amount            Decimal         @db.Decimal(18, 2)
+  taxAmount         Decimal         @db.Decimal(18, 2)
+  salesReturn       SalReturn       @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  invoiceLine       SalInvoiceLine? @relation(fields: [invoiceLineId], references: [id])
+
+  @@unique([returnId, lineNo])
+  @@index([tenantId, invoiceLineId])
+  @@map("sal_return_line")
+}
+
+enum SalCancelOrderStatus {
+  DRAFT
+  RELEASED
+}
+
+model SalCancelOrder {
+  id             String               @id @default(uuid()) @db.Char(36)
+  tenantId       String               @db.Char(36)
+  docNo          String               @db.VarChar(30)
+  docDate        DateTime             @db.Date
+  status         SalCancelOrderStatus @default(DRAFT)
+  branchCode     String               @db.VarChar(10)
+  salesOrderId   String?              @db.Char(36)
+  salesOrderNo   String               @db.VarChar(30)
+  customerCode   String               @db.VarChar(20)
+  customerName   String               @db.VarChar(150)
+  reason         String               @db.VarChar(100)
+  askedBy        String?              @db.VarChar(100)
+  customerRef    String?              @db.VarChar(50)
+  summary        String?              @db.VarChar(200) // "15 of 25 office chairs"
+  note           String?              @db.Text
+  subtotal       Decimal              @default(0) @db.Decimal(18, 2)
+  taxTotal       Decimal              @default(0) @db.Decimal(18, 2)
+  total          Decimal              @default(0) @db.Decimal(18, 2) // value cancelled
+  releasedAt     DateTime?            @db.DateTime(3)
+  releasedByCode String?              @db.VarChar(20)
+  remarks        String?              @db.Text
+  version        Int                  @default(1)
+  isMigrated     Boolean              @default(false)
+  createdAt      DateTime             @default(now()) @db.DateTime(3)
+  createdBy      String               @db.VarChar(20)
+  updatedAt      DateTime             @updatedAt @db.DateTime(3)
+  updatedBy      String               @db.VarChar(20)
+  salesOrder     SalSalesOrder?       @relation(fields: [salesOrderId], references: [id])
+  lines          SalCancelOrderLine[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId, status, docDate])
+  @@map("sal_cancel_order")
+}
+
+model SalCancelOrderLine {
+  id            String             @id @default(uuid()) @db.Char(36)
+  tenantId      String             @db.Char(36)
+  cancelOrderId String             @db.Char(36)
+  soLineId      String?            @db.Char(36)
+  lineNo        Int
+  itemId        String             @db.Char(36)
+  itemCode      String             @db.VarChar(30)
+  itemName      String             @db.VarChar(150)
+  uomCode       String             @db.VarChar(10)
+  taxCode       String             @db.VarChar(20)
+  taxRate       Decimal            @db.Decimal(7, 4)
+  unitPrice     Decimal            @db.Decimal(18, 4)
+  orderedQty    Decimal            @db.Decimal(18, 4)
+  deliveredQty  Decimal            @db.Decimal(18, 4)
+  invoicedQty   Decimal            @db.Decimal(18, 4)
+  balanceQty    Decimal            @db.Decimal(18, 4)
+  cancelQty     Decimal            @db.Decimal(18, 4)
+  amount        Decimal            @db.Decimal(18, 2)
+  taxAmount     Decimal            @db.Decimal(18, 2)
+  cancelOrder   SalCancelOrder     @relation(fields: [cancelOrderId], references: [id], onDelete: Cascade)
+  soLine        SalSalesOrderLine? @relation(fields: [soLineId], references: [id])
+
+  @@unique([cancelOrderId, lineNo])
+  @@index([tenantId, soLineId])
+  @@map("sal_cancel_order_line")
+}
+
+// ── Sales settings (Operation Policies) ─────────────────────────────────────
+
+/// One row per tenant (S29 "Other sales rules" and the credit scope).
+model SalSetting {
+  id                   String   @id @default(uuid()) @db.Char(36)
+  tenantId             String   @unique @db.Char(36)
+  creditScope          String   @default("GROUP") @db.VarChar(10) // GROUP, BRANCH
+  stockCheck           String   @default("WARN") @db.VarChar(10) // WARN, OFF
+  invoiceFromDelivered Boolean  @default(true)
+  strictPriceList      Boolean  @default(true)
+  roundTo5Sen          Boolean  @default(true)
+  showMargin           Boolean  @default(true)
+  skipCreditForSystem  Boolean  @default(true)
+  discountApprovalPct  Decimal  @default(15) @db.Decimal(7, 4)
+  quoteExpiryWarnDays  Int      @default(3)
+  updatedAt            DateTime @updatedAt @db.DateTime(3)
+  updatedBy            String   @db.VarChar(20)
+
+  @@map("sal_setting")
+}
+
+/// What happens on a credit breach, per document (S29 table).
+model SalCreditRule {
+  id                String   @id @default(uuid()) @db.Char(36)
+  tenantId          String   @db.Char(36)
+  docType           String   @db.VarChar(20) // QUOTATION, SALES_ORDER, DELIVERY, INVOICE, CASH_SALE
+  overCreditAction  String   @db.VarChar(20) // ALLOW, WARN, APPROVAL, BLOCK
+  overOverdueAction String   @db.VarChar(20)
+  approverRole      String?  @db.VarChar(40) // SALES_MANAGER, FINANCE_MANAGER
+  sortOrder         Int      @default(0)
+  updatedAt         DateTime @updatedAt @db.DateTime(3)
+  updatedBy         String   @db.VarChar(20)
+
+  @@unique([tenantId, docType])
+  @@map("sal_credit_rule")
+}
+
+model SalSettingChange {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  area      String   @db.VarChar(30) // CREDIT_CONTROL, DOCUMENT_TYPES, ENQUIRY_TYPES, EXCLUDED_ITEMS, EMAIL_TEMPLATES
+  message   String   @db.VarChar(300)
+  userCode  String   @db.VarChar(20)
+  userName  String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  @@index([tenantId, area, createdAt])
+  @@map("sal_setting_change")
+}
+
+model SalOrderType {
+  id        String  @id @default(uuid()) @db.Char(36)
+  tenantId  String  @db.Char(36)
+  code      String  @db.VarChar(10) // STD, BTO, PRJ
+  name      String  @db.VarChar(60)
+  meaning   String  @db.VarChar(200)
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@unique([tenantId, code])
+  @@map("sal_order_type")
+}
+
+model SalEnquiryType {
+  id               String  @id @default(uuid()) @db.Char(36)
+  tenantId         String  @db.Char(36)
+  code             String  @db.VarChar(20)
+  name             String  @db.VarChar(60)
+  details          Json // [{ label, kind: TEXT|CHOICE|FILE|NUMBER|DATE, required, choices? }]
+  defaultAgentRule String  @default("CUSTOMER") @db.VarChar(20) // CUSTOMER (the customer's agent), ROUND_ROBIN
+  isActive         Boolean @default(true)
+  sortOrder        Int     @default(0)
+
+  @@unique([tenantId, code])
+  @@map("sal_enquiry_type")
+}
+
+model SalEnquirySource {
+  id        String  @id @default(uuid()) @db.Char(36)
+  tenantId  String  @db.Char(36)
+  code      String  @db.VarChar(20)
+  name      String  @db.VarChar(60)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@unique([tenantId, code])
+  @@map("sal_enquiry_source")
+}
+
+/// Items that cannot be sold in a branch (S32), without changing the item in Master Data.
+model SalExcludedItem {
+  id          String    @id @default(uuid()) @db.Char(36)
+  tenantId    String    @db.Char(36)
+  itemCode    String    @db.VarChar(30)
+  itemName    String    @db.VarChar(150)
+  branchCode  String    @db.VarChar(10)
+  reason      String    @db.VarChar(100)
+  fromDate    DateTime  @db.Date
+  untilDate   DateTime? @db.Date
+  addedByCode String    @db.VarChar(20)
+  addedByName String    @db.VarChar(100)
+  removedAt   DateTime? @db.DateTime(3)
+  removedBy   String?   @db.VarChar(20)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+
+  @@index([tenantId, branchCode, itemCode])
+  @@map("sal_excluded_item")
+}
+
+/// Email templates (S33). Variables use single braces: {document.number}.
+model SalEmailTemplate {
+  id          String   @id @default(uuid()) @db.Char(36)
+  tenantId    String   @db.Char(36)
+  key         String   @db.VarChar(50) // QUOTATION, ORDER_CONFIRMATION, INVOICE …
+  name        String   @db.VarChar(100)
+  description String   @db.VarChar(200)
+  subject     String   @db.VarChar(300)
+  body        String   @db.Text
+  attachPdf   Boolean  @default(true)
+  copyAgent   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+  updatedBy   String   @db.VarChar(20)
+
+  @@unique([tenantId, key])
+  @@map("sal_email_template")
 }

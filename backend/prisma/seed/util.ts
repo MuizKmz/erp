@@ -1,4 +1,4 @@
-import type { MdmItem, MdmSupplier, MdmTaxCode, MdmUser, MdmWarehouse, PrismaClient } from '@prisma/client';
+import type { MdmCustomer, MdmItem, MdmSupplier, MdmTaxCode, MdmUser, MdmWarehouse, PrismaClient } from '@prisma/client';
 import { dec, type DecimalInput } from '../../src/platform/http/decimal';
 import { documentTotals, lineTotals, type LineTotals } from '../../src/purchase/shared/totals.rules';
 
@@ -14,6 +14,7 @@ export interface SeedCtx {
   suppliers: Map<string, MdmSupplier>;
   taxes: Map<string, MdmTaxCode>;
   warehouses: Map<string, MdmWarehouse>;
+  customers: Map<string, MdmCustomer>;
   /** docNo → id and entity type of every seeded document, for links, activity and approvals. */
   docs: Map<string, { id: string; type: string }>;
 }
@@ -39,6 +40,7 @@ export const item = (ctx: SeedCtx, code: string) => must(ctx.items, code, 'item'
 export const supplier = (ctx: SeedCtx, code: string) => must(ctx.suppliers, code, 'supplier');
 export const warehouse = (ctx: SeedCtx, code: string) => must(ctx.warehouses, code, 'warehouse');
 export const doc = (ctx: SeedCtx, docNo: string) => must(ctx.docs, docNo, 'document');
+export const customer = (ctx: SeedCtx, code: string) => must(ctx.customers, code, 'customer');
 
 /** Display name of a user code, including the system user. */
 export function nameOf(ctx: SeedCtx, code: string): string {

@@ -20,12 +20,18 @@ const USERS: { code: string; name: string; email: string; roles: string[]; branc
   { code: 'LMY', name: 'Lim Mei Ying', email: 'meiying@warehouse.com', roles: ['PURCHASE_BUYER', 'AP_CLERK'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing', jobTitle: 'Buyer' },
   { code: 'AZ', name: 'Ahmad Zaki', email: 'zaki@warehouse.com', roles: ['PURCHASE_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing', jobTitle: 'Purchasing Manager' },
   { code: 'TWL', name: 'Tan Wei Ling', email: 'weiling@warehouse.com', roles: ['BRANCH_MANAGER'], branchCodes: ['PNG'], department: 'Penang', jobTitle: 'Branch Manager' },
-  { code: 'RI', name: 'Rosnah Ismail', email: 'rosnah@warehouse.com', roles: ['FINANCE_DIRECTOR'], branchCodes: ['HQ', 'PNG'], department: 'Finance', jobTitle: 'Finance Director' },
-  { code: 'RAH', name: 'Rahim', email: 'rahim@warehouse.com', roles: ['STORE', 'REQUESTER'], branchCodes: ['HQ', 'PNG'], department: 'Warehouse', jobTitle: 'Store' },
+  { code: 'RI', name: 'Rosnah Ismail', email: 'rosnah@warehouse.com', roles: ['FINANCE_DIRECTOR', 'FINANCE_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Finance', jobTitle: 'Finance Director' },
+  { code: 'RAH', name: 'Rahim', email: 'rahim@warehouse.com', roles: ['STORE', 'REQUESTER', 'SALES_STORE'], branchCodes: ['HQ', 'PNG'], department: 'Warehouse', jobTitle: 'Store' },
   { code: 'NUR', name: 'Nurul', email: 'nurul@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Production' },
   { code: 'HAF', name: 'Hafiz', email: 'hafiz@warehouse.com', roles: ['REQUESTER', 'STORE'], branchCodes: ['HQ'], department: 'Production' },
   { code: 'SIT', name: 'Siti', email: 'siti@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Office', jobTitle: 'Admin' },
   { code: 'ADM', name: 'Admin', email: 'admin@warehouse.com', roles: ['ADMIN'], branchCodes: ['HQ', 'PNG'], jobTitle: 'Admin' },
+  // Sales (SALES_SEED_DATA.md). Aina sells, bills and delivers at HQ, as in the mockups.
+  { code: 'AR', name: 'Aina Rahman', email: 'aina@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING', 'SALES_STORE'], branchCodes: ['HQ'], department: 'Sales', jobTitle: 'Sales agent' },
+  { code: 'LWJ', name: 'Lim Wei Jie', email: 'weijie@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING'], branchCodes: ['PNG'], department: 'Sales', jobTitle: 'Sales agent' },
+  { code: 'FO', name: 'Faizal Omar', email: 'faizal@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING'], branchCodes: ['HQ', 'PNG'], department: 'Sales', jobTitle: 'Sales agent' },
+  { code: 'NA', name: 'Nor Azlina', email: 'azlina@warehouse.com', roles: ['SALES_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Sales', jobTitle: 'Sales Manager' },
+  { code: 'SC1', name: 'Siti Counter 1', email: 'counter1@warehouse.com', roles: ['COUNTER_STAFF'], branchCodes: ['HQ'], department: 'Showroom', jobTitle: 'Showroom counter' },
 ];
 
 const WAREHOUSES = [
@@ -91,7 +97,7 @@ const ITEMS: ItemSeed[] = [
   { code: 'DR-RUN-04', name: 'Drawer runner', uom: 'PCS', type: 'STOCK', tax: 'SST10', group: 'Hardware', supplier: 'S-0009', reorder: 20, stock: 8, used30: 15 },
   { code: 'CH-DIN-01', name: 'Dining chair, solid oak', uom: 'PCS', type: 'STOCK', tax: 'SST10', group: 'Seating', supplier: 'S-0047', reorder: 50, stock: 0, used30: 0, sellable: true },
   { code: 'TB-DIN-06', name: 'Dining table, 6-seater', uom: 'PCS', type: 'STOCK', tax: 'SST10', group: 'Tables', supplier: 'S-0047', reorder: 5, stock: 4, used30: 2, sellable: true },
-  { code: 'SF-CUS-03', name: 'Custom 3-seater sofa, grey linen', uom: 'PCS', type: 'STOCK', tax: 'SST10', group: 'Seating', supplier: 'S-0047', reorder: 0, stock: 0, used30: 0, sellable: true, buyToOrder: true },
+  { code: 'SF-CUS-03', name: 'Custom 3-seater sofa, grey linen', uom: 'PCS', type: 'STOCK', tax: 'SST10', group: 'Sofas', supplier: 'S-0047', reorder: 0, stock: 0, used30: 0, sellable: true, buyToOrder: true },
   { code: 'MJ-IND-01', name: 'Industrial sewing machine', uom: 'PCS', type: 'ASSET', tax: 'EXEMPT', group: 'Machinery', supplier: 'S-0052' },
   { code: 'MJ-PF-11', name: 'Presser foot set', uom: 'SET', type: 'STOCK', tax: 'EXEMPT', group: 'Machine parts', supplier: 'S-0052', reorder: 5, stock: 2, used30: 3 },
   { code: 'SV-INS-01', name: 'Installation and operator training', uom: 'LOT', type: 'SERVICE', tax: 'SVC8', group: 'Service', supplier: 'S-0052' },

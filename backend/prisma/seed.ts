@@ -1,5 +1,5 @@
 /**
- * Seeds docs/design/SEED_DATA.md: "today" in the demo is Tuesday 29 Sep 2026.
+ * Seeds docs/design/SEED_DATA.md (Purchase) and SALES_SEED_DATA.md (Sales): "today" in the demo is Tuesday 29 Sep 2026.
  *
  *   npx prisma db seed
  *
@@ -16,6 +16,10 @@ import { seedBuyingDocuments } from './seed/documents-buy';
 import { seedCorrectionDocuments } from './seed/documents-fix';
 import { seedReceivingDocuments } from './seed/documents-receive';
 import { seedMasterData } from './seed/master-data';
+import { seedSalesAttachments, seedSalesDocuments } from './seed/sales-documents';
+import { seedSalesMasterData } from './seed/sales-master';
+import { seedSalesSettings } from './seed/sales-settings';
+import { verifySalesSeed } from './seed/sales-verify';
 import { seedAttachments, seedRecords } from './seed/records';
 import { seedSettings } from './seed/settings';
 import { TENANT_ID, type SeedCtx } from './seed/util';
@@ -38,6 +42,26 @@ async function resetDemoData(tenantId: string): Promise<void> {
     prisma.sysApprovalRequest.deleteMany({ where }), // steps cascade
     prisma.sysDocLink.deleteMany({ where }),
     prisma.sysEmailLog.deleteMany({ where }),
+
+    prisma.salReturn.deleteMany({ where }), // lines cascade
+    prisma.salDebitNote.deleteMany({ where }),
+    prisma.salInvoice.deleteMany({ where }),
+    prisma.salProforma.deleteMany({ where }),
+    prisma.salCancelOrder.deleteMany({ where }),
+    prisma.salDelivery.deleteMany({ where }),
+    prisma.salSalesOrder.deleteMany({ where }),
+    prisma.salQuotation.deleteMany({ where }),
+    prisma.salEnquiry.deleteMany({ where }),
+    prisma.salCashSale.deleteMany({ where }),
+    prisma.salSetting.deleteMany({ where }),
+    prisma.salCreditRule.deleteMany({ where }),
+    prisma.salSettingChange.deleteMany({ where }),
+    prisma.salOrderType.deleteMany({ where }),
+    prisma.salEnquiryType.deleteMany({ where }),
+    prisma.salEnquirySource.deleteMany({ where }),
+    prisma.salExcludedItem.deleteMany({ where }),
+    prisma.salEmailTemplate.deleteMany({ where }),
+    prisma.finReceiptStub.deleteMany({ where }),
 
     prisma.purDebitNote.deleteMany({ where }), // lines cascade
     prisma.purReturn.deleteMany({ where }),
@@ -99,6 +123,22 @@ async function printCounts(): Promise<void> {
     pur_approval_rule: () => prisma.purApprovalRule.count(),
     pur_email_template: () => prisma.purEmailTemplate.count(),
     pur_price_history: () => prisma.purPriceHistory.count(),
+    mdm_customer: () => prisma.mdmCustomer.count(),
+    mdm_price_list_item: () => prisma.mdmPriceListItem.count(),
+    fin_receipt_stub: () => prisma.finReceiptStub.count(),
+    sal_enquiry: () => prisma.salEnquiry.count(),
+    sal_quotation: () => prisma.salQuotation.count(),
+    sal_sales_order: () => prisma.salSalesOrder.count(),
+    sal_sales_order_line: () => prisma.salSalesOrderLine.count(),
+    sal_delivery: () => prisma.salDelivery.count(),
+    sal_invoice: () => prisma.salInvoice.count(),
+    sal_proforma: () => prisma.salProforma.count(),
+    sal_cancel_order: () => prisma.salCancelOrder.count(),
+    sal_cash_sale: () => prisma.salCashSale.count(),
+    sal_debit_note: () => prisma.salDebitNote.count(),
+    sal_return: () => prisma.salReturn.count(),
+    sal_excluded_item: () => prisma.salExcludedItem.count(),
+    sal_email_template: () => prisma.salEmailTemplate.count(),
   };
   const counts: Record<string, number> = {};
   for (const [name, count] of Object.entries(tables)) counts[name] = await count();
@@ -121,6 +161,7 @@ async function main(): Promise<void> {
     suppliers: new Map(),
     taxes: new Map(),
     warehouses: new Map(),
+    customers: new Map(),
     docs: new Map(),
   };
 
@@ -133,9 +174,14 @@ async function main(): Promise<void> {
   await seedRecords(ctx);
   await seedAttachments(ctx, uploadRoot);
 
+  await seedSalesMasterData(ctx);
+  await seedSalesSettings(ctx);
+  await seedSalesDocuments(ctx);
+  await seedSalesAttachments(ctx, uploadRoot);
+
   await printCounts();
 
-  const checks = await verifySeed(ctx, uploadRoot);
+  const checks = [...(await verifySeed(ctx, uploadRoot)), ...(await verifySalesSeed(ctx))];
   console.log('\nChecks against the mockups');
   console.table(checks.map((c) => ({ ok: c.ok ? '✓' : '✗', check: c.check, expected: c.expected, actual: c.actual })));
   const failed = checks.filter((c) => !c.ok);
