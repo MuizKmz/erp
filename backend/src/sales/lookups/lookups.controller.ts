@@ -127,6 +127,19 @@ export class SalesLookupsController {
     return { items: users.filter((u) => u.isActive && u.roles.includes(SAL_ROLE.AGENT)).map((u) => ({ code: u.code, name: u.name, branchCodes: u.branchCodes })) };
   }
 
+  /** Enquiry types with the extra details they ask for, and sources (S31). */
+  @Get('enquiry-types')
+  async enquiryTypes(@CurrentContext() ctx: RequestContext) {
+    const [types, sources] = await Promise.all([
+      this.prisma.salEnquiryType.findMany({ where: { tenantId: ctx.tenantId, isActive: true }, orderBy: { sortOrder: 'asc' } }),
+      this.prisma.salEnquirySource.findMany({ where: { tenantId: ctx.tenantId, isActive: true }, orderBy: { sortOrder: 'asc' } }),
+    ]);
+    return {
+      types: types.map((t) => ({ code: t.code, name: t.name, details: t.details })),
+      sources: sources.map((s) => ({ code: s.code, name: s.name })),
+    };
+  }
+
   @Get('branches')
   async branches(@CurrentContext() ctx: RequestContext) {
     return { items: (await this.masterData.listBranches(ctx.tenantId)).filter((b) => b.isActive).map((b) => ({ code: b.code, name: b.name })) };

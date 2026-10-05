@@ -291,3 +291,205 @@ export interface InboxDetail extends InboxCard {
   decision: { byName: string | null; at: string | null; comment: string | null; status: string } | null
   panel: CreditPanel | PricePanel | DiscountPanel
 }
+
+// ── Enquiries (S06, S07) ────────────────────────────────────────────────────
+
+export type EnquiryAction = 'edit' | 'delete' | 'forward' | 'createQuotation' | 'markLost'
+
+export interface EnquiryListItem {
+  id: string
+  docNo: string
+  docDate: string
+  customerName: string
+  isProspect: boolean
+  contactName: string | null
+  status: string
+  statusLabel: string
+  agentName: string
+  typeName: string
+  sourceName: string
+  branchName: string
+  budget: string | null
+  quotation: { no: string; id: string | null } | null
+  isMigrated: boolean
+  version: number
+  canDelete: boolean
+}
+
+export interface EnquiryTypeDetail {
+  label: string
+  kind: 'TEXT' | 'CHOICE' | 'FILE' | 'NUMBER' | 'DATE'
+  required: boolean
+  choices?: string[]
+}
+
+export interface EnquiryTypeOption {
+  code: string
+  name: string
+  details: EnquiryTypeDetail[]
+}
+
+export interface CustomerCardData {
+  code: string
+  name: string
+  status: string
+  category: string | null
+  area: string | null
+  creditTermDays: number
+  creditLimit: string | null
+  owedNow: string
+  priceList: string
+  defaultAgent: string | null
+  branchCode: string
+  contactName: string | null
+  phone: string | null
+  email: string | null
+}
+
+export interface EnquiryDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: string
+  statusLabel: string
+  isMigrated: boolean
+  version: number
+  isProspect: boolean
+  customerCode: string | null
+  customerName: string
+  contactName: string | null
+  phone: string | null
+  email: string | null
+  branch: { code: string; name: string }
+  enquiryTypeCode: string
+  typeName: string
+  sourceCode: string
+  sourceName: string
+  agent: { code: string; name: string }
+  budget: string | null
+  neededBy: string | null
+  customerRef: string | null
+  description: string | null
+  details: Record<string, string>
+  items: { lineNo: number; itemCode: string; itemName: string; uomCode: string; qty: string; remarks: string | null }[]
+  quotation: { id: string; no: string } | null
+  lostReason: string | null
+  customerCard: CustomerCardData | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: EnquiryAction[]
+}
+
+export interface EnquiryInput {
+  isProspect?: boolean
+  customerCode?: string
+  prospectName?: string
+  branchCode?: string
+  contactName?: string
+  phone?: string
+  email?: string
+  docDate?: string
+  enquiryTypeCode?: string
+  sourceCode?: string
+  agentCode?: string
+  budget?: string | null
+  neededBy?: string | null
+  customerRef?: string
+  description?: string
+  details?: Record<string, string>
+  items?: { itemCode: string; qty: string; remarks?: string }[]
+  forward?: boolean
+}
+
+// ── Quotations (S08, S09) ───────────────────────────────────────────────────
+
+export type QuotationAction = 'edit' | 'delete' | 'requestApproval' | 'release' | 'email' | 'revise' | 'transfer' | 'markLost'
+
+export interface QuotationListItem {
+  id: string
+  docNo: string
+  revision: number
+  docDate: string
+  validUntil: string | null
+  customerName: string
+  agentName: string
+  total: string
+  salesOrder: { no: string; id: string | null } | null
+  status: string
+  label: string
+  expired: boolean
+  isMigrated: boolean
+  version: number
+  allowedActions: QuotationAction[]
+}
+
+export interface QuotationLine {
+  id: string
+  lineNo: number
+  itemCode: string
+  itemName: string
+  uomCode: string
+  taxCode: string
+  taxName: string
+  taxRate: string
+  qty: string
+  listPrice: string | null
+  unitPrice: string
+  discountPct: string
+  grossAmount: string
+  discountAmount: string
+  amount: string
+  taxAmount: string
+  lastSold: { price: string; date: string; docNo: string } | null
+}
+
+export interface QuotationDetail {
+  id: string
+  docNo: string
+  revision: number
+  docDate: string
+  validUntil: string | null
+  status: string
+  label: string
+  expired: boolean
+  isMigrated: boolean
+  version: number
+  customer: { code: string; name: string; active: boolean; email: string | null }
+  contactName: string | null
+  agent: { code: string; name: string }
+  branch: { code: string; name: string }
+  currency: string
+  taxMode: string
+  creditTermDays: number
+  priceList: { code: string; name: string }
+  customerNote: string | null
+  internalNote: string | null
+  enquiry: { id: string; no: string } | null
+  enquiryItems: { itemCode: string; itemName: string; qty: string; uomCode: string }[]
+  salesOrder: { id: string | null; no: string } | null
+  lostReason: string | null
+  lines: QuotationLine[]
+  totals: SaleTotals
+  marginPct: string | null
+  discount: { over: boolean; highest: string; limitPct: string }
+  creditWarning: string | null
+  approval: { state: 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED'; reason: string | null; waitingFor: string | null; decidedBy: string | null; comment: string | null }
+  revisions: { id: string; revision: number; status: string; docDate: string; total: string }[]
+  attachments: { id: string; fileName: string; mimeType: string; kind: string; downloadUrl: string }[]
+  releasedAt: string | null
+  emailedAt: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: QuotationAction[]
+}
+
+export interface QuotationInput {
+  customerCode: string
+  docDate?: string
+  validUntil?: string | null
+  contactName?: string
+  customerNote?: string
+  internalNote?: string
+  enquiryId?: string
+  lines: OrderLineInput[]
+}

@@ -3,22 +3,30 @@ import { PermissionRegistry } from '../platform/context/permission.registry';
 import { SalesApprovalsController } from './approvals/approvals.controller';
 import { SalesApprovalsInboxService } from './approvals/approvals-inbox.service';
 import { SalesDashboardController } from './dashboard/dashboard.controller';
+import { SalesEnquiriesController } from './enquiries/enquiries.controller';
+import { EnquiriesQuery } from './enquiries/enquiries.query';
+import { EnquiriesService } from './enquiries/enquiries.service';
 import { SalesDashboardService } from './dashboard/dashboard.service';
 import { SalesLookupsController } from './lookups/lookups.controller';
 import { SalesOrdersController } from './orders/orders.controller';
 import { OrdersQuery } from './orders/orders.query';
 import { OrdersService } from './orders/orders.service';
+import { SalesQuotationsController } from './quotations/quotations.controller';
+import { QuotationsQuery } from './quotations/quotations.query';
+import { QuotationsService } from './quotations/quotations.service';
 import { SALES_ROLE_GRANTS } from './sales.permissions';
 import { CreditService } from './shared/credit.service';
+import { SalesDocumentLines } from './shared/document-lines.service';
 import { SalesLinkedDocsService } from './shared/linked-docs.service';
 import { ReceivablesService } from './shared/receivables.service';
+import { SalesMailService } from './shared/sales-mail.service';
 
 /**
  * The Sales module (CLAUDE.md → Phase 2). Never imports from purchase/; shared data comes through
  * MasterDataPort and cross-module effects go out as outbox events.
  */
 @Module({
-  controllers: [SalesDashboardController, SalesApprovalsController, SalesOrdersController, SalesLookupsController],
+  controllers: [SalesDashboardController, SalesApprovalsController, SalesOrdersController, SalesLookupsController, SalesQuotationsController, SalesEnquiriesController],
   providers: [
     SalesDashboardService,
     SalesApprovalsInboxService,
@@ -27,6 +35,12 @@ import { ReceivablesService } from './shared/receivables.service';
     SalesLinkedDocsService,
     OrdersQuery,
     OrdersService,
+    SalesDocumentLines,
+    SalesMailService,
+    QuotationsQuery,
+    QuotationsService,
+    EnquiriesQuery,
+    EnquiriesService,
   ],
 })
 export class SalesModule implements OnModuleInit {

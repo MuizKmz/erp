@@ -14,6 +14,8 @@ export interface ActivityEntry {
   message: string;
   comment?: string | null;
   data?: Prisma.InputJsonValue;
+  /** Milliseconds after now, to keep the order of lines logged in the same instant ("Created" before "Credit check"). */
+  afterMs?: number;
 }
 
 export interface ActivityItem {
@@ -47,7 +49,7 @@ export class ActivityService {
         data: entry.data,
         userCode: ctx.user.code,
         userName: ctx.user.name,
-        createdAt: this.clock.now(),
+        createdAt: new Date(this.clock.now().getTime() + (entry.afterMs ?? 0)),
       },
     });
   }

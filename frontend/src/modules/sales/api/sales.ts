@@ -1,6 +1,23 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
-import type { CustomerOption, InboxDetail, InboxList, ItemSearchResult, OrderDetail, OrderInput, OrderListItem, SalesDashboard } from '../types'
+import type {
+  CustomerCardData,
+  CustomerOption,
+  EnquiryDetail,
+  EnquiryInput,
+  EnquiryListItem,
+  EnquiryTypeOption,
+  InboxDetail,
+  InboxList,
+  ItemSearchResult,
+  OrderDetail,
+  OrderInput,
+  OrderListItem,
+  QuotationDetail,
+  QuotationInput,
+  QuotationListItem,
+  SalesDashboard,
+} from '../types'
 
 export const salesApi = {
   dashboard: () => api<SalesDashboard>('/sales/dashboard'),
@@ -18,6 +35,36 @@ export const salesOrdersApi = {
   release: (id: string, version: number, silent = false) => api<OrderDetail>(`/sales/orders/${id}/release`, { method: 'POST', body: { version }, silent }),
 }
 
+export type QuotationList = ListResponse<QuotationListItem> & { expiringSoon: { docNo: string; validUntil: string }[] }
+
+export const salesQuotationsApi = {
+  list: (query: ListQuery) => api<QuotationList>('/sales/quotations', { query }),
+  get: (id: string) => api<QuotationDetail>(`/sales/quotations/${id}`),
+  create: (input: QuotationInput) => api<QuotationDetail>('/sales/quotations', { method: 'POST', body: input }),
+  update: (id: string, input: Partial<QuotationInput> & { version: number }) => api<QuotationDetail>(`/sales/quotations/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/quotations/${id}`, { method: 'DELETE', query: { version } }),
+  requestApproval: (id: string, version: number, reason: string) =>
+    api<QuotationDetail>(`/sales/quotations/${id}/request-approval`, { method: 'POST', body: { version, reason } }),
+  release: (id: string, version: number, silent = false) => api<QuotationDetail>(`/sales/quotations/${id}/release`, { method: 'POST', body: { version }, silent }),
+  email: (id: string) => api<{ sentTo: string }>(`/sales/quotations/${id}/email`, { method: 'POST' }),
+  revise: (id: string, version: number) => api<QuotationDetail>(`/sales/quotations/${id}/revise`, { method: 'POST', body: { version } }),
+  lost: (id: string, version: number, reason: string) => api<QuotationDetail>(`/sales/quotations/${id}/lost`, { method: 'POST', body: { version, reason } }),
+  transfer: (id: string, version: number, lineNos?: number[]) =>
+    api<{ orderId: string; orderNo: string }>(`/sales/quotations/${id}/transfer`, { method: 'POST', body: { version, lineNos } }),
+}
+
+export const salesEnquiriesApi = {
+  list: (query: ListQuery) => api<ListResponse<EnquiryListItem>>('/sales/enquiries', { query }),
+  get: (id: string) => api<EnquiryDetail>(`/sales/enquiries/${id}`),
+  create: (input: EnquiryInput) => api<EnquiryDetail>('/sales/enquiries', { method: 'POST', body: input }),
+  update: (id: string, input: EnquiryInput & { version: number }) => api<EnquiryDetail>(`/sales/enquiries/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/enquiries/${id}`, { method: 'DELETE', query: { version } }),
+  forward: (id: string, version: number) => api<EnquiryDetail>(`/sales/enquiries/${id}/forward`, { method: 'POST', body: { version } }),
+  createQuotation: (id: string) => api<QuotationDetail>(`/sales/enquiries/${id}/quotation`, { method: 'POST' }),
+  lost: (id: string, version: number, reason: string) => api<EnquiryDetail>(`/sales/enquiries/${id}/lost`, { method: 'POST', body: { version, reason } }),
+  customerCard: (code: string) => api<CustomerCardData | null>(`/sales/enquiries/customer-card/${encodeURIComponent(code)}`),
+}
+
 export const salesApprovalsApi = {
   list: (status: 'waiting' | 'approved' | 'rejected') => api<InboxList>('/sales/approvals', { query: { status } }),
   get: (id: string) => api<InboxDetail>(`/sales/approvals/${id}`),
@@ -31,4 +78,5 @@ export const salesLookupsApi = {
     api<ItemSearchResult>('/sales/lookups/items', { query }),
   agents: () => api<{ items: { code: string; name: string; branchCodes: string[] }[] }>('/sales/lookups/agents'),
   branches: () => api<{ items: { code: string; name: string }[] }>('/sales/lookups/branches'),
+  enquiryTypes: () => api<{ types: EnquiryTypeOption[]; sources: { code: string; name: string }[] }>('/sales/lookups/enquiry-types'),
 }

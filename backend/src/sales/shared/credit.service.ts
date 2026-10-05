@@ -45,7 +45,8 @@ export class CreditService {
     );
     const owed = open.reduce((s, x) => s.add(x.balance), dec(0));
     const overdue = open.filter((x) => x.overdue).reduce((s, x) => s.add(x.balance), dec(0));
-    const otherOpen = await this.openOrdersValue(tenantId, args.customer.code, scope === 'BRANCH' ? args.branchCode : null, args.excludeOrderId);
+    // A quotation is not a commitment: its warning compares what is owed plus the quotation (S09), without open orders.
+    const otherOpen = args.docType === 'QUOTATION' ? dec(0) : await this.openOrdersValue(tenantId, args.customer.code, scope === 'BRANCH' ? args.branchCode : null, args.excludeOrderId);
 
     const input: CreditInput = {
       creditLimit: args.customer.creditLimit,

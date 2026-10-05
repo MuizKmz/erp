@@ -5,6 +5,10 @@ const Placeholder = () => import('./views/PlaceholderView.vue')
 const Approvals = () => import('./views/ApprovalsView.vue')
 const OrderList = () => import('./views/OrderListView.vue')
 const OrderForm = () => import('./views/OrderFormView.vue')
+const EnquiryList = () => import('./views/EnquiryListView.vue')
+const EnquiryForm = () => import('./views/EnquiryFormView.vue')
+const QuotationList = () => import('./views/QuotationListView.vue')
+const QuotationForm = () => import('./views/QuotationFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -29,10 +33,10 @@ const doc = (title: string, to: string) => ({ title, to })
  */
 const SCREENS: ScreenDef[] = [
   { code: 'S02', path: 'approvals', name: 'sales-approvals', title: 'Approvals', group: 'transaction', step: 3, mockup: 'Approvals.html', component: Approvals },
-  { code: 'S06', path: 'enquiries', name: 'sales-enquiries', title: 'Enquiry', group: 'transaction', item: 'enquiries', step: 4, mockup: 'EnquiryList.html' },
-  { code: 'S07', path: 'enquiries/:id', name: 'sales-enquiry', title: 'Enquiry', group: 'transaction', item: 'enquiries', step: 4, mockup: 'EnquiryForm.html', parent: doc('Enquiry', '/sales/enquiries') },
-  { code: 'S08', path: 'quotations', name: 'sales-quotations', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationList.html' },
-  { code: 'S09', path: 'quotations/:id', name: 'sales-quotation', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationForm.html', parent: doc('Quotation', '/sales/quotations') },
+  { code: 'S06', path: 'enquiries', name: 'sales-enquiries', title: 'Enquiry', group: 'transaction', item: 'enquiries', step: 4, mockup: 'EnquiryList.html', component: EnquiryList },
+  { code: 'S07', path: 'enquiries/:id', name: 'sales-enquiry', title: 'Enquiry', group: 'transaction', item: 'enquiries', step: 4, mockup: 'EnquiryForm.html', parent: doc('Enquiry', '/sales/enquiries'), component: EnquiryForm },
+  { code: 'S08', path: 'quotations', name: 'sales-quotations', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationList.html', component: QuotationList },
+  { code: 'S09', path: 'quotations/:id', name: 'sales-quotation', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationForm.html', parent: doc('Quotation', '/sales/quotations'), component: QuotationForm },
   { code: 'S10', path: 'orders', name: 'sales-orders', title: 'Sales Order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderList.html', component: OrderList },
   { code: 'S03', path: 'orders/:id/flow', name: 'sales-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 9, mockup: 'DocFlow.html', parent: doc('Sales Order', '/sales/orders') },
   { code: 'S11', path: 'orders/:id', name: 'sales-order', title: 'Sales order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderForm.html', parent: doc('Sales Order', '/sales/orders'), component: OrderForm },
