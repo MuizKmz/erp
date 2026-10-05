@@ -480,6 +480,9 @@ const belowList = (l: EditLine) => Boolean(l.listPrice && l.unitPrice && Number(
               <div v-for="t in totals.taxLines" :key="t.code" class="flex justify-between gap-3 py-[5px]"><span class="text-erp-muted">Tax ({{ t.name }})</span><MoneyText :value="t.amount" /></div>
               <div v-if="Number(totals.rounding)" class="flex justify-between gap-3 py-[5px]"><span class="text-erp-muted">Rounding</span><MoneyText :value="totals.rounding" /></div>
               <div class="flex justify-between gap-3 border-t border-erp-row pt-2 pb-[5px] font-bold"><span>Invoice total</span><MoneyText :value="totals.total" /></div>
+              <div v-if="inv && !released && inv.amounts.pendingDeposit" class="mt-2 rounded-lg bg-mod-light px-3 py-2 text-xs text-mod-accent">
+                On release, the paid deposit on {{ inv.amounts.pendingDeposit.proformaNo }} ({{ formatRm(inv.amounts.pendingDeposit.amount) }}) is knocked off this invoice.
+              </div>
               <template v-if="inv && released">
                 <div class="flex justify-between gap-3 py-[5px]">
                   <span class="text-erp-muted">Credited<template v-for="r in inv.amounts.creditedBy" :key="r.id"> · <RouterLink :to="`/sales/returns/${r.id}`" class="erp-link">{{ r.no }}</RouterLink></template></span>

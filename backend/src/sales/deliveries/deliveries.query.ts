@@ -14,6 +14,7 @@ import { buildStatusCounts, dateRange, pageArgs, parseSort, statusFromKey, toLis
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { SALES_PERMISSIONS as P } from '../sales.permissions';
 import { CreditService, type CreditOutcome } from '../shared/credit.service';
+import { DepositsService } from '../shared/deposits.service';
 import { SalesLinkedDocsService } from '../shared/linked-docs.service';
 import { CREDIT_DOC, SAL_ENTITY } from '../shared/sales.constants';
 import {
@@ -46,6 +47,7 @@ export class DeliveriesQuery {
     private readonly permissions: PermissionRegistry,
     private readonly credit: CreditService,
     private readonly linked: SalesLinkedDocsService,
+    private readonly deposits: DepositsService,
     private readonly clock: ClockService,
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
     @Inject(STOCK_PORT) private readonly stock: StockPort,
@@ -60,11 +62,10 @@ export class DeliveriesQuery {
     return row;
   }
 
-  /** Released proformas that are not paid yet, per sales order: they hold delivery (rule 9). */
+  /** Released proformas that Finance has not seen paid yet, per sales order: they hold delivery (rule 9). */
   async unpaidProformas(tenantId: string, orderIds: string[]) {
-    if (!orderIds.length) return new Map<string, { docNo: string; amount: string }>();
-    const rows = await this.prisma.salProforma.findMany({ where: { tenantId, status: 'SENT', salesOrderId: { in: orderIds } }, orderBy: { docDate: 'asc' } });
-    return new Map(rows.map((r) => [r.salesOrderId!, { docNo: r.docNo, amount: toMoney(r.amount) }]));
+    const unpaid = await this.deposits.unpaidForOrders(tenantId, orderIds);
+    return new Map([...unpaid].map(([orderId, p]) => [orderId, { docNo: p.proforma.docNo, amount: toMoney(p.proforma.amount.sub(p.received)) }]));
   }
 
   /** Quantities on draft cancel orders, per sales order line: a balance being cancelled is not waiting to be delivered. */

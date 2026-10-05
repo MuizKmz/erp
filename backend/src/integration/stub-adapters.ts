@@ -1,5 +1,6 @@
 import { Global, Injectable, Module } from '@nestjs/common';
 import { PrismaService } from '../platform/prisma/prisma.service';
+import { FinanceStubController } from './finance-stub.controller';
 import {
   SALES_DEMAND_PORT,
   STOCK_PORT,
@@ -68,6 +69,7 @@ export class StubSalesDemandAdapter implements SalesDemandPort {
 
 @Global()
 @Module({
+  controllers: [FinanceStubController],
   providers: [
     { provide: STOCK_PORT, useClass: StubStockAdapter },
     { provide: SALES_DEMAND_PORT, useClass: StubSalesDemandAdapter },

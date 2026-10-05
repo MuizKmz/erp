@@ -21,6 +21,10 @@ import type {
   OrderDetail,
   OrderInput,
   OrderListItem,
+  ProformaDetail,
+  ProformaKpis,
+  ProformaListItem,
+  ProformaRequestKind,
   QuotationDetail,
   QuotationInput,
   QuotationListItem,
@@ -103,6 +107,27 @@ export const salesInvoicesApi = {
     api<InvoiceDetail>(`/sales/invoices/${id}/request-approval`, { method: 'POST', body: { version, reason } }),
   release: (id: string, version: number) => api<InvoiceDetail>(`/sales/invoices/${id}/release`, { method: 'POST', body: { version } }),
   email: (id: string) => api<{ sentTo: string }>(`/sales/invoices/${id}/email`, { method: 'POST' }),
+}
+
+export type ProformaList = ListResponse<ProformaListItem> & { kpis: ProformaKpis; lastUsed: { docNo: string; invoiceNo: string | null; usedAt: string | null } | null }
+type ProformaFields = { requestKind?: ProformaRequestKind; depositPct?: string; docDate?: string; payBy?: string; attention?: string; note?: string }
+
+export const salesProformasApi = {
+  list: (query: ListQuery) => api<ProformaList>('/sales/proformas', { query }),
+  orders: () => api<{ items: { id: string; docNo: string; customerName: string; total: string; docDate: string }[] }>('/sales/proformas/orders'),
+  create: (input: ProformaFields & { salesOrderId: string }) => api<ProformaDetail>('/sales/proformas', { method: 'POST', body: input }),
+  get: (id: string) => api<ProformaDetail>(`/sales/proformas/${id}`),
+  update: (id: string, input: ProformaFields & { version: number }) => api<ProformaDetail>(`/sales/proformas/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/proformas/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<ProformaDetail>(`/sales/proformas/${id}/release`, { method: 'POST', body: { version } }),
+  email: (id: string) => api<{ sentTo: string }>(`/sales/proformas/${id}/email`, { method: 'POST' }),
+  cancel: (id: string, version: number) => api<ProformaDetail>(`/sales/proformas/${id}/cancel`, { method: 'POST', body: { version } }),
+}
+
+/** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */
+export const devFinanceApi = {
+  recordReceipt: (input: { appliesToType: 'PROFORMA' | 'INVOICE'; appliesToNo: string; customerCode: string; amount: string }) =>
+    api<{ receiptNo: string; amount: string }>('/dev/finance/receipts', { method: 'POST', body: input }),
 }
 
 /** Files on a Sales document: uploaded straight onto the document (proof of delivery, photos). */

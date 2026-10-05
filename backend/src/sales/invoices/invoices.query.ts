@@ -12,6 +12,8 @@ import { dateRange, parseSort } from '../../platform/http/list';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { SALES_PERMISSIONS as P } from '../sales.permissions';
 import { CreditService, type CreditOutcome } from '../shared/credit.service';
+import { DepositsService } from '../shared/deposits.service';
+import { depositToUse } from '../proformas/proforma.rules';
 import { SalesLinkedDocsService } from '../shared/linked-docs.service';
 import { CREDIT_DOC, SAL_ENTITY, SAL_EVENT, SAL_ROLE } from '../shared/sales.constants';
 import { invoiceBalance } from '../shared/totals.rules';
@@ -36,6 +38,7 @@ export class InvoicesQuery {
     private readonly permissions: PermissionRegistry,
     private readonly credit: CreditService,
     private readonly linked: SalesLinkedDocsService,
+    private readonly deposits: DepositsService,
     private readonly clock: ClockService,
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
@@ -290,6 +293,9 @@ export class InvoicesQuery {
     const latest = approvals[0] ?? null;
     const decidedStep = latest?.steps.filter((s) => s.decidedAt).at(-1);
     const waitingStep = latest?.status === 'PENDING' ? latest.steps.find((s) => s.status === 'WAITING') : null;
+    // A paid deposit not used yet is taken off this invoice when it is released (rule 9).
+    const pending = inv.status !== 'RELEASED' && inv.salesOrderId ? await this.deposits.paidUnusedForOrder(ctx.tenantId, inv.salesOrderId) : null;
+    const pendingDeposit = pending ? { proformaNo: pending.proforma.docNo, amount: toMoney(depositToUse(inv.total, { amount: pending.proforma.amount, received: pending.received })) } : null;
     const deliveryNos = (inv.deliveryNos ?? '').split(',').map((s) => s.trim()).filter(Boolean);
     const deliveries = deliveryNos.length ? await this.prisma.salDelivery.findMany({ where: { tenantId: ctx.tenantId, docNo: { in: deliveryNos } }, select: { id: true, docNo: true, isMigrated: true } }) : [];
     const returns = inv.creditedAmount.gt(0) ? await this.prisma.salReturn.findMany({ where: { tenantId: ctx.tenantId, invoiceId: inv.id, status: 'RELEASED' }, select: { id: true, docNo: true } }) : [];
@@ -359,6 +365,7 @@ export class InvoicesQuery {
         debited: toMoney(inv.debitedAmount),
         deposit: toMoney(inv.depositApplied),
         proformaNo: inv.proformaNo,
+        pendingDeposit,
         paid: toMoney(paid),
         balance: toMoney(balance),
       },

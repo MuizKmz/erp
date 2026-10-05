@@ -12,6 +12,8 @@ import { OutboxWriter } from '../../platform/outbox/outbox.writer';
 import { PrismaService, type Tx } from '../../platform/prisma/prisma.service';
 import { breachText, creditActivityText } from '../shared/credit.rules';
 import { CreditService, type CreditOutcome } from '../shared/credit.service';
+import { DepositsService } from '../shared/deposits.service';
+import { depositToUse } from '../proformas/proforma.rules';
 import { SalesDocumentLines } from '../shared/document-lines.service';
 import { SalesMailService } from '../shared/sales-mail.service';
 import { CREDIT_DOC, SAL_DOC_TYPE, SAL_ENTITY, SAL_EVENT, SAL_LINK, SAL_ROLE } from '../shared/sales.constants';
@@ -47,6 +49,7 @@ export class InvoicesService {
     private readonly credit: CreditService,
     private readonly docs: SalesDocumentLines,
     private readonly mail: SalesMailService,
+    private readonly deposits: DepositsService,
     private readonly clock: ClockService,
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
@@ -229,20 +232,24 @@ export class InvoicesService {
     const now = this.clock.now();
     const docDate = iso(inv.docDate);
     const dueDate = dueDateFor(docDate, inv.creditTermDays);
+    const proforma = inv.kind === 'FROM_ORDER' && inv.salesOrderId ? await this.deposits.paidUnusedForOrder(ctx.tenantId, inv.salesOrderId) : null;
+    const deposit = depositToUse(inv.total, proforma ? { amount: proforma.proforma.amount, received: proforma.received } : null);
 
     await this.prisma.$transaction(async (tx) => {
       if (inv.kind === 'FROM_ORDER' && inv.salesOrderId) await this.applyToOrder(tx, ctx, inv);
       await this.bump(tx, ctx, inv.id, version, {
         status: 'RELEASED', releasedAt: now, releasedByCode: ctx.user.code, dueDate: day(dueDate),
         ...(credit && !inv.approvedAt && { creditSnapshot: credit.snapshot }),
+        ...(proforma && deposit.gt(0) && { depositApplied: deposit, proformaNo: proforma.proforma.docNo }),
       }, 'DRAFT');
-      await this.log(tx, ctx, inv.id, inv.docNo, 'released', `Released by ${ctx.user.name} · posting and e-Invoice queued`);
+      if (proforma && deposit.gt(0)) await this.useDeposit(tx, ctx, inv, proforma.proforma.id, proforma.proforma.docNo, deposit, now);
+      await this.log(tx, ctx, inv.id, inv.docNo, 'released', `Released by ${ctx.user.name} · posting and e-Invoice queued`, null, 1);
       await this.outbox.publish(tx, ctx, [{
         name: SAL_EVENT.INVOICE_RELEASED, aggregateType: SAL_ENTITY.INVOICE, aggregateId: inv.id,
         payload: {
           invoiceNo: inv.docNo, docDate, dueDate, branchCode: inv.branchCode, customerCode: inv.customerCode, customerName: inv.customerName, customerTin: customer?.tin ?? null,
           currency: inv.currency, subtotal: toMoney(inv.subtotal), discountTotal: toMoney(inv.discountTotal), taxTotal: toMoney(inv.taxTotal), rounding: toMoney(inv.rounding), total: toMoney(inv.total),
-          salesOrderNo: inv.salesOrderNo, deliveryNos: inv.deliveryNos,
+          salesOrderNo: inv.salesOrderNo, deliveryNos: inv.deliveryNos, depositApplied: toMoney(deposit), proformaNo: proforma && deposit.gt(0) ? proforma.proforma.docNo : null,
           lines: inv.lines.map((l) => ({ lineNo: l.lineNo, itemCode: l.itemCode, uomCode: l.uomCode, qty: toQty(l.qty), unitPrice: l.unitPrice.toString(), taxCode: l.taxCode, amount: toMoney(l.amount), taxAmount: toMoney(l.taxAmount) })),
         },
       }]);
@@ -279,6 +286,18 @@ export class InvoicesService {
       entityType: SAL_ENTITY.ORDER, entityId: order.id, docNo: order.docNo, action: 'invoiced',
       message: `${inv.docNo} released: ${qtyText(qty)} invoiced, ${toRmText(inv.total)}`, comment: null,
     });
+  }
+
+  /** The proforma's deposit is used once (rule 9): the proforma becomes "Used on INV-…" in the same transaction. */
+  private async useDeposit(tx: Tx, ctx: RequestContext, inv: InvoiceWithLines, proformaId: string, proformaNo: string, amount: Prisma.Decimal, now: Date) {
+    const used = await tx.salProforma.updateMany({
+      where: { id: proformaId, tenantId: ctx.tenantId, status: { in: ['SENT', 'PAID'] }, usedOnInvoice: null },
+      data: { status: 'USED', usedOnInvoice: inv.docNo, usedAt: now, version: { increment: 1 }, updatedBy: ctx.user.code },
+    });
+    if (used.count === 0) throw new BusinessRuleError('DEPOSIT_ALREADY_USED', `The deposit on ${proformaNo} was used meanwhile. Open the invoice again and release it.`);
+    await tx.sysDocLink.create({ data: { tenantId: ctx.tenantId, fromType: SAL_ENTITY.PROFORMA, fromId: proformaId, fromNo: proformaNo, toType: SAL_ENTITY.INVOICE, toId: inv.id, toNo: inv.docNo, linkType: SAL_LINK.DEPOSIT_USED } });
+    await this.activity.log(tx, ctx, { entityType: SAL_ENTITY.PROFORMA, entityId: proformaId, docNo: proformaNo, action: 'used', message: `Used on ${inv.docNo}: ${toRmText(amount)} knocked off`, comment: null });
+    await this.log(tx, ctx, inv.id, inv.docNo, 'deposit_used', `Deposit ${proformaNo} used: ${toRmText(amount)} taken off the balance`);
   }
 
   async email(ctx: RequestContext, id: string) {

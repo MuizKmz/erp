@@ -705,7 +705,17 @@ export interface InvoiceDetail {
   deliveries: { id: string | null; no: string }[]
   lines: InvoiceLine[]
   totals: SaleTotals
-  amounts: { total: string; credited: string; creditedBy: { id: string; no: string }[]; debited: string; deposit: string; proformaNo: string | null; paid: string; balance: string }
+  amounts: {
+    total: string
+    credited: string
+    creditedBy: { id: string; no: string }[]
+    debited: string
+    deposit: string
+    proformaNo: string | null
+    pendingDeposit: { proformaNo: string; amount: string } | null
+    paid: string
+    balance: string
+  }
   payments: { receiptNo: string; date: string; amount: string; method: string; note: string | null }[]
   posting: { accounts: 'QUEUED' | 'POSTED' | 'OLD_SYSTEM' | null; eInvoice: 'PENDING' | 'SUBMITTED' | null }
   checks: {
@@ -723,4 +733,65 @@ export interface InvoiceDetail {
   links: LinkedDoc[]
   activity: ActivityItem[]
   allowedActions: InvoiceAction[]
+}
+
+// ── Proformas (S21, S22) ────────────────────────────────────────────────────
+
+export type ProformaAction = 'edit' | 'delete' | 'release' | 'email' | 'cancel'
+export type ProformaStatus = 'DRAFT' | 'SENT' | 'PAID' | 'USED' | 'CANCELLED'
+export type ProformaRequestKind = 'DEPOSIT_PCT' | 'PAY_BEFORE_RELEASE'
+
+export interface ProformaListItem {
+  id: string
+  docNo: string
+  docDate: string
+  customerName: string
+  salesOrderId: string | null
+  salesOrderNo: string
+  request: string
+  amount: string
+  received: string | null
+  status: ProformaStatus
+  label: string
+  usedOnInvoice: string | null
+  isMigrated: boolean
+  version: number
+}
+
+export interface ProformaKpis {
+  requested: { amount: string; count: number }
+  received: { amount: string; count: number }
+  waiting: { amount: string; docs: { docNo: string; status: string }[] }
+}
+
+export interface ProformaDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: ProformaStatus
+  label: string
+  isMigrated: boolean
+  version: number
+  customer: { code: string; name: string }
+  attention: string | null
+  agent: { code: string; name: string }
+  order: { id: string | null; no: string; status: string | null }
+  payBy: string | null
+  currency: string
+  requestKind: ProformaRequestKind
+  depositPct: string | null
+  request: string
+  orderValue: { subtotal: string; tax: string; total: string; taxName: string }
+  amount: string
+  received: string
+  receipts: { receiptNo: string; date: string; amount: string; method: string }[]
+  usedOnInvoice: string | null
+  usedAt: string | null
+  note: string | null
+  lines: { lineNo: number; itemCode: string; itemName: string; uomCode: string; qty: string; unitPrice: string; discountPct: string; taxName: string; amount: string }[]
+  otherProformas: { id: string; docNo: string; docDate: string; amount: string; label: string }[]
+  releasedAt: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: ProformaAction[]
 }

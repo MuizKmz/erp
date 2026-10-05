@@ -21,7 +21,7 @@ import { usePageCrumb } from '@/composables/usePageCrumb'
 import { roleLabel, useSession } from '@/composables/useSession'
 import { formatDate, formatDateTime, formatMoney, formatPrice, formatQty, formatRm } from '@/utils/format'
 import { isPositiveDecimal, previewSaleLine, sumMoney } from '@/utils/money'
-import { salesDeliveriesApi, salesLookupsApi, salesOrdersApi } from '../api/sales'
+import { salesDeliveriesApi, salesLookupsApi, salesOrdersApi, salesProformasApi } from '../api/sales'
 import ItemPickerDialog from '../components/ItemPickerDialog.vue'
 import { docRoute } from '../routes'
 import type { CustomerOption, OrderAction, OrderDetail, SaleItemOption } from '../types'
@@ -293,6 +293,11 @@ function backToEdit() {
 function later(what: string) {
   toast.add({ severity: 'info', summary: what, detail: 'This comes with a later Sales step.', life: 3000 })
 }
+async function createProforma(orderId: string) {
+  const p = await salesProformasApi.create({ salesOrderId: orderId })
+  toast.add({ severity: 'success', summary: `${p.docNo} created`, detail: 'Deposit 30% by default. Check it, then release.', life: 3500 })
+  void router.push(`/sales/proformas/${p.id}`)
+}
 async function createDelivery(orderId: string) {
   const d = await salesDeliveriesApi.create(orderId)
   toast.add({ severity: 'success', summary: `${d.docNo} created`, detail: 'Check what leaves the warehouse, then confirm.', life: 3500 })
@@ -304,7 +309,7 @@ const transferItems = computed(() => {
   return [
     { label: 'Delivery order', disabled: !can('deliver'), command: () => createDelivery(o.id) },
     { label: 'Invoice', disabled: !can('invoice'), command: () => router.push({ path: '/sales/invoices/new', query: { order: o.id } }) },
-    { label: 'Proforma invoice', disabled: !can('proforma'), command: () => router.push({ path: '/sales/proformas/new', query: { order: o.id } }) },
+    { label: 'Proforma invoice', disabled: !can('proforma'), command: () => createProforma(o.id) },
     { label: 'Cancel balance', disabled: !can('cancelBalance'), command: () => router.push({ path: '/sales/cancel-orders/new', query: { order: o.id } }) },
   ]
 })
