@@ -12,6 +12,10 @@ import type {
   EnquiryListItem,
   EnquiryTypeOption,
   InboxDetail,
+  InvoiceCandidates,
+  InvoiceDetail,
+  InvoiceKpis,
+  InvoiceListItem,
   InboxList,
   ItemSearchResult,
   OrderDetail,
@@ -79,6 +83,26 @@ export const salesDeliveriesApi = {
   requestApproval: (id: string, version: number, reason: string) =>
     api<DeliveryDetail>(`/sales/deliveries/${id}/request-approval`, { method: 'POST', body: { version, reason } }),
   confirm: (id: string, version: number) => api<DeliveryDetail>(`/sales/deliveries/${id}/confirm`, { method: 'POST', body: { version } }),
+}
+
+export type InvoiceList = ListResponse<InvoiceListItem> & { kpis: InvoiceKpis }
+type InvoiceFields = { docDate?: string; customerPoRef?: string; note?: string }
+type DirectLine = { itemCode: string; qty: string; unitPrice: string; discountPct?: string }
+
+export const salesInvoicesApi = {
+  list: (query: ListQuery) => api<InvoiceList>('/sales/invoices', { query }),
+  candidates: (customerCode: string) => api<InvoiceCandidates>('/sales/invoices/candidates', { query: { customerCode } }),
+  createFromOrder: (input: InvoiceFields & { salesOrderId: string; lines: { soLineId: string; qty: string }[] }) =>
+    api<InvoiceDetail>('/sales/invoices/from-order', { method: 'POST', body: input }),
+  createDirect: (input: InvoiceFields & { customerCode: string; lines: DirectLine[] }) => api<InvoiceDetail>('/sales/invoices', { method: 'POST', body: input }),
+  get: (id: string) => api<InvoiceDetail>(`/sales/invoices/${id}`),
+  update: (id: string, input: InvoiceFields & { version: number; quantities?: { lineNo: number; qty: string }[]; customerCode?: string; lines?: DirectLine[] }) =>
+    api<InvoiceDetail>(`/sales/invoices/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/invoices/${id}`, { method: 'DELETE', query: { version } }),
+  requestApproval: (id: string, version: number, reason: string) =>
+    api<InvoiceDetail>(`/sales/invoices/${id}/request-approval`, { method: 'POST', body: { version, reason } }),
+  release: (id: string, version: number) => api<InvoiceDetail>(`/sales/invoices/${id}/release`, { method: 'POST', body: { version } }),
+  email: (id: string) => api<{ sentTo: string }>(`/sales/invoices/${id}/email`, { method: 'POST' }),
 }
 
 /** Files on a Sales document: uploaded straight onto the document (proof of delivery, photos). */

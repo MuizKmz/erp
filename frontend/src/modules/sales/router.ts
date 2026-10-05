@@ -11,6 +11,10 @@ const QuotationList = () => import('./views/QuotationListView.vue')
 const QuotationForm = () => import('./views/QuotationFormView.vue')
 const DeliveryList = () => import('./views/DeliveryListView.vue')
 const DeliveryForm = () => import('./views/DeliveryFormView.vue')
+const InvoiceList = () => import('./views/InvoiceListView.vue')
+const CreateInvoice = () => import('./views/CreateInvoiceView.vue')
+const InvoiceForm = () => import('./views/InvoiceFormView.vue')
+const InvoicePrint = () => import('./views/InvoicePrintView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -25,6 +29,8 @@ interface ScreenDef {
   mockup: string
   parent?: { title: string; to: string }
   component?: RouteRecordRaw['component']
+  /** A full-page design without the sidebar (S20 print preview) */
+  bare?: boolean
 }
 
 const doc = (title: string, to: string) => ({ title, to })
@@ -48,10 +54,10 @@ const SCREENS: ScreenDef[] = [
   { code: 'S14', path: 'cancel-orders/:id', name: 'sales-cancel-order', title: 'Cancel order balance', group: 'transaction', item: 'cancel-orders', step: 8, mockup: 'CancelOrder.html', parent: doc('Cancel Order', '/sales/cancel-orders') },
   { code: 'S21', path: 'proformas', name: 'sales-proformas', title: 'Proforma Invoice', group: 'billing', item: 'proformas', step: 7, mockup: 'ProformaList.html' },
   { code: 'S22', path: 'proformas/:id', name: 'sales-proforma', title: 'Proforma invoice', group: 'billing', item: 'proformas', step: 7, mockup: 'ProformaForm.html', parent: doc('Proforma Invoice', '/sales/proformas') },
-  { code: 'S17', path: 'invoices', name: 'sales-invoices', title: 'Invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoiceList.html' },
-  { code: 'S18', path: 'invoices/new', name: 'sales-invoice-new', title: 'Create invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'CreateInvoice.html', parent: doc('Invoice', '/sales/invoices') },
-  { code: 'S20', path: 'invoices/:id/print', name: 'sales-invoice-print', title: 'Print preview', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoicePrint.html', parent: doc('Invoice', '/sales/invoices') },
-  { code: 'S19', path: 'invoices/:id', name: 'sales-invoice', title: 'Invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoiceForm.html', parent: doc('Invoice', '/sales/invoices') },
+  { code: 'S17', path: 'invoices', name: 'sales-invoices', title: 'Invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoiceList.html', component: InvoiceList },
+  { code: 'S18', path: 'invoices/new', name: 'sales-invoice-new', title: 'Create invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'CreateInvoice.html', parent: doc('Invoice', '/sales/invoices'), component: CreateInvoice },
+  { code: 'S20', path: 'invoices/:id/print', name: 'sales-invoice-print', title: 'Print preview', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoicePrint.html', parent: doc('Invoice', '/sales/invoices'), component: InvoicePrint, bare: true },
+  { code: 'S19', path: 'invoices/:id', name: 'sales-invoice', title: 'Invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoiceForm.html', parent: doc('Invoice', '/sales/invoices'), component: InvoiceForm },
   { code: 'S23', path: 'cash-sales', name: 'sales-cash-sales', title: 'Cash Sales', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSaleList.html' },
   { code: 'S24', path: 'cash-sales/:id', name: 'sales-cash-sale', title: 'Cash sale', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSale.html', parent: doc('Cash Sales', '/sales/cash-sales') },
   { code: 'S25', path: 'debit-notes', name: 'sales-debit-notes', title: 'Debit Note', group: 'billing', item: 'debit-notes', step: 8, mockup: 'DebitNoteList.html' },
@@ -94,7 +100,7 @@ export const salesRoutes: RouteRecordRaw[] = [
         code: s.code,
         title: s.title,
         module: 'sales',
-        layout: 'module',
+        layout: s.bare ? 'bare' : 'module',
         menuGroup: s.group,
         menuItem: s.item,
         parent: s.parent,

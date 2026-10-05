@@ -593,3 +593,134 @@ export interface DeliveryInput {
   warehouseNote?: string
   lines?: { lineNo: number; qty: string }[]
 }
+
+// ── Invoices (S17–S20) ──────────────────────────────────────────────────────
+
+export type InvoiceAction = 'edit' | 'delete' | 'requestApproval' | 'release' | 'email' | 'print' | 'debitNote' | 'return'
+export type PaymentKey = 'DRAFT' | 'PENDING' | 'UNPAID' | 'OVERDUE' | 'PAID'
+
+export interface InvoiceListItem {
+  id: string
+  docNo: string
+  docDate: string
+  kind: 'FROM_ORDER' | 'DIRECT'
+  salesOrderId: string | null
+  salesOrderNo: string | null
+  customerName: string
+  total: string
+  balance: string
+  dueDate: string | null
+  payment: { key: PaymentKey; label: string }
+  accounts: 'QUEUED' | 'POSTED' | 'OLD_SYSTEM' | null
+  eInvoice: 'PENDING' | 'SUBMITTED' | null
+  isMigrated: boolean
+  version: number
+}
+
+export interface InvoiceKpis {
+  balanceDue: { amount: string; invoices: number }
+  overdue: { amount: string; customers: number }
+  financeWaiting: number
+  eInvoicePending: number
+}
+
+export interface InvoiceCandidates {
+  customer: { code: string; name: string; creditTermDays: number; status: string }
+  orders: {
+    id: string
+    docNo: string
+    docDate: string
+    status: string
+    canInvoiceQty: string
+    summary: string
+    detail: string
+    customerPoRef: string | null
+    agentName: string
+    creditTermDays: number
+    deliveries: { id: string; no: string }[]
+    lines: {
+      soLineId: string
+      lineNo: number
+      itemCode: string
+      itemName: string
+      uomCode: string
+      orderedQty: string
+      deliveredQty: string
+      invoicedQty: string
+      canInvoiceQty: string
+      unitPrice: string
+      discountPct: string
+      taxCode: string
+      taxName: string
+      taxRate: string
+    }[]
+  }[]
+  earlierInvoices: { docNo: string; docDate: string; total: string; state: string; isMigrated: boolean }[]
+}
+
+export interface InvoiceLine {
+  id: string
+  lineNo: number
+  soLineId: string | null
+  itemCode: string
+  itemName: string
+  uomCode: string
+  qty: string
+  listPrice: string | null
+  unitPrice: string
+  discountPct: string
+  taxCode: string
+  taxName: string
+  taxRate: string
+  grossAmount: string
+  discountAmount: string
+  amount: string
+  taxAmount: string
+  belowListPct: string | null
+  canInvoiceQty: string | null
+  orderLine: { orderedQty: string; deliveredQty: string; invoicedQty: string } | null
+}
+
+export interface InvoiceDetail {
+  id: string
+  docNo: string
+  docDate: string
+  kind: 'FROM_ORDER' | 'DIRECT'
+  status: 'DRAFT' | 'PENDING_APPROVAL' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+  payment: { key: PaymentKey; label: string }
+  customer: { code: string; name: string; tin: string | null; email: string | null; deliveryAddress: string | null }
+  billTo: string | null
+  contactName: string | null
+  branch: { code: string; name: string }
+  agent: { code: string; name: string }
+  creditTermDays: number
+  dueDate: string | null
+  currency: string
+  taxMode: string
+  customerPoRef: string | null
+  note: string | null
+  order: { id: string | null; no: string; ordered: string | null } | null
+  deliveries: { id: string | null; no: string }[]
+  lines: InvoiceLine[]
+  totals: SaleTotals
+  amounts: { total: string; credited: string; creditedBy: { id: string; no: string }[]; debited: string; deposit: string; proformaNo: string | null; paid: string; balance: string }
+  payments: { receiptNo: string; date: string; amount: string; method: string; note: string | null }[]
+  posting: { accounts: 'QUEUED' | 'POSTED' | 'OLD_SYSTEM' | null; eInvoice: 'PENDING' | 'SUBMITTED' | null }
+  checks: {
+    priceBelowList: { count: number; highestPct: number } | null
+    credit: { action: string; snapshot: CreditSnapshot } | null
+    creditBlocked: boolean
+    needsApproval: boolean
+    needsPrice: boolean
+    needsCredit: boolean
+  }
+  approval: { state: 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED'; reason: string | null; note: string | null; requestedBy: string | null; waitingFor: string | null; decidedBy: string | null; comment: string | null }
+  print: { companyName: string; amountInWords: string }
+  releasedAt: string | null
+  emailedAt: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: InvoiceAction[]
+}

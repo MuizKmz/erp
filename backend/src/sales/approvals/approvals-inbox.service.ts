@@ -92,23 +92,21 @@ export class SalesApprovalsInboxService {
       requesterNote: request.requesterNote,
       canDecide,
       decision: decided ? { byName: decided.decidedByName, at: decided.decidedAt, comment: decided.comment, status: decided.status } : null,
-      panel: kind === 'CREDIT' && (request.entityType === SAL_ENTITY.ORDER || request.entityType === SAL_ENTITY.DELIVERY) ? await this.creditPanel(ctx, request) : kind === 'PRICE' ? await this.pricePanel(ctx, request) : await this.discountPanel(ctx, request),
+      panel: kind === 'CREDIT' && request.entityType !== SAL_ENTITY.QUOTATION ? await this.creditPanel(ctx, request) : kind === 'PRICE' ? await this.pricePanel(ctx, request) : await this.discountPanel(ctx, request),
     };
   }
 
   /** Exposure, overdue, last payment and payment history of the customer (Approvals.html right panel). */
   private async creditPanel(ctx: RequestContext, request: ApprovalRequestView) {
-    // A delivery's credit request shows its order's customer, with the delivery's value as "this document".
-    const delivery = request.entityType === SAL_ENTITY.DELIVERY ? await this.prisma.salDelivery.findFirst({ where: { id: request.entityId, tenantId: ctx.tenantId } }) : null;
-    const order = await this.prisma.salSalesOrder.findFirst({ where: { id: delivery ? (delivery.salesOrderId ?? '') : request.entityId, tenantId: ctx.tenantId } });
-    if (!order) throw new NotFoundError('Sales order');
-    const thisDocument = delivery ? dec(request.amount ?? 0) : order.total;
+    const subject = await this.creditSubject(ctx, request);
+    const order = { id: subject.orderId, customerCode: subject.customerCode, customerName: subject.customerName };
+    const thisDocument = subject.thisDocument;
     const today = this.clock.today();
     const customer = await this.masterData.findCustomer(ctx.tenantId, order.customerCode);
     const open = await this.receivables.openInvoices(ctx.tenantId, today, [order.customerCode]);
     const owed = open.reduce((s, x) => s.add(x.balance), dec(0));
     const over60 = open.filter((x) => daysBetween(iso(x.invoice.docDate)!, today) > 60).reduce((s, x) => s.add(x.balance), dec(0));
-    const otherOpen = await this.credit.openOrdersValue(ctx.tenantId, order.customerCode, null, order.id);
+    const otherOpen = await this.credit.openOrdersValue(ctx.tenantId, order.customerCode, null, order.id ?? undefined);
     const [lastPayment, paidInvoices, lastApproval] = await Promise.all([
       this.prisma.finReceiptStub.findFirst({ where: { tenantId: ctx.tenantId, customerCode: order.customerCode, appliesToType: 'INVOICE' }, orderBy: { receiptDate: 'desc' } }),
       this.prisma.salInvoice.findMany({ where: { tenantId: ctx.tenantId, customerCode: order.customerCode, status: 'RELEASED' }, orderBy: { docDate: 'desc' } }),
@@ -141,6 +139,22 @@ export class SalesApprovalsInboxService {
       history,
       lastCreditApproval: lastApproval?.decidedAt ? iso(lastApproval.decidedAt) : null,
     };
+  }
+
+  /**
+   * Whose credit a request is about: an order's own total; a delivery's value with its order; an invoice's total
+   * (a direct invoice has no order).
+   */
+  private async creditSubject(ctx: RequestContext, request: ApprovalRequestView) {
+    if (request.entityType === SAL_ENTITY.INVOICE) {
+      const inv = await this.prisma.salInvoice.findFirst({ where: { id: request.entityId, tenantId: ctx.tenantId } });
+      if (!inv) throw new NotFoundError('Invoice');
+      return { orderId: inv.salesOrderId, customerCode: inv.customerCode, customerName: inv.customerName, thisDocument: inv.total };
+    }
+    const delivery = request.entityType === SAL_ENTITY.DELIVERY ? await this.prisma.salDelivery.findFirst({ where: { id: request.entityId, tenantId: ctx.tenantId } }) : null;
+    const order = await this.prisma.salSalesOrder.findFirst({ where: { id: delivery ? (delivery.salesOrderId ?? '') : request.entityId, tenantId: ctx.tenantId } });
+    if (!order) throw new NotFoundError('Sales order');
+    return { orderId: order.id as string | null, customerCode: order.customerCode, customerName: order.customerName, thisDocument: delivery ? dec(request.amount ?? 0) : order.total };
   }
 
   /** Invoice lines priced below the customer's price list. */
@@ -194,13 +208,14 @@ export class SalesApprovalsInboxService {
   private async onOtherDecision(tx: Tx, ctx: RequestContext, result: DecisionResult, comment: string | null) {
     if (result.outcome === 'NEXT_STEP') return;
     const approved = result.outcome === 'APPROVED';
-    const data = { status: 'DRAFT' as const, approvedAt: approved ? this.clock.now() : null, version: { increment: 1 }, updatedBy: ctx.user.code };
+    // A rejection keeps what was approved before (an invoice may hold a price approval while its credit is refused).
+    const data = { status: 'DRAFT' as const, ...(approved && { approvedAt: this.clock.now() }), version: { increment: 1 }, updatedBy: ctx.user.code };
     if (result.entityType === SAL_ENTITY.INVOICE) await tx.salInvoice.update({ where: { id: result.entityId }, data });
     else if (result.entityType === SAL_ENTITY.QUOTATION) await tx.salQuotation.update({ where: { id: result.entityId }, data });
     else if (result.entityType === SAL_ENTITY.DELIVERY) {
       await tx.salDelivery.update({
         where: { id: result.entityId },
-        data: { approvedAt: data.approvedAt, creditResult: approved ? 'APPROVED' : 'OVER_LIMIT', version: { increment: 1 }, updatedBy: ctx.user.code },
+        data: { ...(approved && { approvedAt: this.clock.now() }), creditResult: approved ? 'APPROVED' : 'OVER_LIMIT', version: { increment: 1 }, updatedBy: ctx.user.code },
       });
     }
     await this.activity.log(tx, ctx, {

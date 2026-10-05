@@ -4,6 +4,9 @@ import { SalesApprovalsController } from './approvals/approvals.controller';
 import { SalesApprovalsInboxService } from './approvals/approvals-inbox.service';
 import { SalesDashboardController } from './dashboard/dashboard.controller';
 import { SalesDeliveriesController } from './deliveries/deliveries.controller';
+import { SalesInvoicesController } from './invoices/invoices.controller';
+import { InvoicesQuery } from './invoices/invoices.query';
+import { InvoicesService } from './invoices/invoices.service';
 import { DeliveriesQuery } from './deliveries/deliveries.query';
 import { DeliveriesService } from './deliveries/deliveries.service';
 import { SalesEnquiriesController } from './enquiries/enquiries.controller';
@@ -29,7 +32,7 @@ import { SalesMailService } from './shared/sales-mail.service';
  * MasterDataPort and cross-module effects go out as outbox events.
  */
 @Module({
-  controllers: [SalesDashboardController, SalesApprovalsController, SalesOrdersController, SalesLookupsController, SalesQuotationsController, SalesEnquiriesController, SalesDeliveriesController],
+  controllers: [SalesDashboardController, SalesApprovalsController, SalesOrdersController, SalesLookupsController, SalesQuotationsController, SalesEnquiriesController, SalesDeliveriesController, SalesInvoicesController],
   providers: [
     SalesDashboardService,
     SalesApprovalsInboxService,
@@ -46,6 +49,8 @@ import { SalesMailService } from './shared/sales-mail.service';
     EnquiriesService,
     DeliveriesQuery,
     DeliveriesService,
+    InvoicesQuery,
+    InvoicesService,
   ],
 })
 export class SalesModule implements OnModuleInit {
