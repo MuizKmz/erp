@@ -1,6 +1,6 @@
 # Zora Pro ERP — build guide for Claude Code
 
-We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module**, as a working app with a real API and database (no login yet). Sales comes after Purchase. Read this file fully before writing code, then read the docs it points to.
+We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module** (done, steps 0–10). **Phase 2 = the Sales module** (section *Phase 2 · Sales module* at the end, steps S0–S10). Both are working apps with a real API and database (no login yet). Read this file fully before writing code, then read the docs it points to.
 
 ## Must-read docs
 
@@ -10,6 +10,8 @@ We are building a modular ERP. **Phase 1 = the module launcher and the Purchase 
 | `docs/design/mockups/*.html` + `docs/design/screenshots/*.png` | The approved design. Open the HTML or view the PNG before building a screen |
 | `docs/design/mockups/PurUxGuide.html`, `FlowP1–P7.html` | Purchase rules and journeys. Each flow’s *Step by step* table is the acceptance criteria |
 | `docs/design/SEED_DATA.md` | Exact demo data. After seeding, screens must show the same numbers as the mockups |
+| `docs/design/mockups/SalesUxGuide.html`, `SalesNavMap.html`, `FlowS1–S6.html` | Sales rules and journeys. Each flow’s *Step by step* table is the acceptance criteria |
+| `docs/design/SALES_SEED_DATA.md` | Exact Sales demo data, and the mockup conflicts with the choice made |
 | `docs/design/DESIGN_TOKENS.md` | Colours, type, chips, buttons |
 | `docs/integration/MASTER_DATA_CONTRACT.md` | What Purchase reads from Master Data and how |
 | `docs/integration/EVENTS.md` | Events Purchase publishes and listens to |
@@ -150,6 +152,231 @@ Source Code/
 
 - Before each step, write a short plan (files, tables, endpoints). After it, list what changed and how to check it.
 - **Ask first** before: adding a dependency not listed here (pre-approved: `@nestjs/config`, `@nestjs/schedule`, `@nestjs/event-emitter`, `prisma`, `@prisma/client`, `class-validator`, `class-transformer`, `pinia`), changing the design or a rule in this file, deleting files, or touching anything outside `Source Code`.
-- Do **not** build yet: login/JWT, Sales screens, real email sending, Inventory/Finance/WMS/MES integrations (only their events and stubs).
+- Do **not** build yet: login/JWT, real email sending, LHDN e-Invoice submission, Inventory/Finance/WMS/MES integrations (only their events and stubs).
 - Code, identifiers and comments in English. UI text exactly as in the mockups.
 - Keep secrets out of git (`.env` in `.gitignore`).
+
+---
+
+# Phase 2 · Sales module
+
+Everything above still applies to Sales (stack, database and API conventions, no login, the working agreement, the definition of done). This section adds what is different or new. **Purchase is finished; do not change Purchase behaviour while building Sales.** If a Sales step seems to need a Purchase change, ask first.
+
+## Must-read for Sales
+
+- **Screen list:** `SCREENS.md` → *Sales module* (S01–S33, routes and mockups).
+- **Rules and journeys:** `mockups/SalesUxGuide.html`, `SalesNavMap.html`, `FlowS1–S6.html`. Each flow's *Step by step* table is the acceptance criteria.
+- **Seed data:** `SALES_SEED_DATA.md`. It has the exact demo data and a list of mockup conflicts with the choice made. The choices in that list win over the mockups.
+- **Requirements:** SRS §6.3 Sales and §8.4 Credit control, for detail.
+
+## Layout additions
+
+```
+backend/src/sales/
+├─ sales.module.ts, sales.permissions.ts
+├─ shared/        statuses, totals.rules.ts (discount, tax inclusive/exclusive, 5-sen rounding),
+│                 credit.rules.ts (exposure + policy decision), price.rules.ts, linked-docs (+ .spec.ts)
+└─ enquiries/ quotations/ orders/ deliveries/ invoices/ proformas/ cash-sales/ debit-notes/
+   returns/ cancel-orders/ approvals/ dashboard/ reports/ settings/ lookups/
+   each: <name>.controller.ts, <name>.query.ts (reads), <name>.service.ts (commands), dto/, <name>.rules.ts (+ .spec.ts)
+frontend/src/modules/sales/   router.ts, menu.ts, types.ts, routes.ts, api/, views/ (one view per S-code)
+```
+
+- Shared ERP components in `components/erp/` are reused as they are. They must stay module-neutral, so a fix to one is a fix for both modules.
+- `data-module="sales"` gives the purple theme from `DESIGN_TOKENS.md`. No hex values in views.
+
+## Module boundaries (Sales)
+
+1. `sales/` never imports from `purchase/`, and `purchase/` never imports from `sales/`. The same applies to `modules/sales` and `modules/purchase` in the frontend. Shared code goes to `platform/`, `master-data/` or `components/erp/` (no business rules there).
+2. Sales reads and writes only `sal_` tables. Customers, items, price lists, tax codes, users and branches come through `MasterDataPort`. New port methods: customers, price lists and prices, sellable items.
+3. **Stock** comes from `inv_stock_snapshot`, read only.
+4. **Payments** come from a new read-only stub `fin_receipt_stub` until Finance exists. Sales never changes a balance by hand.
+5. Cross-module effects go out only as outbox events (`EVENTS.md` → *Sales publishes*). A module that is not connected never blocks the user: save the event and show the amber banner.
+6. Purchase keeps reading `sal_demand_stub` for its demand list until step S10 decides how to replace it. Sales does not write that table.
+
+## Master data and platform additions (step S1)
+
+- **New `mdm_` seed tables:**
+  - `mdm_customer`: code, name, TIN, addresses, contact, email, phone, category, area, branch, default agent, credit term days, credit limit, overdue limit, optional credit-scope override, price list, status ACTIVE / BLOCKED / PROSPECT.
+  - `mdm_price_list` and `mdm_price_list_item`.
+  - New items and users, as listed in `SALES_SEED_DATA.md`.
+- **`mdm_item`:** use the existing `isSellable` / `salesTaxCode`, and add `barcode`.
+- **`NumberingService`** gets optional format tokens (`{YYMM}`, `{YYYY}`, `{BR}`, `{####}`) and a monthly restart, for EQ-2609-0011. Existing Purchase sequences keep working unchanged. Add a test that proves PO numbering is untouched.
+- **`sys_number_sequence`** rows for Sales use `module = 'sales'`. Purchase Document Types (P25) already filters on module, so Sales rows do not show there.
+- **Approvals:** reuse the platform approval requests (`sys_approval_request`). Kinds: DISCOUNT (quotation), CREDIT (order, delivery, invoice), PRICE (invoice).
+
+## Roles and permissions
+
+Roles and what they do:
+
+| Role | Does | Approves |
+|---|---|---|
+| SALES_AGENT | Enquiry, quotation, sales order, cancel order (draft only), sales return (draft) | — |
+| SALES_BILLING | Invoice, proforma, debit note, printing and email | — |
+| SALES_STORE | Delivery orders and confirming them, receiving returned goods | — |
+| COUNTER_STAFF | Cash sales | — |
+| SALES_MANAGER | Releases cancel orders, sees margin, reports | Discount over 15%, credit on orders and deliveries, price below list on invoices |
+| FINANCE_MANAGER | — | Invoices for customers over their credit or overdue limit |
+| ADMIN | Everything, including Operation Policies | — |
+
+Permission names, as decorators on every action:
+- `sales.view`
+- `sales.enquiry.edit`
+- `sales.quotation.edit`, `sales.quotation.release`
+- `sales.order.edit`, `sales.order.release`
+- `sales.delivery.edit`, `sales.delivery.confirm`
+- `sales.invoice.edit`, `sales.invoice.release`
+- `sales.proforma.edit`
+- `sales.cash_sale.edit`
+- `sales.debit_note.edit`
+- `sales.return.edit`, `sales.return.receive`
+- `sales.cancel_order.edit`, `sales.cancel_order.release`
+- `sales.margin.view`
+- `sales.settings.manage`
+
+Approving is not a permission. The approval request names the role or the person.
+
+**Dev user switcher:** add Aina Rahman, Lim Wei Jie, Faizal Omar, Nor Azlina and Siti Counter 1. Rosnah Ismail also acts as Finance Manager.
+
+## Sales business rules (enforce on the server, test in `*.rules.spec.ts`)
+
+1. **A step can never be bigger than the one before.** Deliver ≤ order balance (ordered − delivered − cancelled). Invoice ≤ delivered − invoiced (the policy "Invoice from delivered quantity only" is on). Return ≤ invoiced − returned, per invoice line. Messages name the limit, e.g. `Deliver now cannot be more than the balance (100).`
+2. **Credit check**, run on save and again on release, for quotation, sales order, delivery order, invoice and cash sale:
+   - **Exposure** = owed (unpaid balances of released invoices, including migrated ones, after credits, deposits and payments) + open value of the customer's other released or pending orders (not drafts, not yet invoiced) + this document.
+   - **Overdue** = balances past their due date.
+   - Each check is compared with the customer's credit limit and overdue limit. Scope is group-wide or per branch (Credit Control, S29); the customer's own setting in Master Data overrides it.
+   - **On a breach**, the policy for that document and breach type decides:
+     - *Allow, show warning:* save, with a warning.
+     - *Require approval:* save as draft; release is blocked until approved; the agent gives a reason and requests approval; cancelling or deleting the document withdraws the request.
+     - *Block:* 409 with the numbers.
+   - The check result is stored on the document as a snapshot ("Credit at save").
+   - The requester can never approve their own request.
+   - System-made documents skip the check when the policy says so, and every skip is logged.
+3. **Discount over 15% on any quotation line** needs Sales Manager approval before release. Estimated margin is shown only with `sales.margin.view` and when the policy switch is on.
+4. **Strict price list:** an invoice line priced below the customer's price list needs Sales Manager approval before release.
+5. **Allowed customers and items:**
+   - Only ACTIVE customers on quotations and later documents. Enquiries may use a prospect, and a prospect must be added in Master Data before quoting.
+   - Only sellable items that are not excluded for that branch on that date (S32).
+   - Short stock only warns, never blocks.
+6. **Quotations:**
+   - Valid-until is required to release.
+   - Released is locked.
+   - *Revise* creates revision n+1 under the same number. Only released or expired quotations can be revised, and the old revision is kept read-only.
+   - *Lost* needs a reason and closes the enquiry as Lost.
+   - The list warns 3 days before a released (not yet ordered) quotation expires.
+   - *Transfer to sales order* copies all lines or only some, at the quoted prices and tax.
+7. **Released documents are locked and never deleted.** Corrections go through a revision (quotation, sales order), a cancel order (undelivered balance), a sales return (delivered and invoiced goods) or a debit note (missed charge). Drafts may be deleted.
+8. **Cancel order:** only the undelivered balance can be cancelled. Agents draft; only `sales.cancel_order.release` releases. Releasing closes the order as DONE with `balanceCancelled`. Nothing is posted. A buy-to-order line linked to a PO shows a warning and publishes `sales.order.balance_cancelled` so Purchase can act.
+9. **Proforma:**
+   - It is a payment request only: no posting, no LHDN, no change to the order.
+   - Request is a deposit % or pay before release.
+   - While a released proforma for an order is unpaid, delivery of that order cannot be confirmed.
+   - A paid deposit is used once, on the order's next invoice: balance due = total − deposit − credits − payments.
+10. **Cash sale:**
+    - Customer defaults to C-CASH, tax mode Inclusive, no credit check.
+    - Balance must be 0 to release (received ≥ to pay; change is calculated).
+    - An own e-Invoice needs the buyer's name and TIN; otherwise the sale goes into the monthly consolidated e-Invoice, due the 7th of next month.
+    - One document records the sale, the payment and the stock out.
+11. **Debit note:** always points to exactly one released invoice, never moves stock, and raises that invoice's balance.
+12. **Sales return:** from one released invoice. A return location is required (Damaged goods or stock). Releasing lowers the invoice balance, saves a stock-in event and queues a credit note for Finance and LHDN.
+13. **Numbers:** from `NumberingService` on first save and never reused. Enquiries use EQ-{YYMM}-{####} and restart monthly. Quotation revisions keep their number.
+14. **Money:**
+    - line gross = round(qty × price, 2)
+    - line discount = round(gross × disc% / 100, 2)
+    - net = gross − discount
+    - tax (exclusive) = round(net × rate, 2)
+    - tax (inclusive) = round(net × rate / (1 + rate), 2)
+    - header totals = sums of the lines
+    - rounding adjustment to 5 sen when the policy is on, kept as its own amount
+
+## Statuses
+
+| Document | Statuses |
+|---|---|
+| Enquiry | NEW, FORWARDED, QUOTED, LOST |
+| Quotation | DRAFT, PENDING_APPROVAL, RELEASED, ORDERED, LOST, SUPERSEDED (old revision). *Expired* is shown when RELEASED and past valid-until, not stored |
+| Sales order | DRAFT, PENDING_APPROVAL, RELEASED, PARTIAL, DONE (flag `balanceCancelled` → chip "Balance cancelled"), CANCELLED |
+| Delivery order | DRAFT, CONFIRMED (chip "Delivered") |
+| Invoice | DRAFT, PENDING_APPROVAL, RELEASED. *Unpaid, Overdue* and *Paid* are worked out from balance and due date. A rejection sends it back to DRAFT with the comment |
+| Proforma | DRAFT, SENT, PAID, USED, CANCELLED |
+| Cash sale | DRAFT, RELEASED |
+| Debit note | DRAFT, RELEASED |
+| Sales return | DRAFT, RELEASED |
+| Cancel order | DRAFT, RELEASED |
+
+Like the quotation and invoice, a rejected sales order goes back to DRAFT with the approver's comment. There is no REJECTED status in Sales.
+
+## Events Sales publishes
+
+| Event | When |
+|---|---|
+| `sales.order.released` | SO released. Buy-to-order lines tell Purchase to draft a PO |
+| `sales.order.balance_cancelled` | Cancel order released |
+| `sales.shipment.requested` | DO confirmed (Inventory) |
+| `sales.invoice.released` | Finance receivable, LHDN e-Invoice |
+| `sales.return.released` | Inventory stock in, Finance and LHDN credit note |
+| `sales.debit_note.released` | Finance, LHDN |
+| `sales.cash_sale.released` | Finance receipt, Inventory stock out, LHDN (own or consolidated) |
+
+Each event is written in the same transaction as the document change, together with `sys_activity` and the `sys_doc_link` edges.
+
+## Frontend notes (Sales)
+
+- **Sidebar:**
+  - *Sales Transaction:* Enquiry, Draft Quotation (opens the quotation list on the Draft tab), Quotation, Sales Order, Delivery Order, Cancel Order.
+  - *Billing:* Proforma Invoice, Invoice, Cash Sales, Debit Note, Sales Return.
+  - *Operation Policies:* Credit Control, Document Types, Enquiry Types, Excluded Items, Email Templates.
+  - *Reports.*
+- **Routes** carry `meta: { code: 'S11', title: 'Sales order', menuGroup: 'transaction' }` like Purchase.
+- **S04 Add item** is one dialog reused by quotation, sales order, invoice and cash sale. It shows the price list price, last price sold to this customer, stock at the branch, and greys out excluded and not-for-sale items with the reason.
+- **S20 Print preview** is an HTML A4 page. The browser's own print is fine; no PDF library.
+- **S05 Reports:** build *Sales by customer*. The other six report tabs show a placeholder until asked.
+- **Banners:**
+  - Inventory, Finance and LHDN not connected: amber, as in the mockups.
+  - LHDN shows "e-Invoice: pending". Nothing is ever submitted in this phase.
+
+## Build order for phase 2 (stop after each step for the user to review)
+
+**S0 · Planning.** This section and `SALES_SEED_DATA.md`. The user confirms the mockup conflict choices.
+
+**S1 · Master data, schema and seed.**
+- Add the `mdm_customer` and price list tables, items, users and roles.
+- Add `fin_receipt_stub`.
+- Extend `NumberingService` (formats, monthly restart).
+- Add all `sal_` tables.
+- Seed `SALES_SEED_DATA.md`.
+- Run `prisma migrate dev` and `db seed`, and print row counts plus checks such as balance due 84,640.00, overdue 36,900.00 and September ordered 274,098.00.
+- Purchase seed checks must still pass.
+
+**S2 · Sales shell.**
+- Purple theme and `ModuleLayout` with the Sales menu.
+- All Sales routes, with placeholders for screens not built yet.
+- S01 Sales home with its dashboard API.
+- The launcher Sales tile opens Sales.
+- Sales users in the dev switcher.
+- *Review with the user.*
+
+**S3 · Sales orders, credit check and approvals.** S10 list, S11 form, S12 credit check failed, S02 approvals inbox, S04 add item. This is the core loop.
+
+**S4 · Enquiry and quotation.** S06, S07, S08, S09: discount approval, revise, lost, and transfer to sales order.
+
+**S5 · Delivery.** S15, S16: waiting list, confirm delivery, and the deposit hold.
+
+**S6 · Invoices.** S17, S18 (create from delivered), S19 (price and credit approval), S20 print preview.
+
+**S7 · Proforma.** S21, S22, and using the deposit on the invoice.
+
+**S8 · Fixes and counter.**
+- S13, S14 cancel order
+- S27, S28 sales return
+- S25, S26 debit note
+- S23, S24 cash sale
+
+**S9 · Flow, settings and report.** S03 document flow, S29 credit control, S30 document types, S31 enquiry types, S32 excluded items, S33 email templates, S05 sales by customer.
+
+**S10 · Link with Purchase.**
+- Purchase subscribes to `sales.order.released`: buy-to-order lines auto-draft a PO when the Purchase setting "Auto-draft a PO for buy-to-order sales lines" is on.
+- Sales subscribes to `purchase.goods.received` and `purchase.order.balance_cancelled` to show buy-to-order line status.
+- Decide with the user whether Purchase demand switches from `sal_demand_stub` to a Purchase-owned table fed by Sales events. That would change P04's numbers, because SO-0008 is not released.
+
+**Definition of done for every Sales step:** the same as Purchase. The screen matches its mockup (or the choice in the conflicts list); the seed shows the mockup numbers; rules have unit tests; backend `npm run build` and frontend `npm run type-check` and lint pass; Purchase tests still pass; a short "what to click" note; a commit with a clear message.
