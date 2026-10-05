@@ -1,4 +1,3 @@
-import type { Component } from 'vue'
 import {
   Ban,
   Banknote,
@@ -11,22 +10,9 @@ import {
   Shield,
   Undo2,
 } from '@lucide/vue'
+import type { MenuGroup } from '../common/menu'
 
-export interface MenuItem {
-  key: string
-  label: string
-  to: string
-  icon: Component
-}
-
-export interface MenuGroup {
-  key: 'transaction' | 'billing' | 'policies'
-  title: string
-  icon: Component
-  /** Where the home tile for this group goes */
-  to: string
-  items: MenuItem[]
-}
+export type { MenuGroup, MenuItem } from '../common/menu'
 
 /** Purchase sidebar (PurNavMap.html). Labels exactly as in the mockups. */
 export const PURCHASE_MENU: MenuGroup[] = [

@@ -1,7 +1,10 @@
+import type { MenuGroup } from './common/menu'
 import { purchaseApi } from './purchase/api/purchase'
-import { PURCHASE_MENU, type MenuGroup } from './purchase/menu'
+import { PURCHASE_MENU } from './purchase/menu'
+import { salesApi } from './sales/api/sales'
+import { SALES_MENU } from './sales/menu'
 
-/** What the shared layouts need to know about a module. Sales adds its entry after Purchase. */
+/** What the shared layouts need to know about a module. */
 export interface ModuleDef {
   key: 'purchase' | 'sales'
   label: string
@@ -11,7 +14,7 @@ export interface ModuleDef {
   approvalsCount: () => Promise<{ waitingForMe: number }>
 }
 
-export const MODULES: Record<'purchase', ModuleDef> = {
+export const MODULES: Record<'purchase' | 'sales', ModuleDef> = {
   purchase: {
     key: 'purchase',
     label: 'Purchase',
@@ -20,9 +23,17 @@ export const MODULES: Record<'purchase', ModuleDef> = {
     approvalsTo: '/purchase/approvals',
     approvalsCount: purchaseApi.approvalsCount,
   },
+  sales: {
+    key: 'sales',
+    label: 'Sales',
+    home: '/sales',
+    menu: SALES_MENU,
+    approvalsTo: '/sales/approvals',
+    approvalsCount: salesApi.approvalsCount,
+  },
 }
 
-/** The module a route belongs to. Only Purchase exists in phase 1, so it is also the fallback. */
+/** The module a route belongs to. Purchase is the fallback for routes outside a module. */
 export function moduleDef(key: string | undefined): ModuleDef {
   return key && key in MODULES ? MODULES[key as keyof typeof MODULES] : MODULES.purchase
 }
