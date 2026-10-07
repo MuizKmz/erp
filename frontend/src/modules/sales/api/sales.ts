@@ -6,6 +6,9 @@ import type {
   CancelOpenOrder,
   CancelOrderLines,
   CustomerCardData,
+  DebitDetail,
+  DebitInvoiceView,
+  DebitListItem,
   CustomerOption,
   DeliveryDetail,
   DeliveryInput,
@@ -160,6 +163,21 @@ export const salesReturnsApi = {
     api<ReturnDetail>(`/sales/returns/${id}`, { method: 'PATCH', body: input }),
   remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/returns/${id}`, { method: 'DELETE', query: { version } }),
   release: (id: string, version: number) => api<ReturnDetail>(`/sales/returns/${id}/release`, { method: 'POST', body: { version } }),
+}
+
+export type DebitList = ListResponse<DebitListItem> & { since: string | null; reasons: string[] }
+type DebitFields = { reason?: string; docDate?: string; note?: string }
+type ChargeLine = { itemCode: string; qty: string; unitPrice: string }
+
+export const salesDebitNotesApi = {
+  list: (query: ListQuery) => api<DebitList>('/sales/debit-notes', { query }),
+  invoices: (q: string) => api<{ items: { id: string; docNo: string; docDate: string; customerName: string; customerCode: string; total: string; isMigrated: boolean }[] }>('/sales/debit-notes/invoices', { query: { q } }),
+  invoice: (invoiceId: string) => api<DebitInvoiceView>(`/sales/debit-notes/invoice/${invoiceId}`),
+  create: (input: DebitFields & { invoiceId: string; lines: ChargeLine[] }) => api<DebitDetail>('/sales/debit-notes', { method: 'POST', body: input }),
+  get: (id: string) => api<DebitDetail>(`/sales/debit-notes/${id}`),
+  update: (id: string, input: DebitFields & { version: number; invoiceId?: string; lines?: ChargeLine[] }) => api<DebitDetail>(`/sales/debit-notes/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/debit-notes/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<DebitDetail>(`/sales/debit-notes/${id}/release`, { method: 'POST', body: { version } }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */

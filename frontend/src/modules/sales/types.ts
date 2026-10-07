@@ -982,3 +982,55 @@ export interface ReturnDetail {
   activity: ActivityItem[]
   allowedActions: ReturnAction[]
 }
+
+// ── Debit notes (S25, S26) ──────────────────────────────────────────────────
+
+export type DebitNoteAction = 'edit' | 'delete' | 'release'
+
+export interface DebitListItem {
+  id: string
+  docNo: string
+  docDate: string
+  customerName: string
+  invoiceId: string | null
+  invoiceNo: string
+  reason: string
+  summary: string | null
+  total: string
+  eInvoice: 'PENDING' | 'SUBMITTED' | 'OLD_SYSTEM' | null
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+}
+
+export interface DebitInvoiceView {
+  id: string | null
+  invoiceId: string | null
+  no: string
+  branchCode: string
+  dueDate: string | null
+  customer: { code: string; name: string }
+  balance: string
+  debitNotes: { id: string; docNo: string; docDate: string; reason: string; total: string; status: string; isMigrated: boolean }[]
+}
+
+export interface DebitDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+  reason: string
+  summary: string | null
+  note: string | null
+  dueDate: string | null
+  totals: { subtotal: string; tax: string; total: string; taxLines: { code: string; name: string; amount: string }[] }
+  invoice: DebitInvoiceView
+  lines: { id: string; lineNo: number; itemCode: string; itemName: string; uomCode: string; taxCode: string; taxName: string; taxRate: string; qty: string; unitPrice: string; amount: string; taxAmount: string }[]
+  reasons: string[]
+  releasedAt: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: DebitNoteAction[]
+}

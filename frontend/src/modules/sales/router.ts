@@ -21,6 +21,8 @@ const CancelOrderList = () => import('./views/CancelOrderListView.vue')
 const CancelOrderForm = () => import('./views/CancelOrderFormView.vue')
 const ReturnList = () => import('./views/ReturnListView.vue')
 const ReturnForm = () => import('./views/ReturnFormView.vue')
+const DebitNoteList = () => import('./views/DebitNoteListView.vue')
+const DebitNoteForm = () => import('./views/DebitNoteFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -66,8 +68,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'S19', path: 'invoices/:id', name: 'sales-invoice', title: 'Invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoiceForm.html', parent: doc('Invoice', '/sales/invoices'), component: InvoiceForm },
   { code: 'S23', path: 'cash-sales', name: 'sales-cash-sales', title: 'Cash Sales', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSaleList.html' },
   { code: 'S24', path: 'cash-sales/:id', name: 'sales-cash-sale', title: 'Cash sale', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSale.html', parent: doc('Cash Sales', '/sales/cash-sales') },
-  { code: 'S25', path: 'debit-notes', name: 'sales-debit-notes', title: 'Debit Note', group: 'billing', item: 'debit-notes', step: 8, mockup: 'DebitNoteList.html' },
-  { code: 'S26', path: 'debit-notes/:id', name: 'sales-debit-note', title: 'Debit note', group: 'billing', item: 'debit-notes', step: 8, mockup: 'DebitNote.html', parent: doc('Debit Note', '/sales/debit-notes') },
+  { code: 'S25', path: 'debit-notes', name: 'sales-debit-notes', title: 'Debit Note', group: 'billing', item: 'debit-notes', step: 8, mockup: 'DebitNoteList.html', component: DebitNoteList },
+  { code: 'S26', path: 'debit-notes/:id', name: 'sales-debit-note', title: 'Debit note', group: 'billing', item: 'debit-notes', step: 8, mockup: 'DebitNote.html', parent: doc('Debit Note', '/sales/debit-notes'), component: DebitNoteForm },
   { code: 'S27', path: 'returns', name: 'sales-returns', title: 'Sales Return', group: 'billing', item: 'returns', step: 8, mockup: 'SalesReturnList.html', component: ReturnList },
   { code: 'S28', path: 'returns/:id', name: 'sales-return', title: 'Sales return', group: 'billing', item: 'returns', step: 8, mockup: 'SalesReturn.html', parent: doc('Sales Return', '/sales/returns'), component: ReturnForm },
   { code: 'S29', path: 'settings/credit-control', name: 'sales-credit-control', title: 'Credit Control', group: 'policies', item: 'credit-control', step: 9, mockup: 'Policies.html' },
