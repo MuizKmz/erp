@@ -9,7 +9,10 @@ import type {
   CancelListItem,
   CancelOpenOrder,
   CancelOrderLines,
+  CreditControlData,
+  CreditRuleRow,
   CustomerCardData,
+  DocumentTypesData,
   DebitDetail,
   DebitInvoiceView,
   DebitListItem,
@@ -195,6 +198,16 @@ export const salesCashSalesApi = {
   update: (id: string, input: CashSaleInput & { version: number }) => api<CashSaleDetail>(`/sales/cash-sales/${id}`, { method: 'PATCH', body: input }),
   remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/cash-sales/${id}`, { method: 'DELETE', query: { version } }),
   release: (id: string, version: number) => api<CashSaleDetail>(`/sales/cash-sales/${id}/release`, { method: 'POST', body: { version } }),
+}
+
+export const salesSettingsApi = {
+  creditControl: () => api<CreditControlData>('/sales/settings/credit-control'),
+  saveCreditControl: (input: { creditScope: 'GROUP' | 'BRANCH'; rules: CreditRuleRow[] } & CreditControlData['toggles']) =>
+    api<CreditControlData>('/sales/settings/credit-control', { method: 'PUT', body: input }),
+  documentTypes: () => api<DocumentTypesData>('/sales/settings/document-types'),
+  saveDocumentTypes: (sequences: { docType: string; resetEvery: 'NEVER' | 'MONTH'; perBranch: boolean }[]) =>
+    api<DocumentTypesData>('/sales/settings/document-types', { method: 'PUT', body: { sequences } }),
+  addOrderType: (input: { name: string; meaning: string; isDefault?: boolean }) => api<DocumentTypesData>('/sales/settings/order-types', { method: 'POST', body: input }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */

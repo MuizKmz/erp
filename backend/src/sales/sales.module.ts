@@ -10,6 +10,8 @@ import { SalesCancelOrdersController } from './cancel-orders/cancel-orders.contr
 import { SalesReturnsController } from './returns/returns.controller';
 import { SalesDebitNotesController } from './debit-notes/debit-notes.controller';
 import { SalesCashSalesController } from './cash-sales/cash-sales.controller';
+import { SalesSettingsController } from './settings/settings.controller';
+import { SalesPoliciesService } from './settings/policies.service';
 import { CashSalesQuery } from './cash-sales/cash-sales.query';
 import { CashSalesService } from './cash-sales/cash-sales.service';
 import { DebitNotesQuery } from './debit-notes/debit-notes.query';
@@ -49,7 +51,7 @@ import { SalesMailService } from './shared/sales-mail.service';
  * MasterDataPort and cross-module effects go out as outbox events.
  */
 @Module({
-  controllers: [SalesDashboardController, SalesApprovalsController, SalesOrdersController, SalesLookupsController, SalesQuotationsController, SalesEnquiriesController, SalesDeliveriesController, SalesInvoicesController, SalesProformasController, SalesCancelOrdersController, SalesReturnsController, SalesDebitNotesController, SalesCashSalesController],
+  controllers: [SalesDashboardController, SalesApprovalsController, SalesOrdersController, SalesLookupsController, SalesQuotationsController, SalesEnquiriesController, SalesDeliveriesController, SalesInvoicesController, SalesProformasController, SalesCancelOrdersController, SalesReturnsController, SalesDebitNotesController, SalesCashSalesController, SalesSettingsController],
   providers: [
     SalesDashboardService,
     SalesApprovalsInboxService,
@@ -80,6 +82,7 @@ import { SalesMailService } from './shared/sales-mail.service';
     DebitNotesService,
     CashSalesQuery,
     CashSalesService,
+    SalesPoliciesService,
   ],
 })
 export class SalesModule implements OnModuleInit {

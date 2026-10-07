@@ -1123,3 +1123,39 @@ export interface SalesOrderFlow {
   stillOpen: { qty: string; uomCode: string; wantedBy: string | null; delivered: boolean; canDeliver: boolean; canCancel: boolean } | null
   waiting: { finance: number; eInvoice: number; inventory: number }
 }
+
+// ── Operation Policies (S29–S33) ────────────────────────────────────────────
+
+export type CreditActionCode = 'ALLOW' | 'WARN' | 'APPROVAL' | 'BLOCK'
+export type PolicyToggleKey = 'stockCheck' | 'invoiceFromDelivered' | 'strictPriceList' | 'roundTo5Sen' | 'showMargin' | 'skipCreditForSystem'
+
+export interface CreditRuleRow {
+  docType: 'QUOTATION' | 'SALES_ORDER' | 'DELIVERY' | 'INVOICE' | 'CASH_SALE'
+  overCreditAction: CreditActionCode
+  overOverdueAction: CreditActionCode
+  approverRole: string | null
+}
+
+export interface SettingChange {
+  id: string
+  at: string
+  userName: string
+  message: string
+}
+
+export interface CreditControlData {
+  creditScope: 'GROUP' | 'BRANCH'
+  toggles: Record<PolicyToggleKey, boolean>
+  toggleLabels: Record<PolicyToggleKey, string>
+  rules: CreditRuleRow[]
+  history: SettingChange[]
+  lastChange: { at: string; userName: string } | null
+  saved?: string[]
+}
+
+export interface DocumentTypesData {
+  sequences: { docType: string; name: string; format: string; nextNumber: string | null; resetEvery: 'NEVER' | 'MONTH'; perBranch: boolean; printTemplate: string | null }[]
+  orderTypes: { code: string; name: string; meaning: string; isDefault: boolean; isActive: boolean }[]
+  history: SettingChange[]
+  saved?: string[]
+}

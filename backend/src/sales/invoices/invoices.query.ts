@@ -78,13 +78,16 @@ export class InvoicesQuery {
   }
 
   /**
-   * Which approvals the invoice already has: an approved request covers the price when the Sales Manager decided a
-   * step, and the credit when the Finance Manager (or the credit rule's approver) did. Cleared when the invoice changes.
+   * Which approvals the invoice does not need any more: an approved request covers the price when the Sales Manager
+   * decided a step, and the credit when the Finance Manager (or the credit rule's approver) did. Cleared when the
+   * invoice changes. With the policy "Strict price list" off, the price never needs the Sales Manager.
    */
   async approvedRoles(tenantId: string, inv: InvoiceWithLines): Promise<Set<string>> {
-    if (!inv.approvedAt) return new Set();
+    const setting = await this.prisma.salSetting.findUnique({ where: { tenantId }, select: { strictPriceList: true } });
+    const waived = setting && !setting.strictPriceList ? [SAL_ROLE.MANAGER] : [];
+    if (!inv.approvedAt) return new Set(waived);
     const requests = await this.approvals.listForEntity(tenantId, SAL_ENTITY.INVOICE, inv.id);
-    return new Set(requests.filter((r) => r.status === 'APPROVED').flatMap((r) => r.steps.map((s) => s.approverRole)));
+    return new Set([...waived, ...requests.filter((r) => r.status === 'APPROVED').flatMap((r) => r.steps.map((s) => s.approverRole))]);
   }
 
   /**
