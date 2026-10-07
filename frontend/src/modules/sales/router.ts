@@ -28,6 +28,9 @@ const CashSaleList = () => import('./views/CashSaleListView.vue')
 const CashSaleForm = () => import('./views/CashSaleFormView.vue')
 const CreditControl = () => import('./views/CreditControlView.vue')
 const DocumentTypes = () => import('./views/DocumentTypesView.vue')
+const EnquiryTypes = () => import('./views/EnquiryTypesView.vue')
+const ExcludedItems = () => import('./views/ExcludedItemsView.vue')
+const EmailTemplates = () => import('./views/EmailTemplatesView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -79,9 +82,9 @@ const SCREENS: ScreenDef[] = [
   { code: 'S28', path: 'returns/:id', name: 'sales-return', title: 'Sales return', group: 'billing', item: 'returns', step: 8, mockup: 'SalesReturn.html', parent: doc('Sales Return', '/sales/returns'), component: ReturnForm },
   { code: 'S29', path: 'settings/credit-control', name: 'sales-credit-control', title: 'Credit Control', group: 'policies', item: 'credit-control', step: 9, mockup: 'Policies.html', component: CreditControl },
   { code: 'S30', path: 'settings/document-types', name: 'sales-document-types', title: 'Document Types', group: 'policies', item: 'document-types', step: 9, mockup: 'DocTypes.html', component: DocumentTypes },
-  { code: 'S31', path: 'settings/enquiry-types', name: 'sales-enquiry-types', title: 'Enquiry Types', group: 'policies', item: 'enquiry-types', step: 9, mockup: 'EnquiryTypes.html' },
-  { code: 'S32', path: 'settings/excluded-items', name: 'sales-excluded-items', title: 'Excluded Items', group: 'policies', item: 'excluded-items', step: 9, mockup: 'ExcludedItems.html' },
-  { code: 'S33', path: 'settings/email-templates', name: 'sales-email-templates', title: 'Email Templates', group: 'policies', item: 'email-templates', step: 9, mockup: 'EmailTemplates.html' },
+  { code: 'S31', path: 'settings/enquiry-types', name: 'sales-enquiry-types', title: 'Enquiry Types', group: 'policies', item: 'enquiry-types', step: 9, mockup: 'EnquiryTypes.html', component: EnquiryTypes },
+  { code: 'S32', path: 'settings/excluded-items', name: 'sales-excluded-items', title: 'Excluded Items', group: 'policies', item: 'excluded-items', step: 9, mockup: 'ExcludedItems.html', component: ExcludedItems },
+  { code: 'S33', path: 'settings/email-templates', name: 'sales-email-templates', title: 'Email Templates', group: 'policies', item: 'email-templates', step: 9, mockup: 'EmailTemplates.html', component: EmailTemplates },
   ...SALES_REPORTS.map(
     (r): ScreenDef => ({
       code: 'S05',

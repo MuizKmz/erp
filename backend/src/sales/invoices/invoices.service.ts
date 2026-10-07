@@ -15,7 +15,7 @@ import { CreditService, type CreditOutcome } from '../shared/credit.service';
 import { DepositsService } from '../shared/deposits.service';
 import { depositToUse } from '../proformas/proforma.rules';
 import { SalesDocumentLines } from '../shared/document-lines.service';
-import { SalesMailService } from '../shared/sales-mail.service';
+import { mailDate, SalesMailService } from '../shared/sales-mail.service';
 import { CREDIT_DOC, SAL_DOC_TYPE, SAL_ENTITY, SAL_EVENT, SAL_LINK, SAL_ROLE } from '../shared/sales.constants';
 import { saleLineTotals, saleTotals } from '../shared/totals.rules';
 import type { CreateDirectInvoiceDto, CreateFromOrderDto, InvoiceApprovalDto, UpdateInvoiceDto } from './dto/invoice.dto';
@@ -311,7 +311,7 @@ export class InvoicesService {
         templateKey: 'INVOICE', entityType: SAL_ENTITY.INVOICE, entityId: inv.id, docNo: inv.docNo, to: customer.email!, agentEmail: agent?.email,
         vars: {
           'contact.name': inv.contactName ?? customer.contactName ?? customer.name, 'document.number': inv.docNo, 'document.total': toRmText(inv.total),
-          'document.due_date': inv.dueDate ? iso(inv.dueDate) : '', 'document.customer_ref': inv.customerPoRef ?? '—',
+          'document.due_date': mailDate(inv.dueDate), 'document.customer_ref': inv.customerPoRef ?? '—',
         },
       });
       await tx.salInvoice.update({ where: { id: inv.id }, data: { emailedAt: this.clock.now() } });

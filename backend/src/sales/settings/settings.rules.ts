@@ -100,3 +100,31 @@ export function codeFromName(name: string, taken: string[]): string {
   for (let i = 2; i < 100; i++) if (!taken.includes(`${base}${i}`)) return `${base}${i}`;
   return `${base}${Date.now() % 100}`;
 }
+
+// ── Excluded items (S32) ─────────────────────────────────────────────────────
+
+export const EXCLUSION_REASONS = ['Supplier recall', 'Not offered in branch', 'Seasonal', 'Pricing under review', 'Quality issue', 'Other'] as const;
+
+export type ExclusionState = 'ACTIVE' | 'SCHEDULED' | 'ENDED';
+
+/**
+ * An exclusion is active from its start date until its end date (or until removed). One that starts later is
+ * scheduled; it already shows in the list so nobody adds it twice.
+ */
+export function exclusionState(e: { fromDate: string; untilDate: string | null; removed: boolean }, today: string): ExclusionState {
+  if (e.removed || (e.untilDate !== null && e.untilDate < today)) return 'ENDED';
+  if (e.fromDate > today) return 'SCHEDULED';
+  return 'ACTIVE';
+}
+
+export function exclusionProblems(e: { fromDate: string; untilDate: string | null; overlaps: boolean }): { field: string; message: string }[] {
+  const problems: { field: string; message: string }[] = [];
+  if (e.untilDate && e.untilDate < e.fromDate) problems.push({ field: 'untilDate', message: 'Until cannot be before From.' });
+  if (e.overlaps) problems.push({ field: 'itemCode', message: 'This item is already excluded in that branch for those dates.' });
+  return problems;
+}
+
+/** Template key from its name: "Payment thank-you" → "PAYMENT_THANK_YOU". */
+export function templateKey(name: string): string {
+  return name.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'TEMPLATE';
+}

@@ -1,4 +1,15 @@
-import { codeFromName, creditChanges, normaliseRule, numberingChanges, ruleProblems, type CreditRuleView, type ToggleKey } from './settings.rules';
+import {
+  codeFromName,
+  creditChanges,
+  exclusionProblems,
+  exclusionState,
+  normaliseRule,
+  numberingChanges,
+  ruleProblems,
+  templateKey,
+  type CreditRuleView,
+  type ToggleKey,
+} from './settings.rules';
 
 const toggles: Record<ToggleKey, boolean> = { stockCheck: true, invoiceFromDelivered: true, strictPriceList: true, roundTo5Sen: true, showMargin: true, skipCreditForSystem: true };
 const invoice: CreditRuleView = { docType: 'INVOICE', overCreditAction: 'BLOCK', overOverdueAction: 'APPROVAL', approverRole: 'FINANCE_MANAGER' };
@@ -36,5 +47,24 @@ describe('operation policy rules', () => {
   it('makes a unique short code from a name', () => {
     expect(codeFromName('Showroom display', [])).toBe('SHOWROOM');
     expect(codeFromName('Showroom', ['SHOWROOM'])).toBe('SHOWROOM2');
+  });
+});
+
+describe('operation policy rules · exclusions and templates', () => {
+  const today = '2026-09-29';
+  it('works out whether an exclusion is active, scheduled or ended (S32)', () => {
+    expect(exclusionState({ fromDate: '2026-09-15', untilDate: null, removed: false }, today)).toBe('ACTIVE');
+    expect(exclusionState({ fromDate: '2026-11-01', untilDate: '2027-02-28', removed: false }, today)).toBe('SCHEDULED');
+    expect(exclusionState({ fromDate: '2026-06-01', untilDate: '2026-08-31', removed: false }, today)).toBe('ENDED');
+    expect(exclusionState({ fromDate: '2026-09-15', untilDate: null, removed: true }, today)).toBe('ENDED');
+  });
+
+  it('checks the dates and double exclusions', () => {
+    expect(exclusionProblems({ fromDate: '2026-10-01', untilDate: '2026-09-01', overlaps: false })[0]!.message).toBe('Until cannot be before From.');
+    expect(exclusionProblems({ fromDate: '2026-10-01', untilDate: null, overlaps: true })[0]!.field).toBe('itemCode');
+  });
+
+  it('makes a template key from a name', () => {
+    expect(templateKey('Payment thank-you')).toBe('PAYMENT_THANK_YOU');
   });
 });

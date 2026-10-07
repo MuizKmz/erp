@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator';
-import { APPROVER_ROLES, CREDIT_ACTIONS, CREDIT_DOCS } from '../settings.rules';
+import { ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, Matches, MaxLength, MinLength, ValidateNested } from 'class-validator';
+import { APPROVER_ROLES, CREDIT_ACTIONS, CREDIT_DOCS, EXCLUSION_REASONS } from '../settings.rules';
 
 export class CreditRuleDto {
   @IsIn(CREDIT_DOCS)
@@ -68,4 +68,130 @@ export class AddOrderTypeDto {
   @IsOptional()
   @IsBoolean()
   isDefault?: boolean;
+}
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+export class EnquiryDetailDto {
+  @IsString()
+  @MinLength(1, { message: 'Give each extra detail a name.' })
+  @MaxLength(60)
+  label!: string;
+
+  @IsIn(['TEXT', 'CHOICE', 'FILE', 'NUMBER', 'DATE'])
+  kind!: 'TEXT' | 'CHOICE' | 'FILE' | 'NUMBER' | 'DATE';
+
+  @IsBoolean()
+  required!: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  choices?: string[];
+}
+
+export class EnquiryTypeDto {
+  @IsString()
+  @MinLength(2, { message: 'Give the type a name.' })
+  @MaxLength(60)
+  name!: string;
+
+  @IsIn(['CUSTOMER', 'ROUND_ROBIN'])
+  defaultAgentRule!: 'CUSTOMER' | 'ROUND_ROBIN';
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => EnquiryDetailDto)
+  details!: EnquiryDetailDto[];
+
+  @IsBoolean()
+  isActive!: boolean;
+}
+
+export class EnquirySourceDto {
+  @IsString()
+  @MinLength(2, { message: 'Give the source a name.' })
+  @MaxLength(60)
+  name!: string;
+}
+
+export class ExclusionQueryDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  q?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  branch?: string;
+
+  @IsOptional()
+  @IsIn(['active', 'ended', 'all'])
+  state?: string;
+}
+
+export class AddExclusionDto {
+  @IsString()
+  @MinLength(1, { message: 'Pick an item from Master Data.' })
+  @MaxLength(30)
+  itemCode!: string;
+
+  @IsString()
+  @MinLength(1, { message: 'Pick a branch.' })
+  @MaxLength(10)
+  branchCode!: string;
+
+  @IsIn(EXCLUSION_REASONS, { message: 'Choose a reason.' })
+  reason!: string;
+
+  @IsOptional()
+  @Matches(DATE_ONLY, { message: 'From must look like 2026-09-29.' })
+  fromDate?: string;
+
+  @IsOptional()
+  @Matches(DATE_ONLY, { message: 'Until must look like 2026-12-31.' })
+  untilDate?: string;
+}
+
+export class SaveTemplateDto {
+  @IsString()
+  @MinLength(2, { message: 'Write a subject.' })
+  @MaxLength(300)
+  subject!: string;
+
+  @IsString()
+  @MinLength(2, { message: 'Write the message.' })
+  @MaxLength(5000)
+  body!: string;
+
+  @IsBoolean()
+  attachPdf!: boolean;
+
+  @IsBoolean()
+  copyAgent!: boolean;
+}
+
+export class PreviewTemplateDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  subject?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  body?: string;
+}
+
+export class NewTemplateDto {
+  @IsString()
+  @MinLength(2, { message: 'Give the template a name.' })
+  @MaxLength(100)
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  description?: string;
 }

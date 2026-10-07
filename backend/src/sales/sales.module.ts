@@ -12,6 +12,7 @@ import { SalesDebitNotesController } from './debit-notes/debit-notes.controller'
 import { SalesCashSalesController } from './cash-sales/cash-sales.controller';
 import { SalesSettingsController } from './settings/settings.controller';
 import { SalesPoliciesService } from './settings/policies.service';
+import { SalesListsService } from './settings/lists.service';
 import { CashSalesQuery } from './cash-sales/cash-sales.query';
 import { CashSalesService } from './cash-sales/cash-sales.service';
 import { DebitNotesQuery } from './debit-notes/debit-notes.query';
@@ -83,6 +84,7 @@ import { SalesMailService } from './shared/sales-mail.service';
     CashSalesQuery,
     CashSalesService,
     SalesPoliciesService,
+    SalesListsService,
   ],
 })
 export class SalesModule implements OnModuleInit {

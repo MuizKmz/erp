@@ -9,7 +9,7 @@ import { BusinessRuleError, StaleVersionError, ValidationFailedError } from '../
 import { NumberingService } from '../../platform/numbering/numbering.service';
 import { PrismaService, type Tx } from '../../platform/prisma/prisma.service';
 import { DepositsService } from '../shared/deposits.service';
-import { SalesMailService } from '../shared/sales-mail.service';
+import { mailDate, SalesMailService } from '../shared/sales-mail.service';
 import { SAL_DOC_TYPE, SAL_ENTITY, SAL_LINK } from '../shared/sales.constants';
 import type { CreateProformaDto, UpdateProformaDto } from './dto/proforma.dto';
 import { depositAmount, PF_LOCKED_MESSAGE, requestLabel, requestProblem, type PfRequestKind, type PfStatus, type ProformaAction } from './proforma.rules';
@@ -132,7 +132,7 @@ export class ProformasService {
     await this.prisma.$transaction(async (tx) => {
       await this.mail.send(tx, ctx, {
         templateKey: 'PROFORMA', entityType: SAL_ENTITY.PROFORMA, entityId: p.id, docNo: p.docNo, to: customer.email!, agentEmail: agent?.email,
-        vars: { 'contact.name': p.attention ?? customer.contactName ?? customer.name, 'document.number': p.docNo, 'document.total': toRmText(p.amount), 'document.due_date': p.payBy ? iso(p.payBy) : '' },
+        vars: { 'contact.name': p.attention ?? customer.contactName ?? customer.name, 'document.number': p.docNo, 'document.total': toRmText(p.amount), 'document.due_date': mailDate(p.payBy) },
       });
       await this.log(tx, ctx, p.id, p.docNo, 'emailed', `Emailed to ${customer.email}`);
     });

@@ -13,6 +13,11 @@ import type {
   CreditRuleRow,
   CustomerCardData,
   DocumentTypesData,
+  EmailPreview,
+  EmailTemplateRow,
+  EnquiryTypesData,
+  EnquiryTypeSetting,
+  ExclusionsData,
   DebitDetail,
   DebitInvoiceView,
   DebitListItem,
@@ -208,6 +213,24 @@ export const salesSettingsApi = {
   saveDocumentTypes: (sequences: { docType: string; resetEvery: 'NEVER' | 'MONTH'; perBranch: boolean }[]) =>
     api<DocumentTypesData>('/sales/settings/document-types', { method: 'PUT', body: { sequences } }),
   addOrderType: (input: { name: string; meaning: string; isDefault?: boolean }) => api<DocumentTypesData>('/sales/settings/order-types', { method: 'POST', body: input }),
+  enquiryTypes: () => api<EnquiryTypesData>('/sales/settings/enquiry-types'),
+  saveEnquiryType: (code: string | null, input: Pick<EnquiryTypeSetting, 'name' | 'details' | 'defaultAgentRule' | 'isActive'>) =>
+    code
+      ? api<EnquiryTypesData>(`/sales/settings/enquiry-types/${encodeURIComponent(code)}`, { method: 'PUT', body: input })
+      : api<EnquiryTypesData>('/sales/settings/enquiry-types', { method: 'POST', body: input }),
+  addSource: (name: string) => api<EnquiryTypesData>('/sales/settings/enquiry-sources', { method: 'POST', body: { name } }),
+  exclusions: (query: { q?: string; branch?: string; state?: string }) => api<ExclusionsData>('/sales/settings/excluded-items', { query }),
+  addExclusion: (input: { itemCode: string; branchCode: string; reason: string; fromDate?: string; untilDate?: string }) =>
+    api<ExclusionsData>('/sales/settings/excluded-items', { method: 'POST', body: input }),
+  removeExclusion: (id: string) => api<ExclusionsData>(`/sales/settings/excluded-items/${id}/remove`, { method: 'POST' }),
+  templates: () => api<{ items: EmailTemplateRow[]; variables: string[] }>('/sales/settings/email-templates'),
+  saveTemplate: (key: string, input: { subject: string; body: string; attachPdf: boolean; copyAgent: boolean }) =>
+    api<{ items: EmailTemplateRow[]; variables: string[] }>(`/sales/settings/email-templates/${key}`, { method: 'PUT', body: input }),
+  newTemplate: (input: { name: string; description?: string }) =>
+    api<{ items: EmailTemplateRow[]; variables: string[]; key: string }>('/sales/settings/email-templates', { method: 'POST', body: input }),
+  previewTemplate: (key: string, draft: { subject?: string; body?: string }) =>
+    api<EmailPreview>(`/sales/settings/email-templates/${key}/preview`, { method: 'POST', body: draft, silent: true }),
+  sendTest: (key: string) => api<{ sentTo: string }>(`/sales/settings/email-templates/${key}/test`, { method: 'POST' }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */

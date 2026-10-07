@@ -6,6 +6,11 @@ import type { Tx } from '../../platform/prisma/prisma.service';
 
 const VARIABLE = /\{([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*)\}/g;
 
+/** A date as it reads in an email: 21 Oct 2026. */
+export function mailDate(d: Date | null | undefined): string {
+  return d ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '';
+}
+
 /** Fills {document.number}-style fields. Unknown fields stay as written, so a typo shows in the preview. */
 export function renderSalesTemplate(text: string, vars: Record<string, string | null | undefined>): string {
   return text.replace(VARIABLE, (whole, name: string) => vars[name] ?? whole);

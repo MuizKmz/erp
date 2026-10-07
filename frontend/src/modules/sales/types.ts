@@ -1159,3 +1159,58 @@ export interface DocumentTypesData {
   history: SettingChange[]
   saved?: string[]
 }
+
+export interface EnquiryTypeSetting {
+  code: string
+  name: string
+  details: EnquiryTypeDetail[]
+  defaultAgentRule: 'CUSTOMER' | 'ROUND_ROBIN'
+  isActive: boolean
+  usedThisMonth: number
+}
+
+export interface EnquiryTypesData {
+  types: EnquiryTypeSetting[]
+  sources: { code: string; name: string; isActive: boolean; thisMonth: number; becameQuotations: number }[]
+}
+
+export interface ExclusionRow {
+  id: string
+  itemCode: string
+  itemName: string
+  branchCode: string
+  branchName: string
+  reason: string
+  fromDate: string
+  untilDate: string | null
+  addedByName: string
+  state: 'ACTIVE' | 'SCHEDULED' | 'ENDED'
+  removedAt: string | null
+}
+
+export interface ExclusionsData {
+  items: ExclusionRow[]
+  counts: { active: number; endedThisYear: number }
+  reasons: string[]
+  branches: { code: string; name: string }[]
+}
+
+export interface EmailTemplateRow {
+  key: string
+  name: string
+  description: string
+  subject: string
+  body: string
+  attachPdf: boolean
+  copyAgent: boolean
+  isActive: boolean
+}
+
+export interface EmailPreview {
+  docNo: string | null
+  to: string | null
+  cc: string | null
+  subject: string
+  body: string
+  attachment: string | null
+}
