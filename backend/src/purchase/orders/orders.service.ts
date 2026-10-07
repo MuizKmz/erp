@@ -27,10 +27,15 @@ const dateText = (d: Date | null) => {
 
 /** Where a new draft PO comes from (shown as "Source" on the list and in the subtitle). */
 export interface DraftSource {
-  sourceType: 'BUYER' | 'REQUEST' | 'RFQ';
+  sourceType: 'BUYER' | 'REQUEST' | 'RFQ' | 'SALES_ORDER';
   sourceNo?: string;
   requestId?: string;
   rfqId?: string;
+  /** Buy-to-order: the sales order and customer, kept on the header and on every line. */
+  salesOrderNo?: string;
+  customerName?: string;
+  /** Who the PO belongs to when the system drafts it (defaults to the acting user). */
+  buyer?: { code: string; name: string };
   /** First activity line, e.g. "Created from PRQ-0006 by Lim Mei Ying" */
   message?: string;
 }
@@ -97,8 +102,8 @@ export class OrdersService {
         supplierId: header.supplier.id,
         supplierCode: header.supplier.code,
         supplierName: header.supplier.name,
-        buyerCode: ctx.user.code,
-        buyerName: ctx.user.name,
+        buyerCode: source.buyer?.code ?? ctx.user.code,
+        buyerName: source.buyer?.name ?? ctx.user.name,
         warehouseCode: header.warehouse.code,
         warehouseName: header.warehouse.name,
         expectedDate: dto.expectedDate ? day(dto.expectedDate) : null,
@@ -111,12 +116,14 @@ export class OrdersService {
         sourceNo: source.sourceNo ?? null,
         requestId: source.requestId ?? null,
         rfqId: source.rfqId ?? null,
+        salesOrderNo: source.salesOrderNo ?? null,
+        customerName: source.customerName ?? null,
         subtotal: totals.subtotal,
         taxTotal: totals.taxTotal,
         total: totals.total,
         createdBy: ctx.user.code,
         updatedBy: ctx.user.code,
-        lines: { create: lines.map((l, i) => ({ ...l, tenantId: ctx.tenantId, lineNo: i + 1 })) },
+        lines: { create: lines.map((l, i) => ({ ...l, tenantId: ctx.tenantId, lineNo: i + 1, salesOrderNo: source.salesOrderNo ?? null })) },
       },
     });
     await this.activity.log(tx, ctx, {

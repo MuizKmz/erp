@@ -36,6 +36,7 @@ import { RequestsService } from './requests/requests.service';
 import { RfqsController } from './rfqs/rfqs.controller';
 import { RfqsQuery } from './rfqs/rfqs.query';
 import { RfqsService } from './rfqs/rfqs.service';
+import { BuyToOrderListener } from './sales-link/buy-to-order.listener';
 import { LinkedDocsService } from './shared/linked-docs.service';
 import { PurchaseMailService } from './shared/purchase-mail.service';
 import { PurchaseSettingsService } from './shared/purchase-settings.service';
@@ -78,6 +79,7 @@ import { SettingsService } from './settings/settings.service';
     CashPurchasesService,
     OrderFlowQuery,
     SettingsService,
+    BuyToOrderListener,
   ],
 })
 export class PurchaseModule implements OnModuleInit {

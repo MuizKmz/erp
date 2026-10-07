@@ -150,6 +150,13 @@ export interface OrderLine {
   taxAmount: string
   isBuyToOrder: boolean
   purchaseOrderNo: string | null
+  purchase: BuyToOrderStatus | null
+}
+
+/** Where a buy-to-order line stands with Purchase (from Purchase's events). */
+export interface BuyToOrderStatus {
+  state: 'WAITING_PO' | 'NO_PO' | 'ON_ORDER' | 'PART_RECEIVED' | 'RECEIVED' | 'PO_CANCELLED'
+  label: string
 }
 
 export interface SaleTotals {
@@ -519,6 +526,7 @@ export interface DeliveryOverview {
     onHand: string
     isBuyToOrder: boolean
     purchaseOrderNo: string | null
+    purchase: BuyToOrderStatus | null
     state: WaitingState
     proforma: { docNo: string; amount: string } | null
     draft: { id: string; docNo: string } | null

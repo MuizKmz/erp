@@ -14,6 +14,7 @@ import * as path from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { seedBuyingDocuments } from './seed/documents-buy';
 import { seedCorrectionDocuments } from './seed/documents-fix';
+import { markSeededEventsHandled } from './seed/event-history';
 import { seedReceivingDocuments } from './seed/documents-receive';
 import { seedMasterData } from './seed/master-data';
 import { seedSalesAttachments, seedSalesDocuments } from './seed/sales-documents';
@@ -178,6 +179,7 @@ async function main(): Promise<void> {
   await seedSalesSettings(ctx);
   await seedSalesDocuments(ctx);
   await seedSalesAttachments(ctx, uploadRoot);
+  await markSeededEventsHandled(ctx);
 
   await printCounts();
 

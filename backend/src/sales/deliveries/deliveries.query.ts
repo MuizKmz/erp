@@ -12,6 +12,7 @@ import { dec, toMoney, toQty } from '../../platform/http/decimal';
 import { NotFoundError } from '../../platform/http/errors';
 import { buildStatusCounts, dateRange, pageArgs, parseSort, statusFromKey, toListResponse, toOrderBy } from '../../platform/http/list';
 import { PrismaService } from '../../platform/prisma/prisma.service';
+import { buyToOrderStatus, purchaseReady } from '../buy-to-order/buy-to-order.rules';
 import { SALES_PERMISSIONS as P } from '../sales.permissions';
 import { CreditService, type CreditOutcome } from '../shared/credit.service';
 import { DepositsService } from '../shared/deposits.service';
@@ -156,7 +157,11 @@ export class DeliveriesQuery {
             onHand: toQty(onHand),
             isBuyToOrder: l.isBuyToOrder,
             purchaseOrderNo: l.purchaseOrderNo,
-            state: waitingState({ isBuyToOrder: l.isBuyToOrder, isStock: items.find((i) => i.code === l.itemCode)?.type === 'STOCK', balance, onHand, unpaidProformaNo: proforma?.docNo ?? null }),
+            purchase: buyToOrderStatus(l),
+            state: waitingState({
+              isBuyToOrder: l.isBuyToOrder, isStock: items.find((i) => i.code === l.itemCode)?.type === 'STOCK', balance, onHand,
+              unpaidProformaNo: proforma?.docNo ?? null, purchaseReady: purchaseReady(l),
+            }),
             proforma,
             draft: draft ? { id: draft.id, docNo: draft.docNo } : null,
             balanceDec: balance,

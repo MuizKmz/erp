@@ -540,7 +540,8 @@ const belowList = (l: EditLine) => Boolean(l.item.listPrice && l.unitPrice && Nu
                   <tr v-for="l in order?.lines ?? []" :key="l.id">
                     <td>
                       <div class="font-bold whitespace-nowrap">{{ l.itemCode }}</div>
-                      <div class="text-xs text-erp-muted">{{ l.itemName }}<template v-if="l.isBuyToOrder"> · buy to order<template v-if="l.purchaseOrderNo"> · {{ l.purchaseOrderNo }}</template></template></div>
+                      <div class="text-xs text-erp-muted">{{ l.itemName }}<template v-if="l.isBuyToOrder"> · buy to order</template></div>
+                      <div v-if="l.purchase" class="text-xs" :class="l.purchase.state === 'NO_PO' || l.purchase.state === 'PO_CANCELLED' ? 'text-attention' : l.purchase.state === 'RECEIVED' ? 'text-chip-done-text' : 'text-erp-muted'">{{ l.purchase.label }}</div>
                     </td>
                     <td class="erp-num">{{ formatQty(l.orderedQty) }} {{ l.uomCode }}</td>
                     <td class="num">{{ formatQty(l.deliveredQty) }}</td>

@@ -7,6 +7,7 @@ import type { Prisma } from '@prisma/client';
 import { dec, toMoney } from '../../src/platform/http/decimal';
 import { formatDocNo, formatPattern, nextInSequence } from '../../src/platform/numbering/numbering.rules';
 import { invoiceBalance, saleTotals, type TaxMode } from '../../src/sales/shared/totals.rules';
+import { SEEDED_LISTENERS } from './event-history';
 import type { Check } from './verify';
 import type { SeedCtx } from './util';
 
@@ -180,6 +181,17 @@ export async function verifySalesSeed(ctx: SeedCtx): Promise<Check[]> {
   // ── Outbox ──
   const events = await prisma.sysOutbox.findMany({ where: { tenantId, name: { startsWith: 'sales.' } }, select: { status: true } });
   expect('Outbox events waiting (no module connected yet)', '13 PENDING', `${events.length} ${events.every((e) => e.status === 'PENDING') ? 'PENDING' : 'mixed'}`);
+
+  // ── Buy to order (S10): seeded history is not replayed by the module listeners ──
+  const unhandled: string[] = [];
+  for (const { event, handler } of SEEDED_LISTENERS) {
+    const rows = await prisma.sysOutbox.findMany({ where: { tenantId, name: event }, select: { id: true } });
+    const done = await prisma.sysEventHandled.count({ where: { tenantId, handler, eventId: { in: rows.map((r) => r.id) } } });
+    if (done !== rows.length) unhandled.push(`${handler} ${done}/${rows.length}`);
+  }
+  expect('Seeded events already handled by the module listeners', 'all', unhandled.length ? unhandled.join(', ') : 'all');
+  const bto = await prisma.salSalesOrderLine.findMany({ where: { tenantId, isBuyToOrder: true }, select: { purchaseOrderNo: true, salesOrder: { select: { docNo: true } } } });
+  expect('Buy-to-order lines and their PO', 'SO-0003 → PO-0003', bto.map((l) => `${l.salesOrder.docNo} → ${l.purchaseOrderNo ?? 'none'}`).join(', '));
 
   return checks;
 }

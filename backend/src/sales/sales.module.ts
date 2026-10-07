@@ -2,6 +2,7 @@ import { Module, type OnModuleInit } from '@nestjs/common';
 import { PermissionRegistry } from '../platform/context/permission.registry';
 import { SalesApprovalsController } from './approvals/approvals.controller';
 import { SalesApprovalsInboxService } from './approvals/approvals-inbox.service';
+import { SalesBuyToOrderListener } from './buy-to-order/buy-to-order.listener';
 import { SalesDashboardController } from './dashboard/dashboard.controller';
 import { SalesDeliveriesController } from './deliveries/deliveries.controller';
 import { SalesInvoicesController } from './invoices/invoices.controller';
@@ -56,6 +57,7 @@ import { SalesMailService } from './shared/sales-mail.service';
 @Module({
   controllers: [SalesDashboardController, SalesApprovalsController, SalesOrdersController, SalesLookupsController, SalesQuotationsController, SalesEnquiriesController, SalesDeliveriesController, SalesInvoicesController, SalesProformasController, SalesCancelOrdersController, SalesReturnsController, SalesDebitNotesController, SalesCashSalesController, SalesSettingsController, SalesReportsController],
   providers: [
+    SalesBuyToOrderListener,
     SalesDashboardService,
     SalesApprovalsInboxService,
     ReceivablesService,

@@ -10,6 +10,7 @@ import { dec, toMoney, toPrice, toQty, toRate } from '../../platform/http/decima
 import { NotFoundError } from '../../platform/http/errors';
 import { buildStatusCounts, dateRange, pageArgs, parseSort, statusFromKey, toListResponse, toOrderBy } from '../../platform/http/list';
 import { PrismaService } from '../../platform/prisma/prisma.service';
+import { buyToOrderStatus } from '../buy-to-order/buy-to-order.rules';
 import { SALES_PERMISSIONS as P } from '../sales.permissions';
 import { CreditService, type CreditOutcome } from '../shared/credit.service';
 import { SalesLinkedDocsService } from '../shared/linked-docs.service';
@@ -213,6 +214,7 @@ export class OrdersQuery {
         taxAmount: toMoney(l.taxAmount),
         isBuyToOrder: l.isBuyToOrder,
         purchaseOrderNo: l.purchaseOrderNo,
+        purchase: buyToOrderStatus(l),
       })),
       totals: { subtotal: toMoney(order.subtotal), discountTotal: toMoney(order.discountTotal), taxLines, rounding: toMoney(order.rounding), total: toMoney(order.total) },
       quantities: {

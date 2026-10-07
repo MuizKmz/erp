@@ -66,8 +66,8 @@ const HOLD_TEXT: Record<Exclude<WaitingRow['state'], 'READY'>, (r: WaitingRow) =
     message: `The stock list shows ${formatQty(r.onHand)} ${r.uomCode} at the warehouse. Inventory is not connected yet, so create the DO only if the goods are really there.`,
   }),
   PURCHASE: (r) => ({
-    header: `${r.itemCode} is bought to order`,
-    message: `${r.purchaseOrderNo ? `Purchase order ${r.purchaseOrderNo} has` : 'The goods have'} not arrived yet. Create the DO only if the goods are in the warehouse.`,
+    header: r.purchase?.state === 'PO_CANCELLED' ? `Purchase cancelled part of ${r.purchaseOrderNo}` : `${r.itemCode} is bought to order`,
+    message: `${r.purchase?.state === 'PO_CANCELLED' ? `${r.purchase.label}. Ask Purchase for another supplier, or cancel the order balance.` : r.purchase?.state === 'PART_RECEIVED' ? `Only part has arrived (${r.purchase.label}).` : r.purchaseOrderNo ? `Purchase order ${r.purchaseOrderNo} has not arrived yet.` : r.purchase ? `${r.purchase.label}.` : 'The goods have not arrived yet.'} Create the DO only if the goods are in the warehouse.`,
   }),
   DEPOSIT: (r) => ({
     header: `Deposit not paid on ${r.proforma?.docNo}`,
@@ -177,7 +177,9 @@ async function exportCsv() {
               <td class="num">{{ formatQty(r.balance) }}</td>
               <td class="whitespace-nowrap">{{ formatDate(r.wantedBy ?? '') || '—' }}</td>
               <td>
-                <span v-if="r.isBuyToOrder && Number(r.onHand) < Number(r.balance)" class="rounded-md bg-erp-head px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-erp-subtle">Buy to order</span>
+                <span v-if="r.isBuyToOrder && r.purchase?.state === 'RECEIVED'" class="rounded-md bg-chip-done-bg px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-chip-done-text" :title="r.purchase.label">Received · {{ r.purchaseOrderNo }}</span>
+                <span v-else-if="r.isBuyToOrder && r.purchase?.state === 'PO_CANCELLED'" class="rounded-md bg-note-warn-bg px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-attention" :title="r.purchase.label">PO cancelled</span>
+                <span v-else-if="r.isBuyToOrder && Number(r.onHand) < Number(r.balance)" class="rounded-md bg-erp-head px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-erp-subtle" :title="r.purchase?.label">Buy to order</span>
                 <span v-else-if="Number(r.onHand) > 0" class="rounded-md bg-chip-done-bg px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-chip-done-text">{{ formatQty(r.onHand) }} in stock</span>
                 <span v-else class="rounded-md bg-note-warn-bg px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-attention">0 in stock</span>
               </td>

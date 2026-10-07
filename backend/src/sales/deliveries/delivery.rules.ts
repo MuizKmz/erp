@@ -70,12 +70,14 @@ export type WaitingState = 'READY' | 'NO_STOCK' | 'PURCHASE' | 'DEPOSIT';
  * What the waiting list (S15) offers for an order line with a balance:
  * a released, unpaid proforma holds delivery; a buy-to-order line waits for the purchase until stock arrives;
  * a stock item without stock waits for stock; otherwise it is ready ("Create DO").
+ * `purchaseReady` is what Purchase received for a buy-to-order line and is not delivered yet (purchase.goods.received);
+ * it counts as stock because the snapshot only changes once Inventory is connected.
  */
-export function waitingState(l: { isBuyToOrder: boolean; isStock: boolean; balance: DecimalInput; onHand: DecimalInput; unpaidProformaNo: string | null }): WaitingState {
+export function waitingState(l: { isBuyToOrder: boolean; isStock: boolean; balance: DecimalInput; onHand: DecimalInput; unpaidProformaNo: string | null; purchaseReady?: DecimalInput }): WaitingState {
   if (l.unpaidProformaNo) return 'DEPOSIT';
-  const covered = dec(l.onHand).gte(dec(l.balance));
-  if (l.isBuyToOrder && !covered) return 'PURCHASE';
-  if (l.isStock && dec(l.onHand).lte(0)) return 'NO_STOCK';
+  const available = dec(l.onHand).add(dec(l.purchaseReady ?? 0));
+  if (l.isBuyToOrder && available.lt(dec(l.balance))) return 'PURCHASE';
+  if (l.isStock && available.lte(0)) return 'NO_STOCK';
   return 'READY';
 }
 
