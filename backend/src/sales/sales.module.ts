@@ -31,6 +31,7 @@ import { EnquiriesService } from './enquiries/enquiries.service';
 import { SalesDashboardService } from './dashboard/dashboard.service';
 import { SalesLookupsController } from './lookups/lookups.controller';
 import { SalesOrdersController } from './orders/orders.controller';
+import { SalesOrderFlowQuery } from './orders/order-flow.query';
 import { OrdersQuery } from './orders/orders.query';
 import { OrdersService } from './orders/orders.service';
 import { SalesQuotationsController } from './quotations/quotations.controller';
@@ -56,6 +57,7 @@ import { SalesMailService } from './shared/sales-mail.service';
     CreditService,
     SalesLinkedDocsService,
     OrdersQuery,
+    SalesOrderFlowQuery,
     OrdersService,
     SalesDocumentLines,
     SalesMailService,

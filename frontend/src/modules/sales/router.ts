@@ -5,6 +5,7 @@ const Placeholder = () => import('./views/PlaceholderView.vue')
 const Approvals = () => import('./views/ApprovalsView.vue')
 const OrderList = () => import('./views/OrderListView.vue')
 const OrderForm = () => import('./views/OrderFormView.vue')
+const OrderFlow = () => import('./views/OrderFlowView.vue')
 const EnquiryList = () => import('./views/EnquiryListView.vue')
 const EnquiryForm = () => import('./views/EnquiryFormView.vue')
 const QuotationList = () => import('./views/QuotationListView.vue')
@@ -56,7 +57,7 @@ const SCREENS: ScreenDef[] = [
   { code: 'S08', path: 'quotations', name: 'sales-quotations', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationList.html', component: QuotationList },
   { code: 'S09', path: 'quotations/:id', name: 'sales-quotation', title: 'Quotation', group: 'transaction', item: 'quotations', step: 4, mockup: 'QuotationForm.html', parent: doc('Quotation', '/sales/quotations'), component: QuotationForm },
   { code: 'S10', path: 'orders', name: 'sales-orders', title: 'Sales Order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderList.html', component: OrderList },
-  { code: 'S03', path: 'orders/:id/flow', name: 'sales-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 9, mockup: 'DocFlow.html', parent: doc('Sales Order', '/sales/orders') },
+  { code: 'S03', path: 'orders/:id/flow', name: 'sales-order-flow', title: 'Document flow', group: 'transaction', item: 'orders', step: 9, mockup: 'DocFlow.html', parent: doc('Sales Order', '/sales/orders'), component: OrderFlow },
   { code: 'S11', path: 'orders/:id', name: 'sales-order', title: 'Sales order', group: 'transaction', item: 'orders', step: 3, mockup: 'SalesOrderForm.html', parent: doc('Sales Order', '/sales/orders'), component: OrderForm },
   { code: 'S15', path: 'deliveries', name: 'sales-deliveries', title: 'Delivery Order', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryList.html', component: DeliveryList },
   { code: 'S16', path: 'deliveries/:id', name: 'sales-delivery', title: 'Confirm delivery', group: 'transaction', item: 'deliveries', step: 5, mockup: 'DeliveryConfirm.html', parent: doc('Delivery Order', '/sales/deliveries'), component: DeliveryForm },

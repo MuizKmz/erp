@@ -44,6 +44,7 @@ import type {
   QuotationInput,
   QuotationListItem,
   SalesDashboard,
+  SalesOrderFlow,
 } from '../types'
 
 export const salesApi = {
@@ -54,6 +55,7 @@ export const salesApi = {
 export const salesOrdersApi = {
   list: (query: ListQuery) => api<ListResponse<OrderListItem>>('/sales/orders', { query }),
   get: (id: string) => api<OrderDetail>(`/sales/orders/${id}`),
+  flow: (id: string) => api<SalesOrderFlow>(`/sales/orders/${id}/flow`),
   create: (input: OrderInput) => api<OrderDetail>('/sales/orders', { method: 'POST', body: input }),
   update: (id: string, input: Partial<OrderInput> & { version: number }) => api<OrderDetail>(`/sales/orders/${id}`, { method: 'PATCH', body: input }),
   remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/orders/${id}`, { method: 'DELETE', query: { version } }),

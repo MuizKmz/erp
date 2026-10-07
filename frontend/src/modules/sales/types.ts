@@ -1107,3 +1107,19 @@ export interface CashSaleInput {
   amountReceived?: string
   lines?: { itemCode: string; qty: string; unitPrice: string }[]
 }
+
+// ── Document flow (S03) ─────────────────────────────────────────────────────
+
+export interface SalesOrderFlow {
+  order: { id: string; docNo: string; status: string; customerName: string; ordered: string; delivered: string; open: string; uomCode: string }
+  chain: (LinkedDoc & { current: boolean })[]
+  quantity: {
+    itemCode: string
+    itemName: string
+    more: number
+    rows: { type: string; id: string | null; docNo: string; date: string | null; fromPrevious: string; movedToNext: string; stillOpen: string; label: string; group: LinkedDoc['group'] }[]
+  } | null
+  audit: (ActivityItem & { docNo: string })[]
+  stillOpen: { qty: string; uomCode: string; wantedBy: string | null; delivered: boolean; canDeliver: boolean; canCancel: boolean } | null
+  waiting: { finance: number; eInvoice: number; inventory: number }
+}

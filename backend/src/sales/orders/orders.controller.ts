@@ -3,6 +3,7 @@ import { CurrentContext, RequirePermission } from '../../platform/context/contex
 import type { RequestContext } from '../../platform/context/request-context';
 import { SALES_PERMISSIONS as P } from '../sales.permissions';
 import { CreateOrderDto, OrderListQueryDto, RequestApprovalDto, UpdateOrderDto, VersionDto } from './dto/order.dto';
+import { SalesOrderFlowQuery } from './order-flow.query';
 import { OrdersQuery } from './orders.query';
 import { OrdersService } from './orders.service';
 
@@ -12,7 +13,15 @@ export class SalesOrdersController {
   constructor(
     private readonly query: OrdersQuery,
     private readonly orders: OrdersService,
+    private readonly flowQuery: SalesOrderFlowQuery,
   ) {}
+
+  /** S03 · Document flow of one order */
+  @Get(':id/flow')
+  @RequirePermission(P.VIEW)
+  flow(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.flowQuery.flow(ctx, id);
+  }
 
   @Get()
   @RequirePermission(P.VIEW)
