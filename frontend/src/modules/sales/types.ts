@@ -795,3 +795,97 @@ export interface ProformaDetail {
   activity: ActivityItem[]
   allowedActions: ProformaAction[]
 }
+
+// ── Cancel orders (S13, S14) ────────────────────────────────────────────────
+
+export type CancelAction = 'edit' | 'delete' | 'release'
+
+export interface CancelListItem {
+  id: string
+  docNo: string
+  docDate: string
+  salesOrderId: string | null
+  salesOrderNo: string
+  customerName: string
+  summary: string | null
+  total: string
+  reason: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+}
+
+export interface CancelOpenOrder {
+  id: string
+  docNo: string
+  customerName: string
+  open: string
+  promisedDate: string | null
+  waitingFor: string
+  linkedToPo: boolean
+}
+
+export interface CancelOrderLines {
+  id: string
+  no: string
+  status: string | null
+  customer: { code: string; name: string }
+  contactName: string | null
+  total: string
+  invoiced: string
+  lines: {
+    soLineId: string
+    lineNo: number
+    itemCode: string
+    itemName: string
+    uomCode: string
+    unitPrice: string
+    discountPct: string
+    taxRate: string
+    orderedQty: string
+    deliveredQty: string
+    invoicedQty: string
+    cancelledQty: string
+    balanceQty: string
+    isBuyToOrder: boolean
+    purchaseOrderNo: string | null
+  }[]
+}
+
+export interface CancelDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+  reason: string
+  askedBy: string | null
+  customerRef: string | null
+  note: string | null
+  summary: string | null
+  total: string
+  order: CancelOrderLines
+  lines: {
+    id: string
+    lineNo: number
+    soLineId: string | null
+    itemCode: string
+    itemName: string
+    uomCode: string
+    orderedQty: string
+    deliveredQty: string
+    invoicedQty: string
+    balanceQty: string
+    cancelQty: string
+    amount: string
+    taxAmount: string
+    linkedPo: string | null
+  }[]
+  recent: { id: string; docNo: string; docDate: string; salesOrderNo: string; customerName: string; qty: string; reason: string; status: string }[]
+  reasons: string[]
+  releasedAt: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: CancelAction[]
+}

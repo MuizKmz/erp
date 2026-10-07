@@ -1,6 +1,10 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
 import type {
+  CancelDetail,
+  CancelListItem,
+  CancelOpenOrder,
+  CancelOrderLines,
   CustomerCardData,
   CustomerOption,
   DeliveryDetail,
@@ -122,6 +126,21 @@ export const salesProformasApi = {
   release: (id: string, version: number) => api<ProformaDetail>(`/sales/proformas/${id}/release`, { method: 'POST', body: { version } }),
   email: (id: string) => api<{ sentTo: string }>(`/sales/proformas/${id}/email`, { method: 'POST' }),
   cancel: (id: string, version: number) => api<ProformaDetail>(`/sales/proformas/${id}/cancel`, { method: 'POST', body: { version } }),
+}
+
+export type CancelList = ListResponse<CancelListItem> & { totals: { value: string; since: string | null }; reasons: string[] }
+type CancelFields = { reason?: string; docDate?: string; askedBy?: string; customerRef?: string; note?: string }
+
+export const salesCancelOrdersApi = {
+  list: (query: ListQuery) => api<CancelList>('/sales/cancel-orders', { query }),
+  openOrders: () => api<{ items: CancelOpenOrder[] }>('/sales/cancel-orders/open-orders'),
+  orderLines: (orderId: string) => api<CancelOrderLines>(`/sales/cancel-orders/order-lines/${orderId}`),
+  create: (input: CancelFields & { salesOrderId: string; lines: { soLineId: string; qty: string }[] }) => api<CancelDetail>('/sales/cancel-orders', { method: 'POST', body: input }),
+  get: (id: string) => api<CancelDetail>(`/sales/cancel-orders/${id}`),
+  update: (id: string, input: CancelFields & { version: number; lines?: { soLineId: string; qty: string }[] }) =>
+    api<CancelDetail>(`/sales/cancel-orders/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/cancel-orders/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<CancelDetail>(`/sales/cancel-orders/${id}/release`, { method: 'POST', body: { version } }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */
