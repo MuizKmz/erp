@@ -31,6 +31,7 @@ const DocumentTypes = () => import('./views/DocumentTypesView.vue')
 const EnquiryTypes = () => import('./views/EnquiryTypesView.vue')
 const ExcludedItems = () => import('./views/ExcludedItemsView.vue')
 const EmailTemplates = () => import('./views/EmailTemplatesView.vue')
+const SalesByCustomer = () => import('./views/SalesByCustomerView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -95,6 +96,7 @@ const SCREENS: ScreenDef[] = [
       item: `report-${r.key}`,
       step: 9,
       mockup: 'SalesReports.html',
+      ...(r.key === 'by-customer' && { component: SalesByCustomer }),
     }),
   ),
 ]

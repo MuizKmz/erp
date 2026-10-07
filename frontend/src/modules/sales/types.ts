@@ -1214,3 +1214,22 @@ export interface EmailPreview {
   body: string
   attachment: string | null
 }
+
+// ── Reports (S05) ───────────────────────────────────────────────────────────
+
+export interface SalesByCustomerReport {
+  period: string
+  periods: string[]
+  kpis: {
+    ordered: { amount: string; orders: number }
+    invoiced: { amount: string; pct: number }
+    cancelled: { amount: string; docs: string[] }
+    open: { amount: string }
+  }
+  rows: { customerCode: string; customerName: string; orders: number; ordered: string; invoiced: string; cancelled: string; open: string; sharePct: string }[]
+  totals: { orders: number; ordered: string; invoiced: string; cancelled: string; open: string }
+  agents: { agentCode: string; agentName: string; orders: number; ordered: string }[]
+  notes: string[]
+  footnote: string
+  filters: { branches: { code: string; name: string }[]; agents: { code: string; name: string }[]; groups: string[] }
+}

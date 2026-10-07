@@ -51,6 +51,7 @@ import type {
   ReturnListItem,
   QuotationInput,
   QuotationListItem,
+  SalesByCustomerReport,
   SalesDashboard,
   SalesOrderFlow,
 } from '../types'
@@ -231,6 +232,10 @@ export const salesSettingsApi = {
   previewTemplate: (key: string, draft: { subject?: string; body?: string }) =>
     api<EmailPreview>(`/sales/settings/email-templates/${key}/preview`, { method: 'POST', body: draft, silent: true }),
   sendTest: (key: string) => api<{ sentTo: string }>(`/sales/settings/email-templates/${key}/test`, { method: 'POST' }),
+}
+
+export const salesReportsApi = {
+  byCustomer: (query: { period?: string; branch?: string; agent?: string; group?: string }) => api<SalesByCustomerReport>('/sales/reports/by-customer', { query }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */
