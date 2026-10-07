@@ -23,6 +23,8 @@ const ReturnList = () => import('./views/ReturnListView.vue')
 const ReturnForm = () => import('./views/ReturnFormView.vue')
 const DebitNoteList = () => import('./views/DebitNoteListView.vue')
 const DebitNoteForm = () => import('./views/DebitNoteFormView.vue')
+const CashSaleList = () => import('./views/CashSaleListView.vue')
+const CashSaleForm = () => import('./views/CashSaleFormView.vue')
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -66,8 +68,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'S18', path: 'invoices/new', name: 'sales-invoice-new', title: 'Create invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'CreateInvoice.html', parent: doc('Invoice', '/sales/invoices'), component: CreateInvoice },
   { code: 'S20', path: 'invoices/:id/print', name: 'sales-invoice-print', title: 'Print preview', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoicePrint.html', parent: doc('Invoice', '/sales/invoices'), component: InvoicePrint, bare: true },
   { code: 'S19', path: 'invoices/:id', name: 'sales-invoice', title: 'Invoice', group: 'billing', item: 'invoices', step: 6, mockup: 'InvoiceForm.html', parent: doc('Invoice', '/sales/invoices'), component: InvoiceForm },
-  { code: 'S23', path: 'cash-sales', name: 'sales-cash-sales', title: 'Cash Sales', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSaleList.html' },
-  { code: 'S24', path: 'cash-sales/:id', name: 'sales-cash-sale', title: 'Cash sale', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSale.html', parent: doc('Cash Sales', '/sales/cash-sales') },
+  { code: 'S23', path: 'cash-sales', name: 'sales-cash-sales', title: 'Cash Sales', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSaleList.html', component: CashSaleList },
+  { code: 'S24', path: 'cash-sales/:id', name: 'sales-cash-sale', title: 'Cash sale', group: 'billing', item: 'cash-sales', step: 8, mockup: 'CashSale.html', parent: doc('Cash Sales', '/sales/cash-sales'), component: CashSaleForm },
   { code: 'S25', path: 'debit-notes', name: 'sales-debit-notes', title: 'Debit Note', group: 'billing', item: 'debit-notes', step: 8, mockup: 'DebitNoteList.html', component: DebitNoteList },
   { code: 'S26', path: 'debit-notes/:id', name: 'sales-debit-note', title: 'Debit note', group: 'billing', item: 'debit-notes', step: 8, mockup: 'DebitNote.html', parent: doc('Debit Note', '/sales/debit-notes'), component: DebitNoteForm },
   { code: 'S27', path: 'returns', name: 'sales-returns', title: 'Sales Return', group: 'billing', item: 'returns', step: 8, mockup: 'SalesReturnList.html', component: ReturnList },

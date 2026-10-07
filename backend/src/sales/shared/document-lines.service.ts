@@ -61,8 +61,11 @@ export class SalesDocumentLines {
     return agent ? { code: agent.code, name: agent.name } : { code: ctx.user.code, name: ctx.user.name };
   }
 
-  /** Lines from Master Data: sellable and active items not excluded in the branch, price list, tax and cost copied now. */
-  async buildLines(ctx: RequestContext, customer: MdCustomer, branchCode: string, docDate: string, input: SaleLineInput[]) {
+  /**
+   * Lines from Master Data: sellable and active items not excluded in the branch, price list, tax and cost copied now.
+   * Prices are before tax unless `taxMode` is INCLUSIVE (cash sales at the counter).
+   */
+  async buildLines(ctx: RequestContext, customer: MdCustomer, branchCode: string, docDate: string, input: SaleLineInput[], taxMode: 'EXCLUSIVE' | 'INCLUSIVE' = 'EXCLUSIVE') {
     const problems: FieldError[] = lineProblems(input.map((l, index) => ({ index, qty: l.qty, unitPrice: l.unitPrice, discountPct: l.discountPct ?? '0' })));
     const codes = [...new Set(input.map((l) => l.itemCode))];
     const [items, taxes, prices, excluded, setting] = await Promise.all([
@@ -82,7 +85,7 @@ export class SalesDocumentLines {
       if (ex) { problems.push({ field, message: `${item.code} is excluded from sale in this branch (${ex.reason}).` }); return null; }
       const tax = taxes.find((t) => t.code === (item.salesTaxCode ?? item.purchaseTaxCode));
       if (!tax) { problems.push({ field, message: `${item.code} has no sales tax code in Master Data.` }); return null; }
-      const totals = saleLineTotals({ qty: l.qty, unitPrice: l.unitPrice, discountPct: l.discountPct ?? '0', taxRate: tax.rate });
+      const totals = saleLineTotals({ qty: l.qty, unitPrice: l.unitPrice, discountPct: l.discountPct ?? '0', taxRate: tax.rate }, taxMode);
       const list = prices.find((p) => p.itemCode === item.code);
       return {
         itemId: item.id, itemCode: item.code, itemName: item.name, uomCode: item.salesUomCode, taxCode: tax.code, taxRate: dec(tax.rate),
@@ -93,7 +96,7 @@ export class SalesDocumentLines {
     });
     if (problems.length) throw new ValidationFailedError(problems);
     const built = lines.filter((l): l is NonNullable<typeof l> => l !== null);
-    const t = saleTotals(built, 'EXCLUSIVE', setting?.roundTo5Sen ?? true);
+    const t = saleTotals(built, taxMode, setting?.roundTo5Sen ?? true);
     const costKnown = built.every((l) => l.unitCost !== null);
     return {
       lines: built,

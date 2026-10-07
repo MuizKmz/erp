@@ -78,6 +78,28 @@ export function previewSaleLine(qty: string, unitPrice: string, discountPct: str
   }
 }
 
+/**
+ * Line with the tax included in the price (cash sales, tax mode Inclusive): amount = round(qty × price, 2),
+ * tax inside it = round(amount × rate / (1 + rate), 2).
+ */
+export function previewInclusiveLine(qty: string, priceInclTax: string, taxRate: string): LinePreview | null {
+  const q = toUnits(qty)
+  const p = toUnits(priceInclTax)
+  const r = toUnits(taxRate)
+  if (q === null || p === null || r === null) return null
+  const amountCents = divRound(q * p, 10n ** 6n)
+  const taxCents = divRound(amountCents * r, 10n ** 4n + r)
+  return { amount: centsToString(amountCents), taxAmount: centsToString(taxCents) }
+}
+
+/** A price before tax with the tax added, to 2 decimals: 250.00 at 10% → "275.00". */
+export function priceWithTax(price: string, taxRate: string): string | null {
+  const p = toUnits(price)
+  const r = toUnits(taxRate)
+  if (p === null || r === null) return null
+  return centsToString(divRound(p * (10n ** 4n + r), 10n ** 6n))
+}
+
 /** Sum of money strings ("4000.00" + "400.00"). */
 export function sumMoney(values: string[]): string {
   const cents = values.reduce((sum, v) => sum + (toUnits(v, 2) ?? 0n), 0n)

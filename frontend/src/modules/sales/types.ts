@@ -1034,3 +1034,76 @@ export interface DebitDetail {
   activity: ActivityItem[]
   allowedActions: DebitNoteAction[]
 }
+
+// ── Cash sales (S23, S24) ───────────────────────────────────────────────────
+
+export type CashSaleAction = 'edit' | 'delete' | 'release'
+export type PaymentMethod = 'CASH' | 'CARD' | 'DUITNOW' | 'TRANSFER'
+
+export interface CashListItem {
+  id: string
+  docNo: string
+  docDate: string
+  buyer: string
+  summary: string | null
+  paidBy: string
+  total: string
+  eInvoice: string
+  ownPending: boolean
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+}
+
+export interface CashKpis {
+  today: { amount: string; count: number; drafts: string[] }
+  month: { amount: string; count: number; name: string }
+  paidBy: { method: string; label: string; pct: number }[]
+  consolidated: { count: number; due: string }
+}
+
+export interface CashSaleDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+  counterName: string | null
+  customer: { code: string; name: string }
+  servedBy: { code: string; name: string }
+  buyerName: string | null
+  buyerPhone: string | null
+  buyerTin: string | null
+  ownEInvoice: boolean
+  eInvoice: string
+  consolidatedDue: string | null
+  taxMode: string
+  branchCode: string
+  warehouseCode: string
+  paymentMethod: PaymentMethod
+  paymentRef: string | null
+  amountReceived: string
+  change: string
+  balance: string
+  lines: { id: string; lineNo: number; itemCode: string; itemName: string; uomCode: string; taxCode: string; taxName: string; taxRate: string; qty: string; unitPrice: string; discountPct: string; amount: string; taxAmount: string }[]
+  totals: { beforeTax: string; tax: string; taxName: string; rounding: string; total: string }
+  stockWarning: string | null
+  inventoryConnected: boolean
+  releasedAt: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: CashSaleAction[]
+}
+
+export interface CashSaleInput {
+  docDate?: string
+  buyerName?: string
+  buyerPhone?: string
+  buyerTin?: string
+  ownEInvoice?: boolean
+  paymentMethod?: PaymentMethod
+  paymentRef?: string
+  amountReceived?: string
+  lines?: { itemCode: string; qty: string; unitPrice: string }[]
+}

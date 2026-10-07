@@ -2,6 +2,10 @@ import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
 import type {
   CancelDetail,
+  CashKpis,
+  CashListItem,
+  CashSaleDetail,
+  CashSaleInput,
   CancelListItem,
   CancelOpenOrder,
   CancelOrderLines,
@@ -178,6 +182,17 @@ export const salesDebitNotesApi = {
   update: (id: string, input: DebitFields & { version: number; invoiceId?: string; lines?: ChargeLine[] }) => api<DebitDetail>(`/sales/debit-notes/${id}`, { method: 'PATCH', body: input }),
   remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/debit-notes/${id}`, { method: 'DELETE', query: { version } }),
   release: (id: string, version: number) => api<DebitDetail>(`/sales/debit-notes/${id}/release`, { method: 'POST', body: { version } }),
+}
+
+export type CashList = ListResponse<CashListItem> & { kpis: CashKpis; counters: string[] }
+
+export const salesCashSalesApi = {
+  list: (query: ListQuery) => api<CashList>('/sales/cash-sales', { query }),
+  create: (input: CashSaleInput) => api<CashSaleDetail>('/sales/cash-sales', { method: 'POST', body: input }),
+  get: (id: string) => api<CashSaleDetail>(`/sales/cash-sales/${id}`),
+  update: (id: string, input: CashSaleInput & { version: number }) => api<CashSaleDetail>(`/sales/cash-sales/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/cash-sales/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<CashSaleDetail>(`/sales/cash-sales/${id}/release`, { method: 'POST', body: { version } }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */
