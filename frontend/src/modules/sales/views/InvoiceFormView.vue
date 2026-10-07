@@ -255,8 +255,8 @@ function deleteDraft() {
 }
 
 const transferItems = computed(() => [
-  { label: 'Debit note', disabled: !can('debitNote'), command: () => toast.add({ severity: 'info', summary: 'Debit note', detail: 'Debit notes come with Sales step S8.', life: 3000 }) },
-  { label: 'Sales return', disabled: !can('return'), command: () => toast.add({ severity: 'info', summary: 'Sales return', detail: 'Sales returns come with Sales step S8.', life: 3000 }) },
+  { label: 'Debit note', disabled: !can('debitNote'), command: () => router.push({ path: '/sales/debit-notes/new', query: { invoice: inv.value!.id } }) },
+  { label: 'Sales return', disabled: !can('return'), command: () => router.push({ path: '/sales/returns/new', query: { invoice: inv.value!.id } }) },
 ])
 
 // ── Display ──────────────────────────────────────────────────────────────────

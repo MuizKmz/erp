@@ -889,3 +889,96 @@ export interface CancelDetail {
   activity: ActivityItem[]
   allowedActions: CancelAction[]
 }
+
+// ── Sales returns (S27, S28) ────────────────────────────────────────────────
+
+export type ReturnAction = 'edit' | 'delete' | 'release' | 'attach'
+
+export interface ReturnListItem {
+  id: string
+  docNo: string
+  docDate: string
+  customerName: string
+  invoiceId: string | null
+  invoiceNo: string
+  summary: string | null
+  reason: string
+  goodsTo: 'DAMAGED' | 'STOCK'
+  goodsToLabel: string
+  total: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+}
+
+export interface ReturnKpis {
+  credited: { amount: string; count: number }
+  drafts: { count: number; first: string | null }
+  topReason: { reason: string; units: string; of: string } | null
+  creditNotesQueued: number
+  wentTo: { label: string; units: string }[]
+}
+
+export interface ReturnLocationOption {
+  key: string
+  goodsTo: 'DAMAGED' | 'STOCK'
+  warehouseCode: string
+  locationCode: string
+  label: string
+  placeName: string
+}
+
+export interface ReturnInvoiceView {
+  id: string | null
+  no: string
+  docDate: string | null
+  isMigrated: boolean
+  salesOrderNo: string | null
+  customer: { code: string; name: string; active: boolean }
+  total: string
+  paid: string
+  balance: string
+  locations: ReturnLocationOption[]
+  lines: {
+    invoiceLineId: string
+    lineNo: number
+    itemCode: string
+    itemName: string
+    uomCode: string
+    invoicedQty: string
+    returnedQty: string
+    maxQty: string
+    unitPrice: string
+    discountPct: string
+    grossPrice: string
+    taxRate: string
+  }[]
+}
+
+export interface ReturnDetail {
+  id: string
+  docNo: string
+  docDate: string
+  status: 'DRAFT' | 'RELEASED'
+  isMigrated: boolean
+  version: number
+  reason: string
+  goodsTo: 'DAMAGED' | 'STOCK'
+  location: string | null
+  locationLabel: string
+  creditMethod: 'CREDIT_NOTE' | 'REFUND'
+  customerRef: string | null
+  note: string | null
+  summary: string | null
+  totals: { subtotal: string; tax: string; total: string }
+  invoice: ReturnInvoiceView
+  lines: { id: string; lineNo: number; invoiceLineId: string | null; itemCode: string; itemName: string; uomCode: string; invoicedQty: string; returnedBeforeQty: string; maxQty: string; qty: string; unitPrice: string; amount: string; taxAmount: string }[]
+  checks: { key: string; ok: boolean; text: string }[]
+  attachments: { id: string; fileName: string; mimeType: string; downloadUrl: string }[]
+  reasons: string[]
+  creditMethods: { value: string; label: string }[]
+  releasedAt: string | null
+  links: LinkedDoc[]
+  activity: ActivityItem[]
+  allowedActions: ReturnAction[]
+}

@@ -30,6 +30,10 @@ import type {
   ProformaListItem,
   ProformaRequestKind,
   QuotationDetail,
+  ReturnDetail,
+  ReturnInvoiceView,
+  ReturnKpis,
+  ReturnListItem,
   QuotationInput,
   QuotationListItem,
   SalesDashboard,
@@ -141,6 +145,21 @@ export const salesCancelOrdersApi = {
     api<CancelDetail>(`/sales/cancel-orders/${id}`, { method: 'PATCH', body: input }),
   remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/cancel-orders/${id}`, { method: 'DELETE', query: { version } }),
   release: (id: string, version: number) => api<CancelDetail>(`/sales/cancel-orders/${id}/release`, { method: 'POST', body: { version } }),
+}
+
+export type ReturnList = ListResponse<ReturnListItem> & { units: string; kpis: ReturnKpis; reasons: string[] }
+type ReturnFields = { reason?: string; docDate?: string; location?: string; creditMethod?: 'CREDIT_NOTE' | 'REFUND'; customerRef?: string; note?: string }
+
+export const salesReturnsApi = {
+  list: (query: ListQuery) => api<ReturnList>('/sales/returns', { query }),
+  invoices: (q: string) => api<{ items: { id: string; docNo: string; docDate: string; customerName: string; total: string; isMigrated: boolean }[] }>('/sales/returns/invoices', { query: { q } }),
+  invoiceLines: (invoiceId: string) => api<ReturnInvoiceView>(`/sales/returns/invoice-lines/${invoiceId}`),
+  create: (input: ReturnFields & { invoiceId: string; lines: { invoiceLineId: string; qty: string }[] }) => api<ReturnDetail>('/sales/returns', { method: 'POST', body: input }),
+  get: (id: string) => api<ReturnDetail>(`/sales/returns/${id}`),
+  update: (id: string, input: ReturnFields & { version: number; lines?: { invoiceLineId: string; qty: string }[] }) =>
+    api<ReturnDetail>(`/sales/returns/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; docNo: string }>(`/sales/returns/${id}`, { method: 'DELETE', query: { version } }),
+  release: (id: string, version: number) => api<ReturnDetail>(`/sales/returns/${id}/release`, { method: 'POST', body: { version } }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */
