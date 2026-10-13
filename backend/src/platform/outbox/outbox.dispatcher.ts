@@ -8,8 +8,10 @@ import { OutboxConsumers } from './outbox.consumers';
 import { afterFailure } from './outbox.rules';
 import type { OutboxEnvelope } from './outbox.types';
 
-const INTERVAL_NAME = 'outbox-dispatcher';
+export const INTERVAL_NAME = 'outbox-dispatcher';
 const BATCH_SIZE = 50;
+/** Failed events remembered per listener; past this the oldest is forgotten and simply tried again later. */
+const MAX_PARKED_PER_LISTENER = 200;
 
 function toEnvelope(row: SysOutbox): OutboxEnvelope {
   return {
@@ -33,15 +35,16 @@ function toEnvelope(row: SysOutbox): OutboxEnvelope {
  * - A failure is retried with backoff; after 10 failures the event is marked FAILED.
  * - Events with no subscriber are left PENDING (the receiving module is not connected yet).
  * - Module listeners (OutboxConsumers.listen) get every event of their name once, whatever its status, and never
- *   change that status. A failing listener is retried with the same backoff; after 10 failures it skips that
+ *   change that status. A failing listener is retried with the same backoff; after 10 failures it parks that
  *   event and logs an error (kept in memory only in phase 1, so a restart tries again).
+ * - Delivery and listeners have separate budgets per round, so a backlog or an error in one never holds up the other.
  */
 @Injectable()
 export class OutboxDispatcher implements OnApplicationBootstrap, OnApplicationShutdown {
   private readonly logger = new Logger(OutboxDispatcher.name);
   private running = false;
-  /** "eventId|handler" → failures so far and when to try again. */
-  private readonly listenerFailures = new Map<string, { attempts: number; nextAttemptAt: Date }>();
+  /** listener → event id → failures so far and when to try again (Infinity: parked until a restart). */
+  private readonly listenerFailures = new Map<string, Map<string, { attempts: number; nextAttemptAt: number }>>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -68,16 +71,22 @@ export class OutboxDispatcher implements OnApplicationBootstrap, OnApplicationSh
   async tick(): Promise<number> {
     if (this.running) return 0;
     this.running = true;
-    let processed = 0;
     try {
-      while (processed < BATCH_SIZE && (await this.dispatchOne())) processed++;
-      while (processed < BATCH_SIZE && (await this.listenOnce())) processed++;
-    } catch (err) {
-      this.logger.error('Outbox round failed', err instanceof Error ? err.stack : String(err));
+      return (await this.round('Outbox delivery', () => this.dispatchOne())) + (await this.round('Module listeners', () => this.listenOnce()));
     } finally {
       this.running = false;
     }
-    return processed;
+  }
+
+  /** Runs one kind of work until there is none left or the round's budget is spent. An error ends only this kind. */
+  private async round(label: string, step: () => Promise<boolean>): Promise<number> {
+    let done = 0;
+    try {
+      while (done < BATCH_SIZE && (await step())) done++;
+    } catch (err) {
+      this.logger.error(`${label} round failed`, err instanceof Error ? err.stack : String(err));
+    }
+    return done;
   }
 
   /** Claims and delivers the oldest due event. Returns false when there is nothing to do. */
@@ -124,38 +133,42 @@ export class OutboxDispatcher implements OnApplicationBootstrap, OnApplicationSh
     }
   }
 
-  /** Delivers the oldest event a module listener has not handled yet. Returns false when there is nothing to do. */
+  /**
+   * Delivers the oldest event a module listener has not handled yet. Returns false when there is nothing to do.
+   * The search is a plain read (no locks held while looking); only the chosen event is then locked, and checked
+   * again, so two API instances never handle it twice and user transactions writing new events are never held up.
+   */
   async listenOnce(): Promise<boolean> {
     for (const { eventName, handler, handle } of this.consumers.listenerPairs()) {
       const now = Date.now();
-      const parked = [...this.listenerFailures.entries()]
-        .filter(([key, f]) => key.endsWith(`|${handler}`) && f.nextAttemptAt.getTime() > now)
-        .map(([key]) => key.slice(0, key.indexOf('|')));
+      const failures = this.listenerFailures.get(handler);
+      const parked = failures ? [...failures].filter(([, f]) => f.nextAttemptAt > now).map(([id]) => id) : [];
+      const due = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT o.id FROM sys_outbox o
+        WHERE o.name = ${eventName}
+          AND NOT EXISTS (SELECT 1 FROM sys_event_handled h WHERE h.eventId = o.id AND h.handler = ${handler})
+          ${parked.length ? Prisma.sql`AND o.id NOT IN (${Prisma.join(parked)})` : Prisma.empty}
+        ORDER BY o.seq
+        LIMIT 1`;
+      const id = due[0]?.id;
+      if (!id) continue;
+
       let claimed: SysOutbox | null = null;
       try {
-        const done = await this.prisma.$transaction(
+        const outcome = await this.prisma.$transaction(
           async (tx) => {
-            const due = await tx.$queryRaw<{ id: string }[]>`
-              SELECT o.id FROM sys_outbox o
-              WHERE o.name = ${eventName}
-                AND NOT EXISTS (SELECT 1 FROM sys_event_handled h WHERE h.eventId = o.id AND h.handler = ${handler})
-                ${parked.length ? Prisma.sql`AND o.id NOT IN (${Prisma.join(parked)})` : Prisma.empty}
-              ORDER BY o.seq
-              LIMIT 1
-              FOR UPDATE SKIP LOCKED`;
-            const id = due[0]?.id;
-            if (!id) return false;
+            const locked = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM sys_outbox WHERE id = ${id} FOR UPDATE SKIP LOCKED`;
+            if (!locked.length) return 'busy' as const; // another instance is handling it right now
+            if (await tx.sysEventHandled.findUnique({ where: { eventId_handler: { eventId: id, handler } } })) return 'done' as const;
             claimed = await tx.sysOutbox.findUniqueOrThrow({ where: { id } });
             await handle(toEnvelope(claimed), tx);
             await tx.sysEventHandled.create({ data: { eventId: id, handler, tenantId: claimed.tenantId } });
-            return true;
+            return 'handled' as const;
           },
           { timeout: 30_000 },
         );
-        if (done) {
-          this.listenerFailures.delete(`${(claimed as SysOutbox | null)?.id}|${handler}`);
-          return true;
-        }
+        if (outcome === 'handled') failures?.delete(id);
+        if (outcome !== 'busy') return true;
       } catch (err) {
         const event = claimed as SysOutbox | null;
         if (!event) throw err;
@@ -167,13 +180,15 @@ export class OutboxDispatcher implements OnApplicationBootstrap, OnApplicationSh
   }
 
   private recordListenerFailure(event: SysOutbox, handler: string, err: unknown): void {
-    const key = `${event.id}|${handler}`;
-    const attempts = (this.listenerFailures.get(key)?.attempts ?? 0) + 1;
+    const failures = this.listenerFailures.get(handler) ?? new Map<string, { attempts: number; nextAttemptAt: number }>();
+    const attempts = (failures.get(event.id)?.attempts ?? 0) + 1;
     const next = afterFailure(attempts, new Date());
-    const nextAttemptAt = next.status === 'FAILED' ? new Date(8.64e15) : next.nextAttemptAt;
-    this.listenerFailures.set(key, { attempts, nextAttemptAt });
+    failures.delete(event.id); // re-insert, so the map stays oldest first
+    failures.set(event.id, { attempts, nextAttemptAt: next.status === 'FAILED' ? Number.POSITIVE_INFINITY : next.nextAttemptAt.getTime() });
+    while (failures.size > MAX_PARKED_PER_LISTENER) failures.delete(failures.keys().next().value as string);
+    this.listenerFailures.set(handler, failures);
     const level = next.status === 'FAILED' ? 'error' : 'warn';
-    const outcome = next.status === 'FAILED' ? 'gave up until restart' : 'will retry';
+    const outcome = next.status === 'FAILED' ? 'parked until restart' : 'will retry';
     const detail = err instanceof Error ? (err.stack ?? err.message) : String(err);
     this.logger[level](`${handler} failed on ${event.name} ${event.id} (attempt ${attempts}, ${outcome}): ${detail}`);
   }

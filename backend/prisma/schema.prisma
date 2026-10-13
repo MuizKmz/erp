@@ -161,6 +161,7 @@ model SysOutbox {
 
   @@index([tenantId, status, name])
   @@index([status, nextAttemptAt])
+  @@index([name, seq]) // module listeners look for the oldest event of a name they have not handled
   @@map("sys_outbox")
 }
 

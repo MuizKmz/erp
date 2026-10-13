@@ -69,7 +69,7 @@ export class SalesDemandListener implements OnModuleInit {
    * has no row for is refused, so the event is retried once the order's release has been handled.
    */
   async onLineQty(event: OutboxEnvelope, tx: Tx, field: 'deliveredQty' | 'cancelledQty'): Promise<void> {
-    const e = readLineQtyEvent(event.payload);
+    const e = readLineQtyEvent(event.payload, field === 'deliveredQty' ? 'soLineNo' : 'lineNo');
     if (!e) {
       this.logger.warn(`${event.name} ${event.id} has no usable order lines in its payload; ignored`);
       return;

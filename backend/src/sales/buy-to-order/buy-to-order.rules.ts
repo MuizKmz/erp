@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { dec, type DecimalInput } from '../../platform/http/decimal';
+import { isRecord, text } from '../../platform/outbox/outbox.payload';
 
 /**
  * Buy-to-order lines (S10). Purchase tells Sales, through its events, which PO a line is on, what arrived and what
@@ -48,12 +49,15 @@ export function purchaseReady(l: { purchaseReceivedQty: DecimalInput; deliveredQ
 
 /**
  * Spreads quantities from a Purchase event over the order lines on that PO with the same item, filling each line up
- * to its ordered quantity in line order (`current` = what is already received or cancelled on it); anything over goes to the last line (Purchase may receive more than one
- * order needs if the buyer raised the PO).
+ * to its ordered quantity in line order (`current` = what is already received or cancelled on it).
+ * What is left over (the buyer ordered more than the sales order needs):
+ * - 'last': goes to the last line. A receipt over the need still means the goods are there.
+ * - 'drop': is ignored. Cancelling the surplus costs the sales order nothing, so only its shortfall counts.
  */
 export function allocateToLines<T extends { id: string; itemCode: string; orderedQty: DecimalInput; current: DecimalInput }>(
   lines: T[],
   incoming: { itemCode: string; qty: DecimalInput }[],
+  overflow: 'last' | 'drop' = 'last',
 ): { id: string; itemCode: string; add: Prisma.Decimal }[] {
   const adds = new Map<string, Prisma.Decimal>();
   for (const { itemCode, qty } of incoming) {
@@ -64,7 +68,8 @@ export function allocateToLines<T extends { id: string; itemCode: string; ordere
       if (left.lte(0)) return;
       const already = dec(l.current).add(adds.get(l.id) ?? 0);
       const room = dec(l.orderedQty).sub(already);
-      const take = i === matching.length - 1 ? left : room.gt(0) ? (room.lt(left) ? room : left) : dec(0);
+      const fits = room.gt(0) ? (room.lt(left) ? room : left) : dec(0);
+      const take = overflow === 'last' && i === matching.length - 1 ? left : fits;
       if (take.gt(0)) {
         adds.set(l.id, (adds.get(l.id) ?? dec(0)).add(take));
         left = left.sub(take);
@@ -76,8 +81,6 @@ export function allocateToLines<T extends { id: string; itemCode: string; ordere
 
 // ── Event payloads (Sales never imports Purchase, so it reads the fields it needs) ─────────────────
 
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null);
 const qtyLines = (v: unknown) =>
   (Array.isArray(v) ? v : []).filter(isRecord).flatMap((l) => {
     const itemCode = text(l.itemCode);

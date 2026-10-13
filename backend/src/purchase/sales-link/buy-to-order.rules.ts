@@ -1,3 +1,5 @@
+import { isRecord, text } from '../../platform/outbox/outbox.payload';
+
 /**
  * Buy-to-order (FlowP1 step 7, CLAUDE.md S10). When Sales releases an order with buy-to-order lines, Purchase
  * drafts one PO per supplier. Pure functions; the listener does the reading and writing.
@@ -15,9 +17,6 @@ export interface ReleasedSalesOrder {
   deliveryWantedBy: string | null;
   lines: { lineNo: number; itemCode: string; uomCode: string; qty: string; isBuyToOrder: boolean }[];
 }
-
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null);
 
 /** Reads the event payload. Returns null when it is not a usable sales order (the event is then ignored). */
 export function readReleasedSalesOrder(payload: unknown): ReleasedSalesOrder | null {
@@ -48,6 +47,8 @@ export interface PlanItem {
   status: string;
   isPurchasable: boolean;
   preferredSupplierCode: string | null;
+  /** The unit Purchase buys in (the PO line takes it). */
+  uomCode: string;
 }
 
 export interface PlannedLine {
@@ -70,6 +71,7 @@ export interface BuyToOrderPlan {
 /**
  * Groups the buy-to-order lines by the item's preferred supplier.
  * - Only active purchasable items, and only active suppliers when that switch is on (rule 6).
+ * - Only lines sold in the unit Purchase buys in (no unit conversion here).
  * - An item already on a PO drafted for this sales order is not drafted again.
  * Lines keep the sales order's quantity.
  */
@@ -98,6 +100,12 @@ export function planBuyToOrder(input: {
     }
     if (!item.preferredSupplierCode) {
       skip(`${line.itemCode} has no preferred supplier in Master Data.`);
+      continue;
+    }
+    // The PO line is in the purchase unit. Master Data gives Purchase no conversion, so a different sales unit
+    // (24 PCS sold, bought by the BOX) is left to the buyer rather than drafted with the wrong quantity.
+    if (line.uomCode && line.uomCode !== item.uomCode) {
+      skip(`${line.itemCode} is sold in ${line.uomCode} but bought in ${item.uomCode}. The buyer raises this PO by hand.`);
       continue;
     }
     const supplier = input.suppliers.find((s) => s.code === item.preferredSupplierCode);

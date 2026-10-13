@@ -224,7 +224,7 @@ export class DeliveriesService {
         payload: {
           doNo: d.docNo, soNo: order.docNo, branchCode: d.branchCode, warehouseCode: d.warehouseCode, customerCode: d.customerCode,
           deliverTo: d.deliverTo, vehicle: d.vehicle, driver: d.driver, consignmentNote: d.consignmentNote,
-          lines: counted.filter((c) => c.line.qty.gt(0)).map((c) => ({ lineNo: c.line.lineNo, itemCode: c.line.itemCode, uomCode: c.line.uomCode, qty: toQty(c.line.qty) })),
+          lines: counted.filter((c) => c.line.qty.gt(0)).map((c) => ({ lineNo: c.line.lineNo, soLineNo: c.so.lineNo, itemCode: c.line.itemCode, uomCode: c.line.uomCode, qty: toQty(c.line.qty) })),
         },
       }]);
       if (customer?.email) {

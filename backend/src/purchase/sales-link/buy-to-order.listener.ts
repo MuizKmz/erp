@@ -17,7 +17,7 @@ export const SALES_ORDER_RELEASED = 'sales.order.released';
 export const BUY_TO_ORDER_HANDLED = 'purchase.buy_to_order.handled';
 const HANDLER = 'purchase.draft-po-for-buy-to-order';
 
-const AUTO_DRAFT_OFF = 'Auto-draft for buy-to-order lines is off in Purchase. The buyer raises the PO by hand.';
+const AUTO_DRAFT_OFF = 'Auto-draft for buy-to-order lines is off in Purchase. A PO the buyer raises by hand is not linked to this line.';
 
 /**
  * Purchase listens to `sales.order.released` (EVENTS.md → Purchase listens to). When the setting
@@ -113,31 +113,34 @@ export class BuyToOrderListener implements OnModuleInit {
     ];
 
     for (const draft of plan.drafts) {
+      let prepared: Awaited<ReturnType<OrdersService['prepareDraft']>>;
       try {
-        const prepared = await this.orders.prepareDraft(ctx, {
+        // Validation only, nothing written yet: a Master Data problem (e.g. the warehouse closed) is reported back
+        // to Sales instead of retried forever. Anything failing after this rolls the whole event back and retries.
+        prepared = await this.orders.prepareDraft(ctx, {
           supplierCode: draft.supplierCode,
           warehouseCode,
           poTypeCode: 'BTO',
           remarks: draftRemark(order.soNo, draft.lines),
           lines: draft.lines.map((l) => ({ itemCode: l.itemCode, qty: l.qty, unitPrice: l.unitPrice })),
         });
-        const po = await this.orders.insertDraft(tx, ctx, prepared, {
-          sourceType: 'SALES_ORDER',
-          sourceNo: order.soNo,
-          salesOrderNo: order.soNo,
-          customerName: order.customerName ?? undefined,
-          buyer: buyer ? { code: buyer.code, name: buyer.name } : undefined,
-          message: `Drafted by the system when ${order.soNo} was released`,
-        });
-        await this.orders.link(tx, ctx, { type: EXTERNAL_ENTITY.SALES_ORDER, id: event.aggregateId, no: order.soNo }, po, DOC_LINK.DRAFTED_FROM);
-        result.push(...draft.lines.map((l) => ({ soLineNo: l.soLineNo, itemCode: l.itemCode, poNo: po.docNo, problem: null })));
       } catch (err) {
-        // A Master Data problem (e.g. the warehouse closed) is reported back to Sales instead of retried forever.
         if (!(err instanceof HttpException)) throw err;
         const body = err.getResponse() as { message?: string; errors?: { message: string }[] };
         const problem = body.errors?.[0]?.message ?? body.message ?? err.message;
         result.push(...draft.lines.map((l) => ({ soLineNo: l.soLineNo, itemCode: l.itemCode, poNo: null, problem })));
+        continue;
       }
+      const po = await this.orders.insertDraft(tx, ctx, prepared, {
+        sourceType: 'SALES_ORDER',
+        sourceNo: order.soNo,
+        salesOrderNo: order.soNo,
+        customerName: order.customerName ?? undefined,
+        buyer: buyer ? { code: buyer.code, name: buyer.name } : undefined,
+        message: `Drafted by the system when ${order.soNo} was released`,
+      });
+      await this.orders.link(tx, ctx, { type: EXTERNAL_ENTITY.SALES_ORDER, id: event.aggregateId, no: order.soNo }, po, DOC_LINK.DRAFTED_FROM);
+      result.push(...draft.lines.map((l) => ({ soLineNo: l.soLineNo, itemCode: l.itemCode, poNo: po.docNo, problem: null })));
     }
     await answer(result);
   }

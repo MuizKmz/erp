@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { SalesDemand } from '../../integration/integration.ports';
 import { dec, toMoney, toQty, type DecimalInput } from '../../platform/http/decimal';
+import { isRecord, text } from '../../platform/outbox/outbox.payload';
 import type { ReleasedSalesOrder } from './buy-to-order.rules';
 
 /**
@@ -46,18 +47,24 @@ export function demandRowsFromRelease(order: ReleasedSalesOrder, occurredAt: str
   }));
 }
 
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null);
-
-/** `sales.shipment.requested` and `sales.order.balance_cancelled`: the order and the quantity per order line. */
-export function readLineQtyEvent(payload: unknown): { soNo: string; lines: { lineNo: number; itemCode: string; qty: string }[] } | null {
+/**
+ * `sales.shipment.requested` and `sales.order.balance_cancelled`: the order and the quantity per sales-order line.
+ * `soLineField` names the field holding the sales-order line number: a delivery numbers its own lines (`lineNo`) and
+ * gives the order's line as `soLineNo`; a cancel order's `lineNo` is the order's line. An older delivery event
+ * without `soLineNo` gives null, and the line is then matched by item.
+ */
+export function readLineQtyEvent(
+  payload: unknown,
+  soLineField: 'soLineNo' | 'lineNo',
+): { soNo: string; lines: { lineNo: number | null; itemCode: string; qty: string }[] } | null {
   if (!isRecord(payload) || !text(payload.soNo) || !Array.isArray(payload.lines)) return null;
   return {
     soNo: text(payload.soNo)!,
     lines: payload.lines.filter(isRecord).flatMap((l) => {
       const itemCode = text(l.itemCode);
       const qty = text(l.qty);
-      return typeof l.lineNo === 'number' && itemCode && qty ? [{ lineNo: l.lineNo, itemCode, qty }] : [];
+      const lineNo = l[soLineField];
+      return itemCode && qty ? [{ lineNo: typeof lineNo === 'number' ? lineNo : null, itemCode, qty }] : [];
     }),
   };
 }
@@ -68,14 +75,14 @@ export function readLineQtyEvent(payload: unknown): { soNo: string; lines: { lin
  */
 export function matchLines<T extends { id: string; soLineNo: number; itemCode: string }>(
   rows: T[],
-  lines: { lineNo: number; itemCode: string; qty: string }[],
+  lines: { lineNo: number | null; itemCode: string; qty: string }[],
 ): { updates: { id: string; add: Prisma.Decimal }[]; missing: string[] } {
   const updates: { id: string; add: Prisma.Decimal }[] = [];
   const missing: string[] = [];
   for (const l of lines) {
-    const row = rows.find((r) => r.soLineNo === l.lineNo && r.itemCode === l.itemCode);
+    const row = rows.find((r) => r.itemCode === l.itemCode && (l.lineNo === null || r.soLineNo === l.lineNo));
     if (row) updates.push({ id: row.id, add: dec(l.qty) });
-    else missing.push(`line ${l.lineNo} ${l.itemCode}`);
+    else missing.push(`${l.lineNo === null ? '' : `line ${l.lineNo} `}${l.itemCode}`);
   }
   return { updates, missing };
 }

@@ -14,10 +14,11 @@ const order: ReleasedSalesOrder = {
   ],
 };
 const items: PlanItem[] = [
-  { code: 'SF-CUS-03', status: 'ACTIVE', isPurchasable: true, preferredSupplierCode: 'S-0047' },
-  { code: 'TB-DIN-06', status: 'ACTIVE', isPurchasable: true, preferredSupplierCode: 'S-0021' },
-  { code: 'XX-NOSUP', status: 'ACTIVE', isPurchasable: true, preferredSupplierCode: null },
-  { code: 'XX-OLD', status: 'DISCONTINUED', isPurchasable: true, preferredSupplierCode: 'S-0047' },
+  { code: 'SF-CUS-03', status: 'ACTIVE', isPurchasable: true, preferredSupplierCode: 'S-0047', uomCode: 'PCS' },
+  { code: 'TB-DIN-06', status: 'ACTIVE', isPurchasable: true, preferredSupplierCode: 'S-0021', uomCode: 'PCS' },
+  { code: 'XX-NOSUP', status: 'ACTIVE', isPurchasable: true, preferredSupplierCode: null, uomCode: 'PCS' },
+  { code: 'XX-OLD', status: 'DISCONTINUED', isPurchasable: true, preferredSupplierCode: 'S-0047', uomCode: 'PCS' },
+  { code: 'XX-BOX', status: 'ACTIVE', isPurchasable: true, preferredSupplierCode: 'S-0047', uomCode: 'BOX' },
 ];
 const suppliers = [
   { code: 'S-0047', name: 'Perabot Kayu Timur', status: 'ACTIVE' },
@@ -74,6 +75,15 @@ describe('buy-to-order rules (S10)', () => {
     ]);
     // With the "only active suppliers" switch off, the blocked supplier can be used.
     expect(planBuyToOrder({ ...base, order: bad, onlyActiveSuppliers: false }).drafts.map((d) => d.supplierCode)).toEqual(['S-0021']);
+  });
+
+  it('leaves a line sold in another unit to the buyer, instead of drafting the wrong quantity', () => {
+    const boxes = { ...order, lines: [{ lineNo: 1, itemCode: 'XX-BOX', uomCode: 'PCS', qty: '24.0000', isBuyToOrder: true }] };
+    const plan = planBuyToOrder({ ...base, order: boxes });
+    expect(plan.drafts).toEqual([]);
+    expect(plan.skipped).toEqual([{ soLineNo: 1, itemCode: 'XX-BOX', reason: 'XX-BOX is sold in PCS but bought in BOX. The buyer raises this PO by hand.' }]);
+    // An older event without the unit is drafted as before.
+    expect(planBuyToOrder({ ...base, order: { ...boxes, lines: [{ ...boxes.lines[0]!, uomCode: '' }] } }).drafts).toHaveLength(1);
   });
 
   it('never drafts a second PO for a line already ordered for this sales order', () => {

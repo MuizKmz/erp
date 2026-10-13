@@ -59,6 +59,13 @@ describe('spreading Purchase quantities over order lines', () => {
     expect(added(allocateToLines(afterReceipt, [{ itemCode: 'SF-CUS-03', qty: '2' }]))).toEqual([['b', '2']]);
   });
 
+  it('counts only the shortfall when Purchase cancels more than the order needs', () => {
+    // The buyer ordered 15 for a need of 10, received 8, then cancelled the other 7: the order is 2 short, not 7.
+    const need = [{ id: 'a', itemCode: 'SF-CUS-03', orderedQty: '10', current: '8' }];
+    expect(added(allocateToLines(need, [{ itemCode: 'SF-CUS-03', qty: '7' }], 'drop'))).toEqual([['a', '2']]);
+    expect(added(allocateToLines([{ ...need[0]!, current: '10' }], [{ itemCode: 'SF-CUS-03', qty: '5' }], 'drop'))).toEqual([]);
+  });
+
   it('puts anything over on the last line and ignores items not on the order', () => {
     expect(added(allocateToLines(lines, [{ itemCode: 'TB-DIN-06', qty: '1' }, { itemCode: 'XX', qty: '3' }]))).toEqual([['c', '1']]);
     expect(added(allocateToLines(lines, [{ itemCode: 'SF-CUS-03', qty: '30' }]))).toEqual([['a', '20'], ['b', '10']]);

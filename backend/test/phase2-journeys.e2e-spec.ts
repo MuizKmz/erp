@@ -279,11 +279,44 @@ describe('Phase 2 journeys (end to end)', () => {
           const l = (await api.get(`sales/orders/${so.id}`, 'AR')).lines[0];
           return l.purchase?.state === 'NO_PO' ? l : null;
         });
-        expect(line.purchase.label).toBe('No PO yet: Auto-draft for buy-to-order lines is off in Purchase. The buyer raises the PO by hand.');
+        expect(line.purchase.label).toBe('No PO yet: Auto-draft for buy-to-order lines is off in Purchase. A PO the buyer raises by hand is not linked to this line.');
         expect(await api.prisma.purPurchaseOrder.count({ where: { salesOrderNo: so.docNo } })).toBe(0);
       } finally {
         await api.prisma.purSetting.updateMany({ data: { autoDraftBuyToOrder: true } });
       }
+    });
+  });
+
+  describe('Deliveries reach Purchase line by line', () => {
+    it('lowers the right demand line when a later delivery numbers its lines differently', async () => {
+      let r = await api.call('POST', 'sales/orders', 'AR', {
+        customerCode: 'C-0102', lines: [{ itemCode: 'CH-BAR-01', qty: '2', unitPrice: '190' }, { itemCode: 'TB-COF-01', qty: '1', unitPrice: '1200' }],
+      });
+      expect(r.status).toBe(201);
+      const so = r.body;
+      expect((await api.call('POST', `sales/orders/${so.id}/release`, 'AR', { version: so.version })).body.status).toBe('RELEASED');
+      const rows = () => api.prisma.purSalesDemand.findMany({ where: { soNo: so.docNo }, orderBy: { soLineNo: 'asc' } });
+      await api.until(`${so.docNo} in Purchase demand`, async () => (await rows()).length === 2);
+
+      // First delivery: the stools only (SO line 1).
+      let delivery = (await api.call('POST', 'sales/deliveries', 'AR', { salesOrderId: so.id })).body;
+      const table = delivery.lines.find((l: any) => l.itemCode === 'TB-COF-01');
+      delivery = (await api.call('PATCH', `sales/deliveries/${delivery.id}`, 'AR', { version: delivery.version, lines: [{ lineNo: table.lineNo, qty: '0' }] })).body;
+      expect((await api.call('POST', `sales/deliveries/${delivery.id}/confirm`, 'AR', { version: delivery.version })).body.status).toBe('CONFIRMED');
+      await api.until('stools delivered in Purchase demand', async () => (await rows())[0]!.deliveredQty.eq(2));
+
+      // Second delivery holds only the table, as its own line 1, while it is the order's line 2.
+      delivery = (await api.call('POST', 'sales/deliveries', 'AR', { salesOrderId: so.id })).body;
+      expect(delivery.lines.map((l: any) => [l.lineNo, l.itemCode])).toEqual([[1, 'TB-COF-01']]);
+      expect((await api.call('POST', `sales/deliveries/${delivery.id}/confirm`, 'AR', { version: delivery.version })).body.status).toBe('CONFIRMED');
+      const event = await api.prisma.sysOutbox.findFirstOrThrow({ where: { name: 'sales.shipment.requested', aggregateId: delivery.id } });
+      expect((event.payload as any).lines).toEqual([expect.objectContaining({ lineNo: 1, soLineNo: 2, itemCode: 'TB-COF-01' })]);
+      const [stools, tables] = await api.until('table delivered in Purchase demand', async () => {
+        const r2 = await rows();
+        return r2[1]!.deliveredQty.eq(1) ? r2 : null;
+      });
+      expect(stools!.deliveredQty.toFixed(0)).toBe('2');
+      expect(tables!.deliveredQty.toFixed(0)).toBe('1');
     });
   });
 });

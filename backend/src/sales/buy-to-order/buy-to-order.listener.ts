@@ -87,6 +87,7 @@ export class SalesBuyToOrderListener implements OnModuleInit {
       // A line has room for what is neither received nor cancelled yet, whichever event this is.
       lines.map((l) => ({ id: l.id, itemCode: l.itemCode, orderedQty: l.orderedQty, current: l.purchaseReceivedQty.add(l.purchaseCancelledQty) })),
       e.lines,
+      kind === 'received' ? 'last' : 'drop',
     );
     for (const a of adds) {
       await tx.salSalesOrderLine.update({

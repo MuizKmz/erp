@@ -45,9 +45,21 @@ describe('sales demand rules (P04 from Sales events)', () => {
     expect(r.missing).toEqual(['line 3 SF-CUS-03']);
   });
 
-  it('reads delivery and cancel events', () => {
-    expect(readLineQtyEvent({ doNo: 'DO-0004', soNo: 'SO-0001', lines: [{ lineNo: 1, itemCode: 'CH-DIN-01', uomCode: 'PCS', qty: '40.0000' }, { qty: '1' }] }))
-      .toEqual({ soNo: 'SO-0001', lines: [{ lineNo: 1, itemCode: 'CH-DIN-01', qty: '40.0000' }] });
-    expect(readLineQtyEvent({ cancelNo: 'CO-0002' })).toBeNull();
+  it('reads a delivery by the order line it delivers, not the delivery order own line number', () => {
+    // SO line 1 was delivered earlier, so the next DO holds only SO line 2, as its own line 1.
+    const event = { doNo: 'DO-0005', soNo: 'SO-0012', lines: [{ lineNo: 1, soLineNo: 2, itemCode: 'TB-COF-01', uomCode: 'PCS', qty: '1.0000' }, { qty: '1' }] };
+    const read = readLineQtyEvent(event, 'soLineNo')!;
+    expect(read).toEqual({ soNo: 'SO-0012', lines: [{ lineNo: 2, itemCode: 'TB-COF-01', qty: '1.0000' }] });
+    const rows = [{ id: 'a', soLineNo: 1, itemCode: 'CH-BAR-01' }, { id: 'b', soLineNo: 2, itemCode: 'TB-COF-01' }];
+    expect(matchLines(rows, read.lines).updates.map((u) => u.id)).toEqual(['b']);
+  });
+
+  it('reads cancel events by their line number, and older delivery events by item', () => {
+    expect(readLineQtyEvent({ cancelNo: 'CO-0002', soNo: 'SO-0006', lines: [{ lineNo: 1, itemCode: 'CH-OFF-02', qty: '15.0000' }] }, 'lineNo'))
+      .toEqual({ soNo: 'SO-0006', lines: [{ lineNo: 1, itemCode: 'CH-OFF-02', qty: '15.0000' }] });
+    const old = readLineQtyEvent({ doNo: 'DO-0001', soNo: 'SO-0001', lines: [{ itemCode: 'CH-DIN-01', qty: '60.0000' }] }, 'soLineNo')!;
+    expect(old.lines).toEqual([{ lineNo: null, itemCode: 'CH-DIN-01', qty: '60.0000' }]);
+    expect(matchLines([{ id: 'a', soLineNo: 1, itemCode: 'CH-DIN-01' }], old.lines).updates.map((u) => u.id)).toEqual(['a']);
+    expect(readLineQtyEvent({ cancelNo: 'CO-0002' }, 'lineNo')).toBeNull();
   });
 });

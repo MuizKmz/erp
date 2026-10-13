@@ -3,16 +3,17 @@ import { execSync } from 'node:child_process';
 import * as path from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
-import { OutboxDispatcher } from '../src/platform/outbox/outbox.dispatcher';
+import { INTERVAL_NAME, OutboxDispatcher } from '../src/platform/outbox/outbox.dispatcher';
 import { PrismaService } from '../src/platform/prisma/prisma.service';
 
 /**
  * End-to-end harness. The tests run against the database in backend/.env (zora_erp), so they reset it with the demo
  * seed before and after: run them when you do not mind losing what you clicked. The API runs in this process on a
- * free port with its own outbox polling off; the tests drive the dispatcher themselves (a running dev server may
- * deliver events too, which is why `until` keeps polling instead of checking once).
+ * free port with its own outbox polling off (test/e2e-env.ts sets that before the app is loaded); the tests drive the
+ * dispatcher themselves. A running dev server may deliver events too, which is why `until` keeps polling.
  */
 
 const backendDir = path.resolve(__dirname, '..');
@@ -34,10 +35,13 @@ export interface Api {
 }
 
 export async function startApi(): Promise<Api> {
-  process.env.OUTBOX_DISPATCH = 'off';
   const app = await NestFactory.create(AppModule, { logger: ['error'] });
   configureApp(app);
   await app.listen(0, '127.0.0.1');
+  if (app.get(SchedulerRegistry).getIntervals().includes(INTERVAL_NAME)) {
+    await app.close();
+    throw new Error('The outbox dispatcher timer is running in the test app; OUTBOX_DISPATCH=off did not reach the config.');
+  }
   const base = `${(await app.getUrl()).replace('[::1]', '127.0.0.1')}/api/v1`;
   const dispatcher = app.get(OutboxDispatcher);
 
