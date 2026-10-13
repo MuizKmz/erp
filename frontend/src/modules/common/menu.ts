@@ -8,7 +8,7 @@ export interface MenuItem {
   icon: Component
 }
 
-export type MenuGroupKey = 'transaction' | 'billing' | 'policies' | 'reports'
+export type MenuGroupKey = 'transaction' | 'billing' | 'policies' | 'reports' | 'catalog' | 'parties' | 'pricing' | 'warehouses'
 
 export interface MenuGroup {
   key: MenuGroupKey

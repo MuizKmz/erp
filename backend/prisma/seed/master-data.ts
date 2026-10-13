@@ -25,7 +25,7 @@ const USERS: { code: string; name: string; email: string; roles: string[]; branc
   { code: 'NUR', name: 'Nurul', email: 'nurul@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Production' },
   { code: 'HAF', name: 'Hafiz', email: 'hafiz@warehouse.com', roles: ['REQUESTER', 'STORE'], branchCodes: ['HQ'], department: 'Production' },
   { code: 'SIT', name: 'Siti', email: 'siti@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Office', jobTitle: 'Admin' },
-  { code: 'ADM', name: 'Admin', email: 'admin@warehouse.com', roles: ['ADMIN'], branchCodes: ['HQ', 'PNG'], jobTitle: 'Admin' },
+  { code: 'ADM', name: 'Admin', email: 'admin@warehouse.com', roles: ['ADMIN', 'MASTER_DATA_ADMIN'], branchCodes: ['HQ', 'PNG'], jobTitle: 'Admin' },
   // Sales (SALES_SEED_DATA.md). Aina sells, bills and delivers at HQ, as in the mockups.
   { code: 'AR', name: 'Aina Rahman', email: 'aina@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING', 'SALES_STORE'], branchCodes: ['HQ'], department: 'Sales', jobTitle: 'Sales agent' },
   { code: 'LWJ', name: 'Lim Wei Jie', email: 'weijie@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING'], branchCodes: ['PNG'], department: 'Sales', jobTitle: 'Sales agent' },

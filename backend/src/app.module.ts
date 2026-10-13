@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { validateEnv } from './config/env';
+import { CoreModule } from './core/core.module';
 import { HealthController } from './health/health.controller';
 import { IntegrationModule } from './integration/stub-adapters';
 import { MasterDataModule } from './master-data/master-data.module';
@@ -18,6 +19,7 @@ import { SalesModule } from './sales/sales.module';
     IntegrationModule,
     PurchaseModule,
     SalesModule,
+    CoreModule,
   ],
   controllers: [HealthController],
 })

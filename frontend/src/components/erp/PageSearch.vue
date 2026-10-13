@@ -12,7 +12,7 @@ const focused = ref(false)
 
 const pages = computed(() => [
   { label: `${props.module.label} home`, group: 'Module', to: props.module.home },
-  { label: 'Approvals', group: 'Top bar', to: props.module.approvalsTo },
+  ...(props.module.approvalsTo ? [{ label: 'Approvals', group: 'Top bar', to: props.module.approvalsTo }] : []),
   { label: 'All modules', group: 'Launcher', to: '/' },
   ...props.module.menu.flatMap((g) => g.items.map((i) => ({ label: i.label, group: g.title, to: i.to }))),
 ])

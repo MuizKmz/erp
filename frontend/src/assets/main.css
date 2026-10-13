@@ -530,3 +530,6 @@
 [data-module='purchase'] {
   --mod-tile-4: #22a04f;
 }
+[data-module='core'] {
+  --mod-tile-4: #6a6ee0;
+}

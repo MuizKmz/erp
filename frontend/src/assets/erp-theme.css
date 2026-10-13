@@ -118,3 +118,21 @@
   --mod-chip-bg: #ede9fe;
   --mod-chip-text: #5b35c9;
 }
+
+/* Core (Master Data): indigo, like its launcher tile (--tile-core) */
+[data-module='core'] {
+  --mod-side: #4f53d6;
+  --mod-hover: #4448c9;
+  --mod-active: #3a3db5;
+  --mod-pill: #4448c9;
+  --mod-primary: #4448c9;
+  --mod-accent: #3a3db5;
+  --mod-line: #4f53d6;
+  --mod-light: #f5f5ff;
+  --mod-light-border: #d9dafb;
+  --mod-tile-1: #3a3db5;
+  --mod-tile-2: #4448c9;
+  --mod-tile-3: #4f53d6;
+  --mod-chip-bg: #e6e7fd;
+  --mod-chip-text: #3a3db5;
+}

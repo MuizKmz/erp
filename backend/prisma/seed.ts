@@ -21,6 +21,8 @@ import { seedSalesAttachments, seedSalesDocuments } from './seed/sales-documents
 import { seedSalesMasterData } from './seed/sales-master';
 import { seedSalesSettings } from './seed/sales-settings';
 import { verifySalesSeed } from './seed/sales-verify';
+import { seedCoreSettings } from './seed/core-settings';
+import { verifyCoreSeed } from './seed/core-verify';
 import { seedAttachments, seedRecords } from './seed/records';
 import { seedSettings } from './seed/settings';
 import { TENANT_ID, type SeedCtx } from './seed/util';
@@ -178,13 +180,14 @@ async function main(): Promise<void> {
 
   await seedSalesMasterData(ctx);
   await seedSalesSettings(ctx);
+  await seedCoreSettings(ctx);
   await seedSalesDocuments(ctx);
   await seedSalesAttachments(ctx, uploadRoot);
   await seedPurchaseSalesDemand(ctx);
 
   await printCounts();
 
-  const checks = [...(await verifySeed(ctx, uploadRoot)), ...(await verifySalesSeed(ctx))];
+  const checks = [...(await verifySeed(ctx, uploadRoot)), ...(await verifySalesSeed(ctx)), ...(await verifyCoreSeed(ctx))];
   console.log('\nChecks against the mockups');
   console.table(checks.map((c) => ({ ok: c.ok ? '✓' : '✗', check: c.check, expected: c.expected, actual: c.actual })));
   const failed = checks.filter((c) => !c.ok);

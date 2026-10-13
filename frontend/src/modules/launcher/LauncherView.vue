@@ -42,8 +42,10 @@ const builtTiles = computed(() => tiles.value.filter(isBuilt))
 const waiting = reactive<Record<string, number>>({})
 async function loadWaiting() {
   for (const t of builtTiles.value) {
+    const fetchCount = MODULES[t.code as keyof typeof MODULES].approvalsCount
+    if (!fetchCount) continue
     try {
-      waiting[t.code] = (await MODULES[t.code as keyof typeof MODULES].approvalsCount()).waitingForMe
+      waiting[t.code] = (await fetchCount()).waitingForMe
     } catch {
       /* the tile just shows no count */
     }
@@ -62,8 +64,11 @@ onMounted(async () => {
 // Default module: remembered for when login exists (then the app opens straight into it).
 const DEFAULT_KEY = 'zora.defaultModule'
 const storedDefault = ref(readDefault())
+// Without a choice, the first module for daily work: Core is for administrators, so it is never the fallback.
 const defaultModule = computed(() =>
-  builtTiles.value.some((t) => t.code === storedDefault.value) ? storedDefault.value : (builtTiles.value[0]?.code ?? ''),
+  builtTiles.value.some((t) => t.code === storedDefault.value)
+    ? storedDefault.value
+    : (builtTiles.value.find((t) => t.code !== 'core')?.code ?? builtTiles.value[0]?.code ?? ''),
 )
 function readDefault(): string {
   try {

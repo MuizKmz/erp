@@ -203,6 +203,7 @@ const railActive = 'bg-erp-on-dark/20 text-erp-on-dark ring-1 ring-erp-on-dark/1
           <div class="flex grow justify-center"><PageSearch :module="module" /></div>
           <div class="flex shrink-0 items-center gap-4">
             <RouterLink
+              v-if="module.approvalsTo"
               :to="module.approvalsTo"
               :aria-label="`Approvals, ${approvals ?? 0} waiting`"
               class="flex items-center gap-1.5 text-[13px] font-semibold text-mod-chip-text"

@@ -1,20 +1,24 @@
 import type { MenuGroup } from './common/menu'
+import { CORE_MENU } from './core/menu'
 import { purchaseApi } from './purchase/api/purchase'
 import { PURCHASE_MENU } from './purchase/menu'
 import { salesApi } from './sales/api/sales'
 import { SALES_MENU } from './sales/menu'
 
+export type ModuleKey = 'purchase' | 'sales' | 'core'
+
 /** What the shared layouts need to know about a module. */
 export interface ModuleDef {
-  key: 'purchase' | 'sales'
+  key: ModuleKey
   label: string
   home: string
   menu: MenuGroup[]
-  approvalsTo: string
-  approvalsCount: () => Promise<{ waitingForMe: number }>
+  /** Left out by modules without approvals (Core): the top bar then shows no Approvals link. */
+  approvalsTo?: string
+  approvalsCount?: () => Promise<{ waitingForMe: number }>
 }
 
-export const MODULES: Record<'purchase' | 'sales', ModuleDef> = {
+export const MODULES: Record<ModuleKey, ModuleDef> = {
   purchase: {
     key: 'purchase',
     label: 'Purchase',
@@ -30,6 +34,12 @@ export const MODULES: Record<'purchase' | 'sales', ModuleDef> = {
     menu: SALES_MENU,
     approvalsTo: '/sales/approvals',
     approvalsCount: salesApi.approvalsCount,
+  },
+  core: {
+    key: 'core',
+    label: 'Core',
+    home: '/core',
+    menu: CORE_MENU,
   },
 }
 

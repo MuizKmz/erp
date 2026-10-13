@@ -18,8 +18,13 @@ export function useApprovalsCount(module: () => ModuleDef) {
   let timer: ReturnType<typeof setInterval> | undefined
 
   async function load() {
+    const fetchCount = module().approvalsCount
+    if (!fetchCount) {
+      count.value = null
+      return
+    }
     try {
-      count.value = (await module().approvalsCount()).waitingForMe
+      count.value = (await fetchCount()).waitingForMe
     } catch {
       count.value = null
     }

@@ -20,17 +20,17 @@ Values taken from the mockups. Put them in one place in the frontend (`src/asset
 
 Each module has its own sidebar colour so users always know where they are. Set these variables on the module layout root (for example `<div class="erp-module" data-module="purchase">`).
 
-| Variable | Purchase (green) | Sales (purple) | Use |
-|---|---|---|---|
-| `--mod-side` | `#15803D` | `#7B4FE0` | Sidebar and top bar background |
-| `--mod-hover` | `#17733A` | `#6A42D6` | Sidebar item hover |
-| `--mod-active` | `#14532D` | `#5B35C9` | Active sidebar item |
-| `--mod-pill` | `#166534` | `#6A42D6` | Search box in the top bar |
-| `--mod-primary` | `#166534` | `#6D45DB` | The one filled “next step” button (Release, Award, Confirm) |
-| `--mod-accent` | `#166534` | `#5B35C9` | Active tab text, badge text |
-| `--mod-line` | `#15803D` | `#6D45DB` | Active tab underline, focused cell border |
-| `--mod-light` | `#F0FDF4` | `#F8F5FF` | Selected row, info notes |
-| `--mod-light-border` | `#BBF7D0` | `#DDD6FE` | Border for info notes |
+| Variable | Purchase (green) | Sales (purple) | Core (indigo) | Use |
+|---|---|---|---|---|
+| `--mod-side` | `#15803D` | `#7B4FE0` | `#4F53D6` | Sidebar and top bar background |
+| `--mod-hover` | `#17733A` | `#6A42D6` | `#4448C9` | Sidebar item hover |
+| `--mod-active` | `#14532D` | `#5B35C9` | `#3A3DB5` | Active sidebar item |
+| `--mod-pill` | `#166534` | `#6A42D6` | `#4448C9` | Search box in the top bar |
+| `--mod-primary` | `#166534` | `#6D45DB` | `#4448C9` | The one filled “next step” button (Release, Award, Confirm) |
+| `--mod-accent` | `#166534` | `#5B35C9` | `#3A3DB5` | Active tab text, badge text |
+| `--mod-line` | `#15803D` | `#6D45DB` | `#4F53D6` | Active tab underline, focused cell border |
+| `--mod-light` | `#F0FDF4` | `#F8F5FF` | `#F5F5FF` | Selected row, info notes |
+| `--mod-light-border` | `#BBF7D0` | `#DDD6FE` | `#D9DAFB` | Border for info notes |
 
 Launcher uses a neutral grey background `#DFE2E8` with one coloured tile per module.
 

@@ -6,7 +6,7 @@ import type { RequestContext } from './request-context';
 
 /** The module launcher tiles (Launcher.html). Static until module licensing exists. */
 const MODULES = [
-  { code: 'core', name: 'Core', tag: 'Master Data · existing', state: 'EXISTING', route: null },
+  { code: 'core', name: 'Core', tag: 'Master Data · open', state: 'OPEN', route: '/core' },
   { code: 'purchase', name: 'Purchase', tag: 'Designed · open', state: 'OPEN', route: '/purchase' },
   { code: 'sales', name: 'Sales', tag: 'Designed · open', state: 'OPEN', route: '/sales' },
   { code: 'mes', name: 'MES', tag: 'Later', state: 'LATER', route: null },

@@ -297,6 +297,9 @@ model MdmWarehouse {
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now()) @db.DateTime(3)
   updatedAt  DateTime @updatedAt @db.DateTime(3)
+  version    Int      @default(1) // optimistic lock for Core edits
+  createdBy  String?  @db.VarChar(20) // null for rows from the seed
+  updatedBy  String?  @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@map("mdm_warehouse")
@@ -312,6 +315,9 @@ model MdmLocation {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now()) @db.DateTime(3)
   updatedAt     DateTime @updatedAt @db.DateTime(3)
+  version       Int      @default(1) // optimistic lock for Core edits
+  createdBy     String?  @db.VarChar(20) // null for rows from the seed
+  updatedBy     String?  @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@index([tenantId, warehouseCode])
@@ -319,12 +325,17 @@ model MdmLocation {
 }
 
 model MdmUom {
-  id       String  @id @default(uuid()) @db.Char(36)
-  tenantId String  @db.Char(36)
-  code     String  @db.VarChar(10)
-  name     String  @db.VarChar(50)
-  decimals Int     @default(0)
-  isActive Boolean @default(true)
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  code      String   @db.VarChar(10)
+  name      String   @db.VarChar(50)
+  decimals  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.DateTime(3)
+  version   Int      @default(1) // optimistic lock for Core edits
+  createdBy String?  @db.VarChar(20) // null for rows from the seed
+  updatedBy String?  @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@map("mdm_uom")
@@ -352,6 +363,11 @@ model MdmTaxCode {
   validFrom DateTime  @db.Date
   validTo   DateTime? @db.Date
   isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.DateTime(3)
+  updatedAt DateTime  @default(now()) @updatedAt @db.DateTime(3)
+  version   Int       @default(1) // optimistic lock for Core edits
+  createdBy String?   @db.VarChar(20) // null for rows from the seed
+  updatedBy String?   @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@map("mdm_tax_code")
@@ -377,6 +393,9 @@ model MdmSupplier {
   status          MdmRecordStatus @default(ACTIVE)
   createdAt       DateTime        @default(now()) @db.DateTime(3)
   updatedAt       DateTime        @updatedAt @db.DateTime(3)
+  version         Int             @default(1) // optimistic lock for Core edits
+  createdBy       String?         @db.VarChar(20) // null for rows from the seed
+  updatedBy       String?         @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@index([tenantId, status])
@@ -406,6 +425,9 @@ model MdmItem {
   status                MdmItemStatus @default(ACTIVE)
   createdAt             DateTime      @default(now()) @db.DateTime(3)
   updatedAt             DateTime      @updatedAt @db.DateTime(3)
+  version               Int           @default(1) // optimistic lock for Core edits
+  createdBy             String?       @db.VarChar(20) // null for rows from the seed
+  updatedBy             String?       @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@index([tenantId, isPurchasable, status])
@@ -1438,6 +1460,9 @@ model MdmCustomer {
   status           MdmCustomerStatus @default(ACTIVE)
   createdAt        DateTime          @default(now()) @db.DateTime(3)
   updatedAt        DateTime          @updatedAt @db.DateTime(3)
+  version          Int               @default(1) // optimistic lock for Core edits
+  createdBy        String?           @db.VarChar(20) // null for rows from the seed
+  updatedBy        String?           @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@index([tenantId, status])
@@ -1454,6 +1479,11 @@ model MdmPriceList {
   validFrom    DateTime  @db.Date
   validTo      DateTime? @db.Date
   isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @db.DateTime(3)
+  updatedAt    DateTime  @default(now()) @updatedAt @db.DateTime(3)
+  version      Int       @default(1) // optimistic lock for Core edits
+  createdBy    String?   @db.VarChar(20) // null for rows from the seed
+  updatedBy    String?   @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@map("mdm_price_list")

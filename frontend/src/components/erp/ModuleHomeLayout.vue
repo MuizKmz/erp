@@ -27,6 +27,7 @@ const year = computed(() => (today.value ? today.value.slice(0, 4) : ''))
       </div>
       <div class="flex items-center gap-5">
         <RouterLink
+          v-if="module.approvalsTo"
           :to="module.approvalsTo"
           :aria-label="`Approvals, ${approvals ?? 0} waiting`"
           class="flex items-center gap-1.5 text-[13px] font-semibold text-mod-chip-text"
