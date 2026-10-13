@@ -21,7 +21,7 @@ import { seedSalesAttachments, seedSalesDocuments } from './seed/sales-documents
 import { seedSalesMasterData } from './seed/sales-master';
 import { seedSalesSettings } from './seed/sales-settings';
 import { verifySalesSeed } from './seed/sales-verify';
-import { seedCoreSettings } from './seed/core-settings';
+import { seedCoreReferenceLists, seedCoreSettings } from './seed/core-settings';
 import { verifyCoreSeed } from './seed/core-verify';
 import { seedAttachments, seedRecords } from './seed/records';
 import { seedSettings } from './seed/settings';
@@ -34,6 +34,7 @@ const uploadRoot = path.resolve(__dirname, '..', process.env.UPLOAD_DIR || 'uplo
 /** Removes the demo documents and everything that hangs off them, children first. */
 async function resetDemoData(tenantId: string): Promise<void> {
   const where = { tenantId };
+  const madeInCore = { tenantId, createdBy: { not: null } };
   // Uploaded files of this tenant (seeded placeholders and anything uploaded while testing).
   await rm(path.join(uploadRoot, tenantId), { recursive: true, force: true });
 
@@ -85,6 +86,20 @@ async function resetDemoData(tenantId: string): Promise<void> {
     prisma.purEmailTemplate.deleteMany({ where }),
     prisma.purPriceHistory.deleteMany({ where }),
     prisma.purSupplierStat.deleteMany({ where }),
+
+    // Master data made in Core while testing. Seeded rows have no createdBy and are reset by their upserts below.
+    prisma.mdmLocation.deleteMany({ where: madeInCore }),
+    prisma.mdmWarehouse.deleteMany({ where: madeInCore }),
+    prisma.mdmPriceList.deleteMany({ where: madeInCore }),
+    prisma.mdmItem.deleteMany({ where: madeInCore }),
+    prisma.mdmCustomer.deleteMany({ where: madeInCore }),
+    prisma.mdmSupplier.deleteMany({ where: madeInCore }),
+    prisma.mdmTaxCode.deleteMany({ where: madeInCore }),
+    prisma.mdmUom.deleteMany({ where: madeInCore }),
+    prisma.mdmItemGroup.deleteMany({ where: madeInCore }),
+    prisma.mdmCustomerCategory.deleteMany({ where: madeInCore }),
+    prisma.mdmArea.deleteMany({ where: madeInCore }),
+    prisma.mdmCreditTerm.deleteMany({ where: madeInCore }),
   ]);
 }
 
@@ -129,6 +144,10 @@ async function printCounts(): Promise<void> {
     pur_price_history: () => prisma.purPriceHistory.count(),
     mdm_customer: () => prisma.mdmCustomer.count(),
     mdm_price_list_item: () => prisma.mdmPriceListItem.count(),
+    mdm_item_group: () => prisma.mdmItemGroup.count(),
+    mdm_customer_category: () => prisma.mdmCustomerCategory.count(),
+    mdm_area: () => prisma.mdmArea.count(),
+    mdm_credit_term: () => prisma.mdmCreditTerm.count(),
     fin_receipt_stub: () => prisma.finReceiptStub.count(),
     sal_enquiry: () => prisma.salEnquiry.count(),
     sal_quotation: () => prisma.salQuotation.count(),
@@ -181,6 +200,7 @@ async function main(): Promise<void> {
   await seedSalesMasterData(ctx);
   await seedSalesSettings(ctx);
   await seedCoreSettings(ctx);
+  await seedCoreReferenceLists(ctx);
   await seedSalesDocuments(ctx);
   await seedSalesAttachments(ctx, uploadRoot);
   await seedPurchaseSalesDemand(ctx);

@@ -353,24 +353,42 @@ model MdmUomConversion {
   @@map("mdm_uom_conversion")
 }
 
-model MdmTaxCode {
-  id        String    @id @default(uuid()) @db.Char(36)
-  tenantId  String    @db.Char(36)
-  code      String    @db.VarChar(20) // SST10, SVC8, EXEMPT
-  name      String    @db.VarChar(60) // "SST 10%", the label screens show
-  rate      Decimal   @db.Decimal(7, 4) // fraction: 0.1000 = 10%
-  country   String    @default("MY") @db.Char(2)
-  validFrom DateTime  @db.Date
-  validTo   DateTime? @db.Date
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now()) @db.DateTime(3)
-  updatedAt DateTime  @default(now()) @updatedAt @db.DateTime(3)
-  version   Int       @default(1) // optimistic lock for Core edits
-  createdBy String?   @db.VarChar(20) // null for rows from the seed
-  updatedBy String?   @db.VarChar(20)
+enum MdmTaxType {
+  SALES_TAX
+  SERVICE_TAX
+  EXEMPT
+}
 
-  @@unique([tenantId, code])
+/// One row per rate period (SRS BR-TAX-006, SDD §8.3): a new rate adds a row from its date and the old row gets a
+/// validTo; a rate is never edited in place. The port answers the row valid today, documents keep the rate they used.
+model MdmTaxCode {
+  id        String     @id @default(uuid()) @db.Char(36)
+  tenantId  String     @db.Char(36)
+  code      String     @db.VarChar(20) // SST10, SVC8, EXEMPT
+  name      String     @db.VarChar(60) // "SST 10%", the label screens show
+  type      MdmTaxType // SRS FR-MST-055
+  rate      Decimal    @db.Decimal(7, 4) // fraction: 0.1000 = 10%
+  country   String     @default("MY") @db.Char(2)
+  validFrom DateTime   @db.Date
+  validTo   DateTime?  @db.Date
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now()) @db.DateTime(3)
+  updatedAt DateTime   @default(now()) @updatedAt @db.DateTime(3)
+  version   Int        @default(1) // optimistic lock for Core edits
+  createdBy String?    @db.VarChar(20) // null for rows from the seed
+  updatedBy String?    @db.VarChar(20)
+
+  @@unique([tenantId, code, validFrom])
+  @@index([tenantId, code])
   @@map("mdm_tax_code")
+}
+
+/// e-Invoice identity type of a customer or supplier (SRS FR-MST-042, Appendix E).
+enum MdmIdType {
+  BRN
+  NRIC
+  PASSPORT
+  ARMY
 }
 
 model MdmSupplier {
@@ -380,9 +398,12 @@ model MdmSupplier {
   name            String          @db.VarChar(150)
   shortName       String?         @db.VarChar(60) // "Kilang Kain Jaya" in compact lists
   category        String?         @db.VarChar(100) // what they supply
+  idType          MdmIdType? // e-Invoice identity (SRS FR-MST-042); regNo is the ID number
   regNo           String?         @db.VarChar(30)
   tin             String?         @db.VarChar(30)
-  sstNo           String?         @db.VarChar(30) // null = not SST registered
+  sstNo           String?         @db.VarChar(30) // sales tax number; null = not SST registered
+  serviceTaxNo    String?         @db.VarChar(30)
+  einvoiceEmail   String?         @db.VarChar(150)
   paymentTermDays Int             @default(30)
   currency        String          @default("MYR") @db.Char(3)
   contactName     String?         @db.VarChar(100)
@@ -403,31 +424,32 @@ model MdmSupplier {
 }
 
 model MdmItem {
-  id                    String        @id @default(uuid()) @db.Char(36)
-  tenantId              String        @db.Char(36)
-  code                  String        @db.VarChar(30) // FB-OAK-01
-  name                  String        @db.VarChar(150)
-  itemGroup             String        @db.VarChar(50)
-  type                  MdmItemType
-  baseUom               String        @db.VarChar(10)
-  purchaseUom           String?       @db.VarChar(10)
-  salesUom              String?       @db.VarChar(10)
-  isPurchasable         Boolean       @default(true)
-  isSellable            Boolean       @default(false)
-  isBuyToOrder          Boolean       @default(false) // bought only against a sales order
-  purchaseTaxCode       String        @db.VarChar(20)
-  salesTaxCode          String?       @db.VarChar(20)
-  preferredSupplierCode String?       @db.VarChar(20)
-  reorderLevel          Decimal?      @db.Decimal(18, 4)
-  packSize              Decimal       @default(1) @db.Decimal(18, 4)
-  barcode               String?       @db.VarChar(30)
-  standardCost          Decimal?      @db.Decimal(18, 4) // for the estimated margin on sales documents
-  status                MdmItemStatus @default(ACTIVE)
-  createdAt             DateTime      @default(now()) @db.DateTime(3)
-  updatedAt             DateTime      @updatedAt @db.DateTime(3)
-  version               Int           @default(1) // optimistic lock for Core edits
-  createdBy             String?       @db.VarChar(20) // null for rows from the seed
-  updatedBy             String?       @db.VarChar(20)
+  id                     String        @id @default(uuid()) @db.Char(36)
+  tenantId               String        @db.Char(36)
+  code                   String        @db.VarChar(30) // FB-OAK-01
+  name                   String        @db.VarChar(150)
+  itemGroup              String        @db.VarChar(50)
+  type                   MdmItemType
+  baseUom                String        @db.VarChar(10)
+  purchaseUom            String?       @db.VarChar(10)
+  salesUom               String?       @db.VarChar(10)
+  isPurchasable          Boolean       @default(true)
+  isSellable             Boolean       @default(false)
+  isBuyToOrder           Boolean       @default(false) // bought only against a sales order
+  purchaseTaxCode        String        @db.VarChar(20)
+  salesTaxCode           String?       @db.VarChar(20)
+  preferredSupplierCode  String?       @db.VarChar(20)
+  reorderLevel           Decimal?      @db.Decimal(18, 4)
+  packSize               Decimal       @default(1) @db.Decimal(18, 4)
+  barcode                String?       @db.VarChar(30)
+  standardCost           Decimal?      @db.Decimal(18, 4) // for the estimated margin on sales documents
+  einvoiceClassification String?       @db.VarChar(10) // LHDN classification code (SRS FR-MST-008)
+  status                 MdmItemStatus @default(ACTIVE)
+  createdAt              DateTime      @default(now()) @db.DateTime(3)
+  updatedAt              DateTime      @updatedAt @db.DateTime(3)
+  version                Int           @default(1) // optimistic lock for Core edits
+  createdBy              String?       @db.VarChar(20) // null for rows from the seed
+  updatedBy              String?       @db.VarChar(20)
 
   @@unique([tenantId, code])
   @@index([tenantId, isPurchasable, status])
@@ -1441,6 +1463,11 @@ model MdmCustomer {
   code             String            @db.VarChar(20) // C-0012, C-CASH
   name             String            @db.VarChar(150)
   tin              String?           @db.VarChar(30)
+  idType           MdmIdType? // e-Invoice identity (SRS FR-MST-042)
+  idNumber         String?           @db.VarChar(30)
+  salesTaxNo       String?           @db.VarChar(30)
+  serviceTaxNo     String?           @db.VarChar(30)
+  einvoiceEmail    String?           @db.VarChar(150)
   billingAddress   String?           @db.VarChar(300)
   deliveryAddress  String?           @db.VarChar(300)
   contactName      String?           @db.VarChar(100)
@@ -1489,17 +1516,85 @@ model MdmPriceList {
   @@map("mdm_price_list")
 }
 
+/// Dated prices (SRS BR-PRC-003/004): a price change adds a row from its date, so a future price waits for its date
+/// and the price on any past date can be shown. The port answers the latest row on or before the asked date.
 model MdmPriceListItem {
-  id            String  @id @default(uuid()) @db.Char(36)
-  tenantId      String  @db.Char(36)
-  priceListCode String  @db.VarChar(20)
-  itemCode      String  @db.VarChar(30)
-  uomCode       String  @db.VarChar(10)
-  unitPrice     Decimal @db.Decimal(18, 4) // before tax
+  id            String   @id @default(uuid()) @db.Char(36)
+  tenantId      String   @db.Char(36)
+  priceListCode String   @db.VarChar(20)
+  itemCode      String   @db.VarChar(30)
+  uomCode       String   @db.VarChar(10)
+  unitPrice     Decimal  @db.Decimal(18, 4) // before tax
+  validFrom     DateTime @db.Date
 
-  @@unique([tenantId, priceListCode, itemCode])
+  @@unique([tenantId, priceListCode, itemCode, uomCode, validFrom], map: "mdm_price_list_item_dated_key")
   @@index([tenantId, itemCode])
   @@map("mdm_price_list_item")
+}
+
+// ── Core reference lists (CLAUDE.md → Phase 3, SRS FR-MST-058) ──
+// Records keep the value in their own text column (an item's itemGroup, a customer's category, area and
+// creditTermDays), so MasterDataPort answers the same; Core lets users pick only active entries.
+
+model MdmItemGroup {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  name      String   @db.VarChar(50) // matches MdmItem.itemGroup
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+  version   Int      @default(1)
+  createdBy String?  @db.VarChar(20) // null for rows from the seed
+  updatedBy String?  @db.VarChar(20)
+
+  @@unique([tenantId, name])
+  @@map("mdm_item_group")
+}
+
+model MdmCustomerCategory {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  name      String   @db.VarChar(50) // matches MdmCustomer.category
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+  version   Int      @default(1)
+  createdBy String?  @db.VarChar(20)
+  updatedBy String?  @db.VarChar(20)
+
+  @@unique([tenantId, name])
+  @@map("mdm_customer_category")
+}
+
+model MdmArea {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  name      String   @db.VarChar(50) // matches MdmCustomer.area
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+  version   Int      @default(1)
+  createdBy String?  @db.VarChar(20)
+  updatedBy String?  @db.VarChar(20)
+
+  @@unique([tenantId, name])
+  @@map("mdm_area")
+}
+
+model MdmCreditTerm {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  name      String   @db.VarChar(50) // "Cash", "30 days"
+  days      Int // matches MdmCustomer.creditTermDays
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+  version   Int      @default(1)
+  createdBy String?  @db.VarChar(20)
+  updatedBy String?  @db.VarChar(20)
+
+  @@unique([tenantId, days])
+  @@map("mdm_credit_term")
 }
 
 /// Payments recorded in Finance, read only, until Finance is connected. Sales never changes a balance by hand.

@@ -92,7 +92,7 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
   }
 
   for (const i of SALE_ITEMS) {
-    const extra = { standardCost: new Prisma.Decimal(i.cost), barcode: i.barcode ?? null, salesTaxCode: i.tax, isSellable: i.sellable ?? true };
+    const extra = { standardCost: new Prisma.Decimal(i.cost), barcode: i.barcode ?? null, salesTaxCode: i.tax, isSellable: i.sellable ?? true, einvoiceClassification: null };
     const row = i.exists
       ? await prisma.mdmItem.update({ where: { tenantId_code: { tenantId, code: i.code } }, data: extra })
       : await prisma.mdmItem.upsert({
@@ -106,11 +106,13 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
     ctx.items.set(row.code, row);
   }
 
+  // Every price is valid from its list's start date (CORE_SEED_DATA.md → Price lists).
+  const validFrom = day('2026-01-01');
   await prisma.mdmPriceListItem.deleteMany({ where: { tenantId } });
   await prisma.mdmPriceListItem.createMany({
     data: SALE_ITEMS.flatMap((i) => [
-      ...(i.std ? [{ tenantId, priceListCode: 'STD-2026', itemCode: i.code, uomCode: i.uom, unitPrice: new Prisma.Decimal(i.std) }] : []),
-      ...(i.res ? [{ tenantId, priceListCode: 'RES-2026', itemCode: i.code, uomCode: i.uom, unitPrice: new Prisma.Decimal(i.res) }] : []),
+      ...(i.std ? [{ tenantId, priceListCode: 'STD-2026', itemCode: i.code, uomCode: i.uom, unitPrice: new Prisma.Decimal(i.std), validFrom }] : []),
+      ...(i.res ? [{ tenantId, priceListCode: 'RES-2026', itemCode: i.code, uomCode: i.uom, unitPrice: new Prisma.Decimal(i.res), validFrom }] : []),
     ]),
   });
 
@@ -120,6 +122,8 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
       category: c.category, area: c.area, branchCode: c.branchCode, defaultAgentCode: c.agent, creditTermDays: 30,
       creditLimit: new Prisma.Decimal(c.creditLimit), overdueLimit: new Prisma.Decimal(c.overdueLimit), creditScope: null,
       priceListCode: c.priceList, taxMode: 'EXCLUSIVE', isCash: false, status: 'ACTIVE' as const,
+      // e-Invoice identity (CORE_SEED_DATA.md choice 3): ID type BRN, no ID number known yet.
+      idType: 'BRN' as const, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null,
     };
     const row = await prisma.mdmCustomer.upsert({ where: { tenantId_code: { tenantId, code: c.code } }, update: data, create: { tenantId, code: c.code, ...data } });
     ctx.customers.set(row.code, row);
@@ -128,6 +132,7 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
     name: 'Cash customer (walk-in)', tin: null, billingAddress: null, deliveryAddress: null, contactName: null, email: null, phone: null,
     category: 'Walk-in', area: null, branchCode: 'HQ', defaultAgentCode: null, creditTermDays: 0, creditLimit: null, overdueLimit: null,
     creditScope: null, priceListCode: 'STD-2026', taxMode: 'INCLUSIVE', isCash: true, status: 'ACTIVE' as const,
+    idType: null, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null,
   };
   const cashRow = await prisma.mdmCustomer.upsert({ where: { tenantId_code: { tenantId, code: 'C-CASH' } }, update: cash, create: { tenantId, code: 'C-CASH', ...cash } });
   ctx.customers.set(cashRow.code, cashRow);

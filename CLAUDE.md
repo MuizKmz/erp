@@ -400,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C0 was revised after checking every decision against the SRS and SDD, and is waiting for the user's last look: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`. C1's shell is built (Core module, permissions and role, customer and supplier numbering, audit and event helpers, Core shell and C01 home; commit `1c4012f`). After the review: the rest of C1 (the data changes, the record-usage check and the permission split below), then C2.
+**Status:** C0 and C1 are done; C1 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, the permissions and role, customer and supplier numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home with *Needs attention*. Next: C2.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 
@@ -477,7 +477,8 @@ How Core knows whether a record is used (decision 5) without reading other modul
 - **Registry:** `platform/usage/` keeps a list of providers, the same way `OutboxConsumers` keeps listeners. Core asks it about one record: an item, customer, supplier, unit, tax code, price list or warehouse.
 - **Providers:** Purchase and Sales each register one. It reads only its own module's tables and answers two things: how many of its documents use the record, and which of them are open (document type, number, status). Core imports neither module.
 - **Open** (`CORE_SEED_DATA.md` choice 6): a draft, a document waiting for approval, or a released document with something left to deliver, receive, invoice or bill. Released invoices waiting for payment do not count.
-- **No behaviour change:** a provider only reads. Purchase and Sales tests and seed checks keep passing. Each provider has unit tests for its *open* rule. An e2e test checks the seeded answers: CH-DIN-01 on 20 documents with 7 open, C-0012 on 23 with 5 open, S-0047 on 6 with 3 open.
+- **No behaviour change:** a provider only reads. Purchase and Sales tests and seed checks keep passing. Each provider has unit tests for its *open* rule. An e2e test checks the seeded answers: CH-DIN-01 on 19 documents with 7 open, C-0012 on 23 with 5 open, S-0047 on 6 with 3 open. A document counts once, whatever its revisions.
+- **Lookup:** `GET /api/v1/core/usage/:kind/:code` (`item`, `customer`, `supplier`, `uom`, `tax-code`, `price-list`, `warehouse`) returns the count, the open documents and other references (Sales' excluded items). Core's pure rules in `core/usage/usage.rules.ts` turn it into the delete and block refusals.
 - **Later:** WMS and MES get a provider too, answering through their API.
 
 ## Data changes (step C1)
@@ -518,7 +519,7 @@ What the contract and SRS need that the `mdm_` tables lack today:
    - Purchase and Sales already use only active records.
 3. **Delete** (SRS DR-002, FR-MST-049):
    - Only while nothing uses the record: the record-usage check finds no document of any status, and no Core record points to it (an item's unit, a customer's price list …).
-   - Otherwise 409, naming where it is used, e.g. `CH-DIN-01 is used on 20 documents, so it cannot be deleted. Discontinue it instead.`
+   - Otherwise 409, naming where it is used, e.g. `CH-DIN-01 is used on 19 documents, so it cannot be deleted. Discontinue it instead.`
    - A delete is logged with the record as it was, and publishes `mdm.<record>.deleted`.
    - Reference-list entries follow the same rule against Core records.
 4. **Block and discontinue** (SDD §5.3.1): refused while an open document uses the item, customer or supplier. The 409 names the documents, e.g. `C-0012 is on 5 open documents (SO-0001, SO-0003, QT-0006 …). Finish or cancel them first.` *Activate* is always allowed when the required fields are filled.

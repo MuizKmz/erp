@@ -195,7 +195,7 @@ Core edits warehouses (the Master Data contract puts them in Core). **Locations 
 
 ## In use (C03, C05, C07)
 
-Core asks Purchase and Sales where a record is used, through a read-only check that each of them provides. It never reads their tables.
+Core asks Purchase and Sales where a record is used, through a read-only check that each of them provides. It never reads their tables. The same answer is at `GET /api/v1/core/usage/:kind/:code`, e.g. `/core/usage/item/CH-DIN-01`.
 
 - **Delete** is possible only while nothing uses the record: no Purchase or Sales document of any status, and no other Core record. After that it is blocked, discontinued or ended instead (SRS DR-002, FR-MST-049).
 - **Block and Discontinue** wait while an *open* document uses the item, customer or supplier (SDD §5.3.1). The form lists those documents.
@@ -205,11 +205,11 @@ What the mockups show, from the seeded Purchase and Sales data:
 
 | Record | Used on | Still open |
 |---|---|---|
-| CH-DIN-01 (C03) | 20 Sales documents | 7: SO-0001 Partial, SO-0002 Pending approval, SO-0005 Draft, SO-0008 Pending approval, QT-0010 Released, QT-0012 Draft, CS-0004 Draft |
+| CH-DIN-01 (C03) | 19 Sales documents | 7: SO-0001 Partial, SO-0002 Pending approval, SO-0005 Draft, SO-0008 Pending approval, QT-0010 Released, QT-0012 Draft, CS-0004 Draft |
 | C-0012 (C05) | 23 Sales documents | 5: SO-0001 Partial, SO-0003 Released, QT-0006 Draft, DN-0001 Draft, EQ-L-0307 New |
 | S-0047 (C07) | 6 Purchase documents | 3: PO-0003 Pending approval, RFQ-0003 Waiting, RFQ-0004 Waiting |
 
-DO-0001 is not open (all 60 delivered are invoiced on INV-0001). C-0012's seven released invoices do not count.
+A document counts once: QT-0010 has two revisions and is one quotation. DO-0001 is not open (all 60 delivered are invoiced on INV-0001). C-0012's seven released invoices do not count.
 
 ## Import (C14)
 

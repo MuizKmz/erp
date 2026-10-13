@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { TriangleAlert } from '@lucide/vue'
 import KpiCard from '@/components/erp/KpiCard.vue'
 import { formatDateTime } from '@/utils/format'
 import { coreApi } from '../api/core'
@@ -7,9 +8,9 @@ import { CORE_MENU } from '../menu'
 import { recordRoute } from '../routes'
 import type { CoreDashboard, CoreDashboardCard } from '../types'
 
-/** C01 · Core home: the kinds of master data with their counts by status, and the latest changes. */
-const TILE_SHADES = ['bg-mod-tile-1', 'bg-mod-tile-2', 'bg-mod-tile-3', 'bg-mod-tile-4']
-const TILE_TEXT = ['text-mod-tile-1', 'text-mod-tile-2', 'text-mod-tile-3', 'text-mod-tile-4']
+/** C01 · Core home: the kinds of master data with their counts by status, what needs attention, and the latest changes. */
+const TILE_SHADES = ['bg-mod-tile-1', 'bg-mod-tile-2', 'bg-mod-tile-3', 'bg-mod-tile-4', 'bg-mod-tile-5']
+const TILE_TEXT = ['text-mod-tile-1', 'text-mod-tile-2', 'text-mod-tile-3', 'text-mod-tile-4', 'text-mod-tile-5']
 
 const data = ref<CoreDashboard | null>(null)
 const loading = ref(true)
@@ -57,6 +58,21 @@ const breakdown = (c: CoreDashboardCard) =>
     </div>
   </section>
 
+  <div class="grid grid-cols-2 items-start gap-4">
+  <section class="erp-card flex flex-col gap-3 px-5 py-[18px]">
+    <div class="flex items-center justify-between gap-4">
+      <h2 class="m-0 text-[15px] font-bold">Needs attention</h2>
+      <span class="text-xs text-erp-muted">Checked when the page opens</span>
+    </div>
+    <p v-if="data && !data.attention.length" class="m-0 text-[13px] text-erp-muted">Nothing needs attention.</p>
+    <ul v-else-if="data" class="m-0 list-none p-0">
+      <li v-for="a in data.attention" :key="a.key" class="flex gap-2.5 border-b border-erp-row py-2.5 text-[13px] last:border-b-0">
+        <TriangleAlert :size="15" class="mt-0.5 shrink-0 text-note-warn-strong" aria-hidden="true" />
+        <span><RouterLink :to="a.to" class="erp-link font-semibold">{{ a.lead }}</RouterLink> {{ a.text }}</span>
+      </li>
+    </ul>
+  </section>
+
   <section class="erp-card flex flex-col gap-3 px-5 py-[18px]">
     <h2 class="m-0 text-[15px] font-bold">Recently changed</h2>
     <p v-if="data && !data.recent.length" class="m-0 text-[13px] text-erp-muted">
@@ -79,4 +95,5 @@ const breakdown = (c: CoreDashboardCard) =>
       </tbody>
     </table>
   </section>
+  </div>
 </template>

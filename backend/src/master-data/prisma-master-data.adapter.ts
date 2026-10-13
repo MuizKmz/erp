@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { MdmCustomer, MdmItem, MdmSupplier, MdmUser, Prisma } from '@prisma/client';
+import { ClockService } from '../platform/clock/clock.service';
 import { PrismaService } from '../platform/prisma/prisma.service';
+import { latestValidByKey } from './master-data.rules';
 import type {
   MasterDataPort,
   MdBranch,
@@ -102,10 +104,13 @@ function toCustomer(row: MdmCustomer): MdCustomer {
   };
 }
 
-/** Phase 1 adapter: reads the local mdm_ tables. The only class allowed to query mdm_ tables. */
+/** Phase 1 adapter: reads the local mdm_ tables, which Core writes. Outside Core, the only class allowed to query them. */
 @Injectable()
 export class PrismaMasterDataAdapter implements MasterDataPort {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clock: ClockService,
+  ) {}
 
   async findUserByCode(tenantId: string, code: string): Promise<MdUser | null> {
     const row = await this.prisma.mdmUser.findUnique({ where: { tenantId_code: { tenantId, code } } });
@@ -197,9 +202,14 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
     });
   }
 
+  /** The rate in force today: tax codes keep one row per rate period (SRS BR-TAX-006). */
   async listTaxCodes(tenantId: string): Promise<MdTaxCode[]> {
-    const rows = await this.prisma.mdmTaxCode.findMany({ where: { tenantId, isActive: true }, orderBy: { code: 'asc' } });
-    return rows.map((r) => ({ code: r.code, name: r.name, rate: r.rate.toFixed(4) }));
+    const today = this.clock.todayDate();
+    const rows = await this.prisma.mdmTaxCode.findMany({
+      where: { tenantId, isActive: true, validFrom: { lte: today } },
+      orderBy: [{ code: 'asc' }, { validFrom: 'asc' }],
+    });
+    return latestValidByKey(rows, (r) => r.code, today).map((r) => ({ code: r.code, name: r.name, rate: r.rate.toFixed(4) }));
   }
 
   async listContractPrices(
@@ -265,10 +275,17 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
       where: { tenantId, code: filter.priceListCode, isActive: true, validFrom: { lte: on }, OR: [{ validTo: null }, { validTo: { gte: on } }] },
     });
     if (!list) return [];
+    // Dated prices (SRS BR-PRC-003/004): per item and unit, the newest row that has started by the date.
     const rows = await this.prisma.mdmPriceListItem.findMany({
-      where: { tenantId, priceListCode: list.code, ...(filter.itemCodes && { itemCode: { in: filter.itemCodes } }) },
+      where: { tenantId, priceListCode: list.code, validFrom: { lte: on }, ...(filter.itemCodes && { itemCode: { in: filter.itemCodes } }) },
+      orderBy: { validFrom: 'asc' },
     });
-    return rows.map((r) => ({ priceListCode: r.priceListCode, itemCode: r.itemCode, uomCode: r.uomCode, unitPrice: r.unitPrice.toFixed(4) }));
+    return latestValidByKey(rows, (r) => `${r.itemCode}|${r.uomCode}`, on).map((r) => ({
+      priceListCode: r.priceListCode,
+      itemCode: r.itemCode,
+      uomCode: r.uomCode,
+      unitPrice: r.unitPrice.toFixed(4),
+    }));
   }
 
   async searchSellableItems(tenantId: string, options: SearchOptions & { itemGroup?: string; sellableOnly?: boolean }): Promise<MdItem[]> {

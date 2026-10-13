@@ -25,7 +25,16 @@ export interface CoreRecentChange {
   message: string
 }
 
+/** A line under *Needs attention*: "<lead> <text>", the lead linking to the list to fix it in. */
+export interface CoreAttention {
+  key: string
+  lead: string
+  text: string
+  to: string
+}
+
 export interface CoreDashboard {
   cards: CoreDashboardCard[]
+  attention: CoreAttention[]
   recent: CoreRecentChange[]
 }

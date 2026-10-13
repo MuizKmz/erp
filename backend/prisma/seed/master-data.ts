@@ -58,11 +58,12 @@ const UOMS = [
   { code: 'M', name: 'Metre', decimals: 2 },
 ];
 
+// One rate period each, open-ended (CORE_SEED_DATA.md → Tax codes). Type: SRS FR-MST-055.
 const TAX_CODES = [
-  { code: 'SST10', name: 'SST 10%', rate: '0.1000', validFrom: '2018-09-01' },
-  { code: 'SVC8', name: 'Service tax 8%', rate: '0.0800', validFrom: '2024-03-01' },
-  { code: 'EXEMPT', name: 'Exempt', rate: '0.0000', validFrom: '2018-09-01' },
-];
+  { code: 'SST10', name: 'SST 10%', type: 'SALES_TAX', rate: '0.1000', validFrom: '2018-09-01' },
+  { code: 'SVC8', name: 'Service tax 8%', type: 'SERVICE_TAX', rate: '0.0800', validFrom: '2024-03-01' },
+  { code: 'EXEMPT', name: 'Exempt', type: 'EXEMPT', rate: '0.0000', validFrom: '2018-09-01' },
+] as const;
 
 const SUPPLIERS: {
   code: string; name: string; shortName: string; category: string; email?: string; sst: boolean; walkIn?: boolean;
@@ -161,18 +162,16 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
       create: { tenantId, ...u },
     });
   }
-  await prisma.mdmUomConversion.upsert({
-    where: { tenantId_itemCode_fromUom_toUom: { tenantId, itemCode: 'FB-OAK-01', fromUom: 'ROLL', toUom: 'M' } },
-    update: { factor: new Prisma.Decimal(50) },
-    create: { tenantId, itemCode: 'FB-OAK-01', fromUom: 'ROLL', toUom: 'M', factor: new Prisma.Decimal(50) },
-  });
+  // The only conversion seeded; any added in Core while testing goes.
+  await prisma.mdmUomConversion.deleteMany({ where: { tenantId } });
+  await prisma.mdmUomConversion.create({ data: { tenantId, itemCode: 'FB-OAK-01', fromUom: 'ROLL', toUom: 'M', factor: new Prisma.Decimal(50) } });
 
   for (const t of TAX_CODES) {
-    const data = { name: t.name, rate: new Prisma.Decimal(t.rate), country: 'MY', validFrom: day(t.validFrom), isActive: true };
+    const data = { name: t.name, type: t.type, rate: new Prisma.Decimal(t.rate), country: 'MY', validTo: null, isActive: true };
     const row = await prisma.mdmTaxCode.upsert({
-      where: { tenantId_code: { tenantId, code: t.code } },
+      where: { tenantId_code_validFrom: { tenantId, code: t.code, validFrom: day(t.validFrom) } },
       update: data,
-      create: { tenantId, code: t.code, ...data },
+      create: { tenantId, code: t.code, validFrom: day(t.validFrom), ...data },
     });
     ctx.taxes.set(row.code, row);
   }
@@ -184,6 +183,12 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
       category: s.category,
       email: s.email ?? null,
       sstNo: s.sst ? `SST-${s.code.replace('S-', '')}` : null,
+      // e-Invoice identity (CORE_SEED_DATA.md choice 3): ID type BRN, no TIN or ID number known yet.
+      idType: 'BRN' as const,
+      regNo: null,
+      tin: null,
+      serviceTaxNo: null,
+      einvoiceEmail: null,
       paymentTermDays: 30,
       currency: 'MYR',
       isWalkIn: s.walkIn ?? false,
@@ -212,6 +217,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
       preferredSupplierCode: i.supplier ?? null,
       reorderLevel: i.reorder === undefined ? null : new Prisma.Decimal(i.reorder),
       packSize: new Prisma.Decimal(i.pack ?? 1),
+      einvoiceClassification: null, // no LHDN codes known yet (CORE_SEED_DATA.md choice 2)
       status: 'ACTIVE' as const,
     };
     const row = await prisma.mdmItem.upsert({

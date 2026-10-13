@@ -51,6 +51,7 @@ import { PurchaseSettingsService } from './shared/purchase-settings.service';
 import { OrderFlowQuery } from './orders/order-flow.query';
 import { SettingsController } from './settings/settings.controller';
 import { SettingsService } from './settings/settings.service';
+import { PurchaseUsageProvider } from './usage/purchase-usage.provider';
 
 @Module({
   controllers: [DashboardController, PurchaseApprovalsController, OrdersController, LookupsController, DemandController, RequestsController, RfqsController, ReceiptsController, InvoicesController, CancelOrdersController, ReturnsController, DebitNotesController, CashPurchasesController, SettingsController],
@@ -84,6 +85,8 @@ import { SettingsService } from './settings/settings.service';
     SettingsService,
     BuyToOrderListener,
     SalesDemandListener,
+    // Tells Core where an item, supplier, unit, tax code or warehouse is used. Read only.
+    PurchaseUsageProvider,
     // Open sales-order demand comes from Purchase's own copy, kept from Sales events.
     { provide: SALES_DEMAND_PORT, useClass: PurchaseSalesDemandAdapter },
   ],

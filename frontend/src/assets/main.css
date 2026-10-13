@@ -79,6 +79,7 @@
   --color-mod-tile-2: var(--mod-tile-2);
   --color-mod-tile-3: var(--mod-tile-3);
   --color-mod-tile-4: var(--mod-tile-4);
+  --color-mod-tile-5: var(--mod-tile-5);
   --color-mod-chip-bg: var(--mod-chip-bg);
   --color-mod-chip-text: var(--mod-chip-text);
 }
@@ -523,7 +524,8 @@
   }
 }
 
-/* Fourth home tile (Sales has four groups: Transaction, Billing, Operation Policies, Reports). Main.html #8B6CEA */
+/* Fourth home tile (Sales has four groups: Transaction, Billing, Operation Policies, Reports). Main.html #8B6CEA.
+   Core has five groups, so it also has a fifth (CoreHome.html #8285E8). */
 [data-module='sales'] {
   --mod-tile-4: #8b6cea;
 }
@@ -532,4 +534,5 @@
 }
 [data-module='core'] {
   --mod-tile-4: #6a6ee0;
+  --mod-tile-5: #8285e8;
 }

@@ -17,10 +17,12 @@ export const CORE_DOC_TYPE = {
   SUPPLIER: 'SUPPLIER',
 } as const;
 
-/** Roles from Master Data that Core cares about. */
+/** Roles from Master Data that Core gives more than a look. */
 export const CORE_ROLE = {
   MASTER_DATA_ADMIN: 'MASTER_DATA_ADMIN',
   FINANCE_MANAGER: 'FINANCE_MANAGER',
+  PURCHASE_BUYER: 'PURCHASE_BUYER',
+  PURCHASE_MANAGER: 'PURCHASE_MANAGER',
 } as const;
 
 /** Events Core publishes (CLAUDE.md → Phase 3 · Events Core publishes). */

@@ -13,10 +13,11 @@ import { OutboxConsumers } from './outbox/outbox.consumers';
 import { OutboxDispatcher } from './outbox/outbox.dispatcher';
 import { OutboxWriter } from './outbox/outbox.writer';
 import { PrismaModule } from './prisma/prisma.module';
+import { RecordUsageRegistry } from './usage/record-usage.registry';
 
 /**
  * Shared building blocks with no business rules: database, clock, current user, numbering, activity,
- * approvals, outbox and attachments. Global, so business modules just inject the services.
+ * approvals, outbox, attachments and the record-usage registry. Global, so business modules just inject the services.
  */
 @Global()
 @Module({
@@ -40,6 +41,7 @@ import { PrismaModule } from './prisma/prisma.module';
     OutboxConsumers,
     OutboxDispatcher,
     AttachmentsService,
+    RecordUsageRegistry,
   ],
   exports: [
     PrismaModule,
@@ -51,6 +53,7 @@ import { PrismaModule } from './prisma/prisma.module';
     OutboxWriter,
     OutboxConsumers,
     AttachmentsService,
+    RecordUsageRegistry,
   ],
 })
 export class PlatformModule {}

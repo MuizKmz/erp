@@ -29,3 +29,35 @@ export async function seedCoreSettings(ctx: SeedCtx): Promise<void> {
     });
   }
 }
+
+/** "Cash" for 0 days, else "30 days". */
+export function creditTermName(days: number): string {
+  return days === 0 ? 'Cash' : `${days} days`;
+}
+
+/**
+ * Reference lists (CORE_SEED_DATA.md → Reference lists): filled from the values the seeded records use, so every
+ * item group, customer category, area and credit term in use is an active entry. "Service" and "Services" both stay
+ * (choice 1).
+ */
+export async function seedCoreReferenceLists(ctx: SeedCtx): Promise<void> {
+  const { prisma, tenantId } = ctx;
+  const [items, customers] = await Promise.all([
+    prisma.mdmItem.findMany({ where: { tenantId }, select: { itemGroup: true } }),
+    prisma.mdmCustomer.findMany({ where: { tenantId }, select: { category: true, area: true, creditTermDays: true } }),
+  ]);
+  const distinct = (values: (string | null)[]) => [...new Set(values.filter((v): v is string => !!v && !!v.trim()))].sort();
+  for (const name of distinct(items.map((i) => i.itemGroup))) {
+    await prisma.mdmItemGroup.upsert({ where: { tenantId_name: { tenantId, name } }, update: { isActive: true }, create: { tenantId, name } });
+  }
+  for (const name of distinct(customers.map((c) => c.category))) {
+    await prisma.mdmCustomerCategory.upsert({ where: { tenantId_name: { tenantId, name } }, update: { isActive: true }, create: { tenantId, name } });
+  }
+  for (const name of distinct(customers.map((c) => c.area))) {
+    await prisma.mdmArea.upsert({ where: { tenantId_name: { tenantId, name } }, update: { isActive: true }, create: { tenantId, name } });
+  }
+  for (const days of [...new Set(customers.map((c) => c.creditTermDays))].sort((a, b) => a - b)) {
+    const name = creditTermName(days);
+    await prisma.mdmCreditTerm.upsert({ where: { tenantId_days: { tenantId, days } }, update: { name, isActive: true }, create: { tenantId, name, days } });
+  }
+}

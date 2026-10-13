@@ -126,7 +126,7 @@ Theme: indigo. Sidebar groups: **Items & Units**, **Customers & Suppliers**, **P
 
 The Core mockups were made in step C0, after the app's layout redesign, so they show the current shell (icon rail, group panel, floating top bar). Lists and forms follow the Purchase and Sales patterns. They were revised after checking the SRS and SDD: `CORE_SEED_DATA.md` → *Decided by the SRS and SDD* lists each rule with its reference.
 
-The item, customer and supplier forms show where the record is used. Delete is possible only while nothing uses it. Block and Discontinue wait while an open Purchase or Sales document uses it. Core gets this from a read-only check that Purchase and Sales provide.
+The item, customer and supplier forms show where the record is used. Delete is possible only while nothing uses it. Block and Discontinue wait while an open Purchase or Sales document uses it. Core gets this from a read-only check that Purchase and Sales provide. The same answer is at `GET /api/v1/core/usage/:kind/:code` (`item`, `customer`, `supplier`, `uom`, `tax-code`, `price-list`, `warehouse`), e.g. `/core/usage/item/CH-DIN-01`.
 
 | Code | Screen | Mockup | Route | Main API |
 |---|---|---|---|---|
