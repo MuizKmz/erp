@@ -11,6 +11,7 @@ import { renderTemplate, type TemplateVariables } from '../../src/purchase/share
 import { DOC_LINK, EXTERNAL_ENTITY, PUR_ENTITY } from '../../src/purchase/shared/purchase.constants';
 import { EMAIL_TEMPLATES } from './settings';
 import { PI_0001_MESSAGE } from './documents-receive';
+import { createSeededEvents } from './event-history';
 import { doc, kl, nameOf, placeholderPdf, supplier, user, type SeedCtx } from './util';
 
 const COMPANY = 'CLB Groups';
@@ -414,7 +415,7 @@ async function seedOutbox(ctx: SeedCtx): Promise<void> {
     lines: cp.lines.map((l) => ({ itemCode: l.itemCode, uomCode: l.uomCode, qty: toQty(l.qty), warehouseCode: cp.warehouseCode })),
   });
 
-  await ctx.prisma.sysOutbox.createMany({ data: events.sort((a, b) => +new Date(a.occurredAt!) - +new Date(b.occurredAt!)) });
+  await createSeededEvents(ctx, events.sort((a, b) => +new Date(a.occurredAt!) - +new Date(b.occurredAt!)));
 }
 
 // ── Attachments (placeholder files in backend/uploads) ──────────────────────

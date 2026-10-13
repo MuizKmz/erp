@@ -447,7 +447,8 @@ enum SalDemandKind {
   COMPONENT // the item is used to make what is sold: shown for information only
 }
 
-/// Open sales-order needs, until the Sales module publishes them.
+/// Open sales-order needs from before the Sales module existed. Unused since Purchase keeps its own copy from Sales
+/// events (PurSalesDemand); kept, empty, until dropping it is agreed.
 model SalDemandStub {
   id           String        @id @default(uuid()) @db.Char(36)
   tenantId     String        @db.Char(36)
@@ -1312,6 +1313,34 @@ model PurApprovalRule {
 }
 
 /// One row per tenant: match tolerance and the rule switches (P24), numbering options (P25).
+/// Open sales-order needs as Purchase sees them (P04 demand, P06 insights, buy-to-order POs). One row per sales-order
+/// line, kept from Sales events: sales.order.released adds the line, sales.shipment.requested and
+/// sales.order.balance_cancelled lower what is still open. Purchase-owned: Sales never writes it.
+model PurSalesDemand {
+  id           String    @id @default(uuid()) @db.Char(36)
+  tenantId     String    @db.Char(36)
+  salesOrderId String    @db.Char(36) // the event's aggregate id
+  soNo         String    @db.VarChar(30)
+  soLineNo     Int
+  soDate       DateTime  @db.Date
+  customerName String    @db.VarChar(150)
+  soTotal      Decimal   @db.Decimal(18, 2)
+  branchCode   String    @db.VarChar(10)
+  itemCode     String    @db.VarChar(30)
+  uomCode      String    @db.VarChar(10)
+  orderedQty   Decimal   @db.Decimal(18, 4)
+  deliveredQty Decimal   @default(0) @db.Decimal(18, 4)
+  cancelledQty Decimal   @default(0) @db.Decimal(18, 4)
+  isBuyToOrder Boolean   @default(false)
+  neededBy     DateTime? @db.Date
+  createdAt    DateTime  @default(now()) @db.DateTime(3)
+  updatedAt    DateTime  @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, soNo, soLineNo])
+  @@index([tenantId, itemCode])
+  @@map("pur_sales_demand")
+}
+
 model PurSetting {
   id                      String   @id @default(uuid()) @db.Char(36)
   tenantId                String   @unique @db.Char(36)

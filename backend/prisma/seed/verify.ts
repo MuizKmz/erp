@@ -102,7 +102,11 @@ export async function verifySeed(ctx: SeedCtx, uploadRoot: string): Promise<Chec
   // ── Demand list (PurDemand) ──
   const items = await prisma.mdmItem.findMany({ where: { tenantId, isPurchasable: true, status: 'ACTIVE' } });
   const stock = await prisma.invStockSnapshot.findMany({ where });
-  const sales = await prisma.salDemandStub.findMany({ where: { tenantId, kind: 'DIRECT' } });
+  // Sales-order needs come from Purchase's own copy of released orders (SALES_SEED_DATA.md, conflict 16).
+  const salesRows = await prisma.purSalesDemand.findMany({ where, orderBy: [{ soNo: 'asc' }, { soLineNo: 'asc' }] });
+  const sales = salesRows.map((r) => ({ soNo: r.soNo, itemCode: r.itemCode, qty: r.orderedQty.sub(r.deliveredQty).sub(r.cancelledQty) })).filter((r) => r.qty.gt(0));
+  expect('Demand: open sales-order lines Purchase sees', 'SO-0001 CH-DIN-01 40, SO-0003 SF-CUS-03 20, SO-0006 CH-OFF-02 15, SO-0007 BD-KNG-01 24',
+    sales.map((r) => `${r.soNo} ${r.itemCode} ${r.qty.toFixed(0)}`).join(', '));
   const history = await prisma.purPriceHistory.findMany({ where, orderBy: { docDate: 'desc' } });
   const openStatuses = new Set(['DRAFT', 'PENDING_APPROVAL', 'RELEASED', 'PARTIAL']);
   const toBuy: string[] = [];
@@ -122,8 +126,9 @@ export async function verifySeed(ctx: SeedCtx, uploadRoot: string): Promise<Chec
       covered.push(it.code);
     }
   }
-  expect('Demand: items to buy', 'CH-DIN-01 90, SC-WOD-08 20, TB-DIN-06 31, VR-LAC-01 8', toBuy.sort().join(', '));
-  expect('Demand: estimated value', '40040.00', toMoney(estimate));
+  // Was TB-DIN-06 31 and RM 40,040.00 with the old stub's SO-0008 demand; SO-0008 is not released (conflict 16).
+  expect('Demand: items to buy', 'CH-DIN-01 90, SC-WOD-08 20, TB-DIN-06 1, VR-LAC-01 8', toBuy.sort().join(', '));
+  expect('Demand: estimated value', '15440.00', toMoney(estimate));
   checks.push({
     check: 'Demand: already covered (mockup lists 3: FB-OAK-01, FM-SEA-05, SF-CUS-03)',
     expected: 'info', actual: covered.sort().join(', '), ok: true,

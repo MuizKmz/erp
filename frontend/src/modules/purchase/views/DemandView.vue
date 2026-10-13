@@ -97,6 +97,16 @@ const selectedValue = computed(() =>
   sumMoney(chosen.value.map((l) => previewLine(buyQty[l.itemCode] ?? '0', l.lastPrice ?? '0', '0')?.amount ?? '0.00')),
 )
 const selectedSuppliers = computed(() => new Set(chosen.value.map((l) => l.preferredSupplierCode ?? '')).size)
+
+// Amber banner for the modules still stubbed. Sales demand is real (kept from Sales events); stock is a snapshot until Inventory.
+const notConnected = computed(() => {
+  const c = report.value?.connections
+  if (!c || (c.inventory && c.sales)) return null
+  if (!c.inventory && !c.sales) return 'Inventory and Sales are not connected yet. Stock and sales-order figures here come from demo data until they are.'
+  return !c.inventory
+    ? 'Inventory is not connected yet. Stock figures here come from demo data until it is.'
+    : 'Sales is not connected yet. Sales-order figures here come from demo data until it is.'
+})
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 const lastRun = computed(() => {
@@ -172,11 +182,7 @@ async function raise() {
     />
   </div>
 
-  <NoticeBanner v-if="report && (!report.connections.inventory || !report.connections.sales)" kind="warning">
-    {{ !report.connections.inventory && !report.connections.sales ? 'Inventory and Sales are' : !report.connections.inventory ? 'Inventory is' : 'Sales is' }}
-    not connected yet. Stock and sales-order figures here come from demo data until
-    {{ !report.connections.inventory && !report.connections.sales ? 'they are' : 'it is' }}.
-  </NoticeBanner>
+  <NoticeBanner v-if="notConnected" kind="warning">{{ notConnected }}</NoticeBanner>
 
   <section class="erp-card flex grow flex-col gap-3 px-5 py-4">
     <div class="grid grid-cols-4 gap-3">

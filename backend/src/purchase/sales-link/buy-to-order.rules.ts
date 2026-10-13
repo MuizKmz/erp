@@ -9,7 +9,11 @@ export interface ReleasedSalesOrder {
   branchCode: string;
   customerName: string | null;
   warehouseCode: string | null;
-  lines: { lineNo: number; itemCode: string; qty: string; isBuyToOrder: boolean }[];
+  /** Order date, total and wanted-by date, for the demand list. Older events have no date or total. */
+  docDate: string | null;
+  total: string | null;
+  deliveryWantedBy: string | null;
+  lines: { lineNo: number; itemCode: string; uomCode: string; qty: string; isBuyToOrder: boolean }[];
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -25,9 +29,18 @@ export function readReleasedSalesOrder(payload: unknown): ReleasedSalesOrder | n
     const itemCode = text(l.itemCode);
     const qty = text(l.qty);
     if (!itemCode || !qty || typeof l.lineNo !== 'number') return [];
-    return [{ lineNo: l.lineNo, itemCode, qty, isBuyToOrder: l.isBuyToOrder === true }];
+    return [{ lineNo: l.lineNo, itemCode, uomCode: text(l.uomCode) ?? '', qty, isBuyToOrder: l.isBuyToOrder === true }];
   });
-  return { soNo, branchCode, customerName: text(payload.customerName), warehouseCode: text(payload.warehouseCode), lines };
+  return {
+    soNo,
+    branchCode,
+    customerName: text(payload.customerName),
+    warehouseCode: text(payload.warehouseCode),
+    docDate: text(payload.docDate),
+    total: text(payload.total),
+    deliveryWantedBy: text(payload.deliveryWantedBy),
+    lines,
+  };
 }
 
 export interface PlanItem {

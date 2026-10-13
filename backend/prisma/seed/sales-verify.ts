@@ -134,6 +134,8 @@ export async function verifySalesSeed(ctx: SeedCtx): Promise<Check[]> {
   // ── Approvals (S02) ──
   const approvals = await prisma.sysApprovalRequest.findMany({ where: { tenantId, entityType: { startsWith: 'SAL_' } } });
   expect('Waiting for Nor Azlina', 'INV-0003, SO-0002, SO-0008', approvals.filter((a) => a.status === 'PENDING').map((a) => a.docNo).sort().join(', '));
+  const inv3Request = await prisma.sysApprovalRequest.findFirst({ where: { tenantId, docNo: 'INV-0003', status: 'PENDING' }, include: { steps: { orderBy: { stepNo: 'asc' } } } });
+  expect('INV-0003 approval: price, then credit', 'Nor Azlina WAITING → Rosnah Ismail QUEUED', (inv3Request?.steps ?? []).map((st) => `${st.approverName} ${st.status}`).join(' → '));
   expect('Approved · rejected', '12 · 2', `${approvals.filter((a) => a.status === 'APPROVED').length} · ${approvals.filter((a) => a.status === 'REJECTED').length}`);
 
   // ── Settings ──

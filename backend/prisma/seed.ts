@@ -14,7 +14,7 @@ import * as path from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { seedBuyingDocuments } from './seed/documents-buy';
 import { seedCorrectionDocuments } from './seed/documents-fix';
-import { markSeededEventsHandled } from './seed/event-history';
+import { seedPurchaseSalesDemand } from './seed/event-history';
 import { seedReceivingDocuments } from './seed/documents-receive';
 import { seedMasterData } from './seed/master-data';
 import { seedSalesAttachments, seedSalesDocuments } from './seed/sales-documents';
@@ -64,6 +64,7 @@ async function resetDemoData(tenantId: string): Promise<void> {
     prisma.salEmailTemplate.deleteMany({ where }),
     prisma.finReceiptStub.deleteMany({ where }),
 
+    prisma.purSalesDemand.deleteMany({ where }),
     prisma.purDebitNote.deleteMany({ where }), // lines cascade
     prisma.purReturn.deleteMany({ where }),
     prisma.purInvoice.deleteMany({ where }),
@@ -107,13 +108,13 @@ async function printCounts(): Promise<void> {
     mdm_item: () => prisma.mdmItem.count(),
     mdm_contract_price: () => prisma.mdmContractPrice.count(),
     inv_stock_snapshot: () => prisma.invStockSnapshot.count(),
-    sal_demand_stub: () => prisma.salDemandStub.count(),
     pur_request: () => prisma.purRequest.count(),
     pur_request_line: () => prisma.purRequestLine.count(),
     pur_rfq: () => prisma.purRfq.count(),
     pur_rfq_supplier: () => prisma.purRfqSupplier.count(),
     pur_rfq_reply_line: () => prisma.purRfqReplyLine.count(),
     pur_purchase_order: () => prisma.purPurchaseOrder.count(),
+    pur_sales_demand: () => prisma.purSalesDemand.count(),
     pur_purchase_order_line: () => prisma.purPurchaseOrderLine.count(),
     pur_goods_receipt: () => prisma.purGoodsReceipt.count(),
     pur_invoice: () => prisma.purInvoice.count(),
@@ -179,7 +180,7 @@ async function main(): Promise<void> {
   await seedSalesSettings(ctx);
   await seedSalesDocuments(ctx);
   await seedSalesAttachments(ctx, uploadRoot);
-  await markSeededEventsHandled(ctx);
+  await seedPurchaseSalesDemand(ctx);
 
   await printCounts();
 

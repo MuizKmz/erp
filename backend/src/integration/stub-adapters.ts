@@ -1,17 +1,7 @@
 import { Global, Injectable, Module } from '@nestjs/common';
 import { PrismaService } from '../platform/prisma/prisma.service';
 import { FinanceStubController } from './finance-stub.controller';
-import {
-  SALES_DEMAND_PORT,
-  STOCK_PORT,
-  type SalesDemand,
-  type SalesDemandPort,
-  type SalesOrderSummary,
-  type StockLevel,
-  type StockPort,
-} from './integration.ports';
-
-const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+import { STOCK_PORT, type StockLevel, type StockPort } from './integration.ports';
 
 /** Stock on hand from inv_stock_snapshot until the Inventory module is connected. */
 @Injectable()
@@ -35,45 +25,10 @@ export class StubStockAdapter implements StockPort {
   }
 }
 
-/** Open sales-order needs from sal_demand_stub until the Sales module is built. */
-@Injectable()
-export class StubSalesDemandAdapter implements SalesDemandPort {
-  readonly connected = false;
-
-  constructor(private readonly prisma: PrismaService) {}
-
-  async listOpenDemand(tenantId: string, itemCodes?: string[]): Promise<SalesDemand[]> {
-    const rows = await this.prisma.salDemandStub.findMany({
-      where: { tenantId, ...(itemCodes && { itemCode: { in: itemCodes } }) },
-      orderBy: [{ soNo: 'asc' }, { itemCode: 'asc' }],
-    });
-    return rows.map((r) => ({
-      soNo: r.soNo,
-      soDate: isoDate(r.soDate),
-      customerName: r.customerName,
-      soTotal: r.soTotal.toFixed(2),
-      branchCode: r.branchCode,
-      itemCode: r.itemCode,
-      qty: r.qty.toFixed(4),
-      kind: r.kind,
-      isBuyToOrder: r.isBuyToOrder,
-      neededBy: r.neededBy ? isoDate(r.neededBy) : null,
-    }));
-  }
-
-  async findSalesOrder(tenantId: string, soNo: string): Promise<SalesOrderSummary | null> {
-    const row = await this.prisma.salDemandStub.findFirst({ where: { tenantId, soNo } });
-    return row ? { soNo: row.soNo, customerName: row.customerName, soTotal: row.soTotal.toFixed(2) } : null;
-  }
-}
-
 @Global()
 @Module({
   controllers: [FinanceStubController],
-  providers: [
-    { provide: STOCK_PORT, useClass: StubStockAdapter },
-    { provide: SALES_DEMAND_PORT, useClass: StubSalesDemandAdapter },
-  ],
-  exports: [STOCK_PORT, SALES_DEMAND_PORT],
+  providers: [{ provide: STOCK_PORT, useClass: StubStockAdapter }],
+  exports: [STOCK_PORT],
 })
 export class IntegrationModule {}

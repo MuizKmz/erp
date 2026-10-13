@@ -5,9 +5,12 @@ const order: ReleasedSalesOrder = {
   branchCode: 'HQ',
   customerName: 'Hotel Seri Bayu Sdn Bhd',
   warehouseCode: 'HQ-MAIN',
+  docDate: '2026-09-29',
+  total: '70400.00',
+  deliveryWantedBy: '2026-10-30',
   lines: [
-    { lineNo: 1, itemCode: 'SF-CUS-03', qty: '20.0000', isBuyToOrder: true },
-    { lineNo: 2, itemCode: 'CH-DIN-01', qty: '40.0000', isBuyToOrder: false },
+    { lineNo: 1, itemCode: 'SF-CUS-03', uomCode: 'PCS', qty: '20.0000', isBuyToOrder: true },
+    { lineNo: 2, itemCode: 'CH-DIN-01', uomCode: 'PCS', qty: '40.0000', isBuyToOrder: false },
   ],
 };
 const items: PlanItem[] = [
@@ -47,7 +50,7 @@ describe('buy-to-order rules (S10)', () => {
   });
 
   it('groups lines of the same supplier into one PO', () => {
-    const two = { ...order, lines: [order.lines[0]!, { lineNo: 3, itemCode: 'SF-CUS-03', qty: '5.0000', isBuyToOrder: true }] };
+    const two = { ...order, lines: [order.lines[0]!, { lineNo: 3, itemCode: 'SF-CUS-03', uomCode: 'PCS', qty: '5.0000', isBuyToOrder: true }] };
     const plan = planBuyToOrder({ ...base, order: two });
     expect(plan.drafts).toHaveLength(1);
     expect(plan.drafts[0]!.lines.map((l) => l.soLineNo)).toEqual([1, 3]);
@@ -57,10 +60,10 @@ describe('buy-to-order rules (S10)', () => {
     const bad = {
       ...order,
       lines: [
-        { lineNo: 1, itemCode: 'XX-NOSUP', qty: '1.0000', isBuyToOrder: true },
-        { lineNo: 2, itemCode: 'XX-OLD', qty: '1.0000', isBuyToOrder: true },
-        { lineNo: 3, itemCode: 'TB-DIN-06', qty: '1.0000', isBuyToOrder: true },
-        { lineNo: 4, itemCode: 'NOT-IN-MDM', qty: '1.0000', isBuyToOrder: true },
+        { lineNo: 1, itemCode: 'XX-NOSUP', uomCode: 'PCS', qty: '1.0000', isBuyToOrder: true },
+        { lineNo: 2, itemCode: 'XX-OLD', uomCode: 'PCS', qty: '1.0000', isBuyToOrder: true },
+        { lineNo: 3, itemCode: 'TB-DIN-06', uomCode: 'PCS', qty: '1.0000', isBuyToOrder: true },
+        { lineNo: 4, itemCode: 'NOT-IN-MDM', uomCode: 'PCS', qty: '1.0000', isBuyToOrder: true },
       ],
     };
     expect(planBuyToOrder({ ...base, order: bad }).skipped.map((s) => s.reason)).toEqual([
@@ -83,9 +86,9 @@ describe('buy-to-order rules (S10)', () => {
     expect(readReleasedSalesOrder({ ...order, lines: [...order.lines, { lineNo: 'x' }] })).toEqual(order);
     expect(readReleasedSalesOrder({ soNo: 'SO-0009' })).toBeNull();
     expect(readReleasedSalesOrder(null)).toBeNull();
-    // Older events carry no warehouse.
-    const { warehouseCode: _w, ...old } = order;
-    expect(readReleasedSalesOrder(old)?.warehouseCode).toBeNull();
+    // Older events carry no warehouse, order date or total.
+    const { warehouseCode: _w, docDate: _d, total: _t, ...old } = order;
+    expect(readReleasedSalesOrder(old)).toMatchObject({ warehouseCode: null, docDate: null, total: null });
   });
 
   it('tells the buyer where the prices came from', () => {

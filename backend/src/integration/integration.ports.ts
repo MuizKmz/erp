@@ -1,7 +1,7 @@
 /**
- * What Purchase reads from modules that are not connected yet. Each port has a stub adapter over a local
- * read-only table (inv_stock_snapshot, sal_demand_stub). When Inventory or Sales is plugged in, a new
- * adapter replaces the stub and nothing in purchase/ changes.
+ * What Purchase reads from other modules, behind ports so nothing in purchase/ changes when the source does.
+ * - Stock: a stub adapter over the read-only inv_stock_snapshot until Inventory is connected.
+ * - Sales demand: Purchase's own copy (pur_sales_demand), kept from Sales events (purchase/sales-link).
  *
  * `connected` is false for stubs; screens use it to show the amber "… is not connected yet" banner.
  */

@@ -1,4 +1,5 @@
 import { Module, OnModuleInit } from '@nestjs/common';
+import { SALES_DEMAND_PORT } from '../integration/integration.ports';
 import { PermissionRegistry } from '../platform/context/permission.registry';
 import { PurchaseApprovalsController } from './approvals/approvals.controller';
 import { ApprovalsInboxService } from './approvals/approvals-inbox.service';
@@ -37,6 +38,8 @@ import { RfqsController } from './rfqs/rfqs.controller';
 import { RfqsQuery } from './rfqs/rfqs.query';
 import { RfqsService } from './rfqs/rfqs.service';
 import { BuyToOrderListener } from './sales-link/buy-to-order.listener';
+import { PurchaseSalesDemandAdapter } from './sales-link/sales-demand.adapter';
+import { SalesDemandListener } from './sales-link/sales-demand.listener';
 import { LinkedDocsService } from './shared/linked-docs.service';
 import { PurchaseMailService } from './shared/purchase-mail.service';
 import { PurchaseSettingsService } from './shared/purchase-settings.service';
@@ -80,6 +83,9 @@ import { SettingsService } from './settings/settings.service';
     OrderFlowQuery,
     SettingsService,
     BuyToOrderListener,
+    SalesDemandListener,
+    // Open sales-order demand comes from Purchase's own copy, kept from Sales events.
+    { provide: SALES_DEMAND_PORT, useClass: PurchaseSalesDemandAdapter },
   ],
 })
 export class PurchaseModule implements OnModuleInit {

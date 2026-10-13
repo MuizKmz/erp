@@ -6,7 +6,7 @@
  * supplier e-mails other than the two given, item groups, pack sizes, usage in the last 30 days,
  * the 9 extra items for things the mockups buy that were not in the item list, and sales-order totals.
  */
-import { MdmItemType, Prisma, SalDemandKind } from '@prisma/client';
+import { MdmItemType, Prisma } from '@prisma/client';
 import { day, kl, type SeedCtx } from './util';
 
 const BRANCHES = [
@@ -115,15 +115,6 @@ const ITEMS: ItemSeed[] = [
 ];
 
 /** Sales-order needs until Sales exists. Customers of SO-0005/SO-0008 and all totals except SO-0003 are invented. */
-const SALES_DEMAND: {
-  soNo: string; soDate: string; customer: string; total: string; item: string; qty: number; kind: SalDemandKind; bto?: boolean; neededBy?: string;
-}[] = [
-  { soNo: 'SO-0001', soDate: '2026-09-21', customer: 'Hotel Seri Bayu', total: '12000.00', item: 'CH-DIN-01', qty: 40, kind: 'DIRECT', neededBy: '2026-10-09' },
-  { soNo: 'SO-0001', soDate: '2026-09-21', customer: 'Hotel Seri Bayu', total: '12000.00', item: 'FB-OAK-01', qty: 20, kind: 'COMPONENT' },
-  { soNo: 'SO-0003', soDate: '2026-09-27', customer: 'Hotel Seri Bayu', total: '70400.00', item: 'SF-CUS-03', qty: 20, kind: 'DIRECT', bto: true, neededBy: '2026-10-12' },
-  { soNo: 'SO-0005', soDate: '2026-09-24', customer: 'Kedai Perabot Maju', total: '8800.00', item: 'FB-OAK-01', qty: 40, kind: 'COMPONENT' },
-  { soNo: 'SO-0008', soDate: '2026-09-28', customer: 'Restoran Selera Kampung', total: '54000.00', item: 'TB-DIN-06', qty: 30, kind: 'DIRECT', neededBy: '2026-10-30' },
-];
 
 export async function seedMasterData(ctx: SeedCtx): Promise<void> {
   const { prisma, tenantId } = ctx;
@@ -250,20 +241,6 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
     })),
   });
 
+  // Sales-order demand is no longer stubbed: Purchase keeps its own copy from Sales events (pur_sales_demand).
   await prisma.salDemandStub.deleteMany({ where: { tenantId } });
-  await prisma.salDemandStub.createMany({
-    data: SALES_DEMAND.map((s) => ({
-      tenantId,
-      branchCode: 'HQ',
-      soNo: s.soNo,
-      soDate: day(s.soDate),
-      customerName: s.customer,
-      soTotal: new Prisma.Decimal(s.total),
-      itemCode: s.item,
-      qty: new Prisma.Decimal(s.qty),
-      kind: s.kind,
-      isBuyToOrder: s.bto ?? false,
-      neededBy: s.neededBy ? day(s.neededBy) : null,
-    })),
-  });
 }

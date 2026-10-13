@@ -333,7 +333,7 @@ The 18 orders are the 8 new ones below plus 10 migrated `SO-L-…` orders, all c
 
 **KPIs:**
 - Orders waiting to be delivered: 3, 84 units (SO-0001 40, SO-0007 24, SO-0003 20).
-- Due in the next 14 days: 2 (SO-0001, SO-0007).
+- Due in the next 14 days: 1 (SO-0001). The mockup says 2; see conflict 14.
 - Draft DOs: 1 (DO-0003).
 - Delivered this month: 72 units on 2 DOs. Migrated DOs are not counted.
 
@@ -352,7 +352,7 @@ SO-0006 is not listed because CO-0002 is cancelling its whole balance.
 
 | Invoice | Date | Customer | Total | Balance due | Due | State | Note |
 |---|---|---|---|---|---|---|---|
-| INV-0003 (direct) | 29 Sep | Klinik Sihat Jaya | 2,904.00 | 2,904.00 | — | Draft · waiting approval | 10 × CH-OFF-02 @ 264.00 (12% below 300.00); price approval asked by Faizal 29 Sep 9:05 AM |
+| INV-0003 (direct) | 29 Sep | Klinik Sihat Jaya | 2,904.00 | 2,904.00 | — | Draft · waiting approval | 10 × CH-OFF-02 @ 264.00 (12% below 300.00); price and credit approval asked by Faizal 29 Sep 9:05 AM (conflict 15) |
 | INV-0002 (SO-0004, DO-0002) | 22 Sep | Restoran Selera Kampung | 13,090.00 | **6,545.00**; see conflict 3 | 22 Oct | Unpaid | deposit PF-0001 6,545.00 used |
 | INV-0001 (SO-0001, DO-0001) | 21 Sep | Hotel Seri Bayu | 16,500.00 | 15,125.00 | 21 Oct | Unpaid · credited | main case |
 | INV-L-0389 | 29 Aug | Hotel Seri Bayu | 12,000.00 | 12,000.00 | 28 Sep | Overdue 1 day | *invented* |
@@ -470,7 +470,7 @@ The two migrated debit notes are already included in their invoices' balances.
 **Waiting:**
 - SO-0002, credit
 - SO-0008, credit
-- INV-0003, price: "Unit price 12% below the price list on 1 line"
+- INV-0003, price: "Unit price 12% below the price list on 1 line", then credit for Rosnah Ismail (conflict 15)
 
 **Approved · 12, Rejected · 2.** The last 7 days:
 
@@ -518,3 +518,6 @@ All are PENDING.
 | 11 | S30 | The next return number is SR-0002, but SR-0002 already exists. | Next is **SR-0003**. |
 | 12 | S29 vs S09 | "Show estimated margin" is off, yet the quotation shows the margin to the manager. | Switch **on**, so the S09 margin line shows to the Sales Manager. |
 | 13 | Sidebar | "Draft Quotation" is in the menu but has no screen in SCREENS.md. | It opens the quotation list on the Draft tab. |
+| 14 | S15 | "Due in the next 14 days" shows 2 (SO-0001, SO-0007), but SO-0007 is wanted by 15 Oct, 16 days after 29 Sep. | Keep the strict 14 days: it shows **1** (SO-0001). |
+| 15 | S02, S19 | INV-0003 asks for price approval only. With CO-0002 still a draft (conflict 2), Klinik Sihat Jaya is also over its credit limit: owed 9,300.00 + SO-0006's open 4,950.00 + 2,904.00 = 17,154.00 against 15,000.00. | Keep approvals per role. The seeded request has two steps: **Nor Azlina** for the price, then **Rosnah Ismail** for credit. Nor Azlina's inbox still shows INV-0003, with both reasons. |
+| 16 | P04, P01, P06 (Purchase) | Purchase's demand list came from the `sal_demand_stub` table, whose SO-0008 (30 × TB-DIN-06) is not a released order, and whose SO-0001 and SO-0005 also listed fabric (FB-OAK-01) used to make chairs. | Purchase keeps its own copy of open sales-order lines (`pur_sales_demand`), filled from Sales events (released, delivered, cancelled). On the seed: P04 to buy CH-DIN-01 90, SC-WOD-08 20, **TB-DIN-06 1**, VR-LAC-01 8, estimated **RM 15,440.00** (was RM 40,040.00); TB-DIN-06 is now a below-reorder line, so P01 "Buy soon" shows SC-WOD-08, TB-DIN-06, VR-LAC-01. Component needs come back with MES. This replaces the P04 numbers in `SEED_DATA.md`. |

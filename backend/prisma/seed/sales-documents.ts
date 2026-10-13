@@ -15,6 +15,7 @@ import { SAL_ENTITY, SAL_EVENT, SAL_LINK } from '../../src/sales/shared/sales.co
 import { saleLineTotals, saleTotals, type TaxMode } from '../../src/sales/shared/totals.rules';
 import { SALE_ITEMS } from './sales-master';
 import { SALES_EMAIL_TEMPLATES } from './sales-settings';
+import { createSeededEvents } from './event-history';
 import { audit, customer, day, doc, item, kl, nameOf, placeholderPdf, remember, user, type SeedCtx } from './util';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -656,6 +657,8 @@ async function seedReceipts(ctx: SeedCtx): Promise<void> {
 interface SalApproval {
   docNo: string; title: string; reason: string; note?: string; amount: string; by: string; at: Date; role: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED'; decidedAt?: Date; comment?: string;
+  /** A second step, queued behind Nor Azlina's (e.g. the Finance Manager for an invoice credit breach). */
+  then?: { role: string; approver: string };
 }
 
 const SALES_APPROVALS: SalApproval[] = [
@@ -668,8 +671,11 @@ const SALES_APPROVALS: SalApproval[] = [
     reason: 'Credit limit over by RM 50,778.00 · from enquiry EQ-2609-0009', note: 'Big restock for two showrooms. They pay in 30 days and have never missed a payment.',
   },
   {
+    // Conflict 15: Klinik is also over its credit limit while CO-0002 is a draft (owed 9,300.00 + SO-0006's open
+    // 4,950.00 + 2,904.00 = 17,154.00 of 15,000.00), so the request has the Finance Manager's credit step too.
     docNo: 'INV-0003', title: 'INV-0003 · Klinik Sihat Jaya', amount: '2904.00', by: 'FO', at: kl('2026-09-29', '09:05'), role: 'SALES_MANAGER', status: 'PENDING',
-    reason: 'Unit price 12% below the price list on 1 line', note: 'Same price as their last order; they compared with another supplier.',
+    reason: 'Unit price 12% below the price list on 1 line · Credit limit over by RM 2,154.00', note: 'Same price as their last order; they compared with another supplier.',
+    then: { role: 'FINANCE_MANAGER', approver: 'RI' },
   },
   { docNo: 'QT-0010', title: 'QT-0010 · Restoran Selera Kampung', amount: '12540.00', by: 'FO', at: kl('2026-09-25', '16:00'), role: 'SALES_MANAGER', status: 'APPROVED', decidedAt: kl('2026-09-28', '10:15'), reason: 'Discount 18%, above 15% rule', comment: 'OK for the tables only, as discussed.' },
   { docNo: 'SO-0006', title: 'SO-0006 · Klinik Sihat Jaya', amount: '8250.00', by: 'FO', at: kl('2026-09-25', '09:40'), role: 'SALES_MANAGER', status: 'APPROVED', decidedAt: kl('2026-09-25', '11:00'), reason: 'Overdue limit, Klinik Sihat Jaya', comment: 'They paid part of the overdue amount this week.' },
@@ -699,11 +705,16 @@ async function seedSalesApprovals(ctx: SeedCtx): Promise<void> {
         amount: dec(a.amount), title: a.title, reason: a.reason, requesterNote: a.note ?? null, requestedByCode: requester.code, requestedByName: requester.name,
         status: a.status, currentStep: 1, createdAt: a.at, decidedAt: a.decidedAt ?? null,
         steps: {
-          create: [{
-            tenantId: ctx.tenantId, stepNo: 1, approverRole: a.role, approverCode: approver.code, approverName: approver.name,
-            status: a.status === 'PENDING' ? 'WAITING' : a.status, decidedByCode: a.decidedAt ? approver.code : null, decidedByName: a.decidedAt ? approver.name : null,
-            comment: a.comment ?? null, decidedAt: a.decidedAt ?? null,
-          }],
+          create: [
+            {
+              tenantId: ctx.tenantId, stepNo: 1, approverRole: a.role, approverCode: approver.code, approverName: approver.name,
+              status: a.status === 'PENDING' ? 'WAITING' : a.status, decidedByCode: a.decidedAt ? approver.code : null, decidedByName: a.decidedAt ? approver.name : null,
+              comment: a.comment ?? null, decidedAt: a.decidedAt ?? null,
+            },
+            ...(a.then
+              ? [{ tenantId: ctx.tenantId, stepNo: 2, approverRole: a.then.role, approverCode: a.then.approver, approverName: user(ctx, a.then.approver).name, status: 'QUEUED' as const }]
+              : []),
+          ],
         },
       },
     });
@@ -743,7 +754,7 @@ const SALES_ACTIVITY: Act[] = [
   ['SO-0008', kl('2026-09-28', '11:12'), 'LWJ', 'credit_check', 'Credit check did not pass: over the credit limit by RM 50,778.00'],
   ['SO-0008', kl('2026-09-28', '11:20'), 'LWJ', 'approval_requested', 'Sent for approval to Nor Azlina'],
   ['INV-0003', kl('2026-09-29', '09:00'), 'FO', 'created', 'Created as a direct invoice by Faizal Omar'],
-  ['INV-0003', kl('2026-09-29', '09:05'), 'FO', 'approval_requested', 'Price 12% below the price list · sent for approval to Nor Azlina'],
+  ['INV-0003', kl('2026-09-29', '09:05'), 'FO', 'approval_requested', 'Price 12% below the price list · credit limit over by RM 2,154.00 · sent for approval to Nor Azlina, then Rosnah Ismail'],
   // Other documents
   ['QT-0012', kl('2026-09-29', '09:30'), 'LWJ', 'created', 'Created from EQ-2609-0009 by Lim Wei Jie'],
   ['QT-0012', kl('2026-09-29', '09:31'), 'LWJ', 'credit_check', 'Over credit limit by RM 50,778.00 · quotations are allowed, the sales order will need approval'],
@@ -854,7 +865,8 @@ async function seedSalesOutbox(ctx: SeedCtx): Promise<void> {
   const orders = await ctx.prisma.salSalesOrder.findMany({ where: { tenantId: ctx.tenantId, isMigrated: false, releasedAt: { not: null } }, include: { lines: true } });
   for (const o of orders) {
     push(SAL_EVENT.ORDER_RELEASED, SAL_ENTITY.ORDER, o.docNo, o.releasedByCode!, o.releasedAt!, {
-      soNo: o.docNo, branchCode: o.branchCode, customerCode: o.customerCode, customerName: o.customerName, deliveryWantedBy: o.deliveryWantedBy?.toISOString().slice(0, 10) ?? null,
+      soNo: o.docNo, docDate: o.docDate.toISOString().slice(0, 10), branchCode: o.branchCode, customerCode: o.customerCode, customerName: o.customerName,
+      total: toMoney(o.total), deliveryWantedBy: o.deliveryWantedBy?.toISOString().slice(0, 10) ?? null, warehouseCode: o.warehouseCode,
       lines: o.lines.map((l) => ({ lineNo: l.lineNo, itemCode: l.itemCode, uomCode: l.uomCode, qty: toQty(l.orderedQty), isBuyToOrder: l.isBuyToOrder })),
     });
   }
@@ -881,7 +893,7 @@ async function seedSalesOutbox(ctx: SeedCtx): Promise<void> {
       lines: s.lines.map((l) => ({ itemCode: l.itemCode, uomCode: l.uomCode, qty: toQty(l.qty) })),
     });
   }
-  await ctx.prisma.sysOutbox.createMany({ data: events });
+  await createSeededEvents(ctx, events);
 }
 
 const SALES_ATTACHMENTS: [docNo: string, fileName: string, kind: string, at: Date, by: string][] = [
