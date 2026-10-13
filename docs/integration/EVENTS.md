@@ -57,7 +57,6 @@ Screens read the event status to say "Inventory is not connected yet" or "Accoun
 | `sales.order.released` | Sales | **Buy-to-order:** if “Auto-draft a PO for buy-to-order sales lines” is on, drafts one PO per preferred supplier (contract price, else last price), created by System for the branch buyer and linked to the sales order. Lines sold in another unit than Purchase buys in are left to the buyer. Always answers with `purchase.buy_to_order.handled`. **Demand:** adds the order's lines to `pur_sales_demand`, Purchase's copy of open sales-order needs (P04, P06) |
 | `sales.shipment.requested` | Sales | Lowers the open quantity in `pur_sales_demand`, by the sales-order line (`soLineNo`) |
 | `sales.order.balance_cancelled` | Sales | Lowers the open quantity in `pur_sales_demand`, by the sales-order line (`lineNo`) |
-| `mdm.item.updated`, `mdm.supplier.updated` | Master Data (later) | Refresh read cache. Never changes existing documents |
 | `wms.goods.received` | WMS (later) | Creates and confirms the GRN automatically; the GRN screen becomes read-only |
 | `mes.material.required` | MES (later) | Adds a line to the demand list |
 | `finance.payment.made` | Finance (later) | Marks the purchase invoice Paid |
@@ -83,6 +82,20 @@ Screens read the event status to say "Inventory is not connected yet" or "Accoun
 | `purchase.order.balance_cancelled` | Purchase | Adds the cancelled quantity to the order lines on that PO (`purchaseCancelledQty`), counting only what the order is short |
 
 Sales never bumps the order's version for these: they are Purchase's facts, not edits.
+
+## Core publishes
+
+Purchase and Sales read master data through `MasterDataPort` and keep no copy, so they need none of these events. The exception is Sales' prospect link. Documents keep their snapshots whatever changes. Payloads carry the code, the record after the change and the list of changed fields.
+
+| Event | When | Main payload | Who listens |
+|---|---|---|---|
+| `mdm.item.created` / `mdm.item.updated` | Item saved, including status changes | code, item, changedFields | WMS, MES — later |
+| `mdm.customer.created` / `mdm.customer.updated` | Customer saved | code, customer, changedFields; `created` may carry enquiryNo | **Sales** (`created` with enquiryNo: links the enquiry's prospect, from step C3); WMS (outbound), Finance — later |
+| `mdm.supplier.created` / `mdm.supplier.updated` | Supplier saved, including its contract prices | code, supplier, changedFields | WMS (inbound), Finance — later |
+| `mdm.price_list.updated` | Price list or its prices saved | code, price list, changedFields | — |
+| `mdm.tax_code.updated` | Tax rate added or changed | code, rates, changedFields | Finance — later |
+| `mdm.uom.updated`, `mdm.warehouse.updated` | Unit or warehouse saved | code, record, changedFields | WMS, MES — later |
+| `mdm.<record>.deleted` | A record that nothing used was deleted | code, the record as it was | WMS, MES — later |
 
 ## Listener names
 

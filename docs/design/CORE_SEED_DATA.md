@@ -1,20 +1,25 @@
 # Seed data (Core)
 
-The master data the Core module maintains (CLAUDE.md → *Phase 3 · Core module*). Core adds **no new demo records**: it takes over the master data that `SEED_DATA.md` (Purchase) and `SALES_SEED_DATA.md` (Sales) already load, and this file lists it in one place, the way the Core screens show it. "Today" is the same: **29 Sep 2026**.
+The master data the Core module maintains (CLAUDE.md → *Phase 3 · Core module*). Core adds **no new demo records**: it takes over the master data that `SEED_DATA.md` (Purchase) and `SALES_SEED_DATA.md` (Sales) already load, and this file lists it in one place, the way the Core screens show it. Fields that Core adds get the values given below. "Today" is the same: **29 Sep 2026**.
 
 Purchase and Sales keep reading this data through `MasterDataPort`, so nothing here may change a number on a Purchase or Sales screen. The mockups are `docs/design/mockups/Core*.html`; after seeding, the Core screens must show the numbers below.
 
 ## Core settings
 
-- **Numbering** (`sys_number_sequence`, module `core`): customers `C-####`, next **C-0103**; suppliers `S-####`, next **S-0072**. Item, unit, warehouse, location, price-list and tax codes are typed.
-- **Roles:** Admin (ADM) also holds `MASTER_DATA_ADMIN`. Rosnah Ismail (Finance Manager) may change customer credit fields. Everyone else views.
+- **Numbering** (`sys_number_sequence`, module `core`): customers `C-####`, next **C-0103**; suppliers `S-####`, next **S-0072**. Item, unit, warehouse, price-list and tax codes are typed.
+- **Who changes what** (SRS §3.3):
+  - Admin (ADM) also holds `MASTER_DATA_ADMIN` and changes everything.
+  - Rosnah Ismail (Finance Manager) also changes customer credit.
+  - Lim Mei Ying (buyer) and Ahmad Zaki (Purchasing Manager) also change suppliers. Only Ahmad Zaki and Admin change contract prices (choice 7).
+  - Everyone else views. Sales agents never change master data.
 
 ## Core home (C01)
 
 - **Counts:** items 39 (all active) · customers 7 · suppliers 10 · price lists 2 · tax codes 3 · units 9 · warehouses 3 with 8 locations.
 - **Needs attention:**
-  - 39 items have no e-Invoice classification code (a new field; see choice 2).
-  - 8 suppliers have no TIN: S-0009, S-0015, S-0021, S-0034, S-0047, S-0052, S-0061, S-0063 (walk-in shops left out).
+  - 39 items have no e-Invoice classification code (a new field; choice 2).
+  - 8 suppliers have no TIN or ID number: S-0009, S-0015, S-0021, S-0034, S-0047, S-0052, S-0061, S-0063 (walk-in shops left out; choice 3).
+  - 6 customers have no ID number: C-0012, C-0031, C-0045, C-0056, C-0078, C-0102 (the cash customer left out; choice 3).
   - 3 purchasable items have no preferred supplier: OF-DSK-01, OF-TNR-01, SV-FRT-01.
   - Item groups “Service” and “Services” look like the same group (choice 1).
 - **Recently changed:** empty on a fresh seed.
@@ -95,11 +100,12 @@ Purchase and Sales keep reading this data through `MasterDataPort`, so nothing h
 | C-CASH | Cash customer (walk-in) | Walk-in | HQ | — | Standard 2026 | Cash | no limit | no limit | — | Inclusive |
 
 - All `ACTIVE`; no prospects or blocked customers. None overrides the credit scope (all follow Credit Control, group-wide).
+- **e-Invoice identity** (SRS FR-MST-042), new fields: ID type is `BRN` for every customer (the SRS default; C-CASH has none). ID number, sales tax no, service tax no and e-Invoice email are empty for all.
 - The customer form mockup (C05) shows **C-0012 Hotel Seri Bayu Sdn Bhd**.
 
 ## Suppliers (C06, C07): 10
 
-| Code | Name | Short name | Supplies | TIN | SST no | Payment term | Email | Walk-in |
+| Code | Name | Short name | Supplies | TIN | Sales tax no | Payment term | Email | Walk-in |
 |---|---|---|---|---|---|---|---|---|
 | S-0009 | Hardware Mart Klang | Hardware Mart Klang | Hardware | — | — | 30 days | orders@hardwaremartklang.my | — |
 | S-0015 | Cat Warna Sdn Bhd | Cat Warna | Lacquer, stain | — | SST-0015 | 30 days | sales@catwarna.my | — |
@@ -113,6 +119,7 @@ Purchase and Sales keep reading this data through `MasterDataPort`, so nothing h
 | S-0071 | Kedai Elektrik Jaya | Kedai Elektrik Jaya | Walk-in shop | — | SST-0071 | 30 days | — | yes |
 
 - **Contract price:** SF-CUS-03 from S-0047 at RM 2,100.0000, 1 Jan 2026 – 31 Dec 2026. The only one seeded (it is why SF-CUS-03 skips the RFQ).
+- **e-Invoice identity** (SRS FR-MST-042): ID type `BRN` for all. The ID number is the existing registration number, empty for all. Service tax no and e-Invoice email are new and empty. The seeded SST number is shown as the sales tax no.
 - The supplier form mockup (C07) shows **S-0047 Perabot Kayu Timur**.
 
 ## Price lists (C08, C09): 2
@@ -155,17 +162,17 @@ Purchase and Sales keep reading this data through `MasterDataPort`, so nothing h
 | TB-OUT-02 Outdoor table, teak | PCS | 1,600.00 |
 | TB-RST-04 Restaurant table, 4-seater | PCS | 850.00 |
 
-Every seeded price is valid from its list's start date (1 Jan 2026). The price list mockup (C09) shows **STD-2026**.
+Every seeded price is valid from its list's start date (1 Jan 2026). No quantity breaks (choice 9). The price list mockup (C09) shows **STD-2026**.
 
 ## Tax codes (C10): 3
 
-| Code | Name | Rate | Country | Valid from | Items (buying · selling) |
-|---|---|---|---|---|---|
-| EXEMPT | Exempt | 0% | MY | 1 Sep 2018 | 6 · 0 |
-| SST10 | SST 10% | 10% | MY | 1 Sep 2018 | 31 · 17 |
-| SVC8 | Service tax 8% | 8% | MY | 1 Mar 2024 | 2 · 1 |
+| Code | Name | Type | Rate | Country | Valid from | Items (buying · selling) |
+|---|---|---|---|---|---|---|
+| EXEMPT | Exempt | Exempt | 0% | MY | 1 Sep 2018 | 6 · 0 |
+| SST10 | SST 10% | Sales tax | 10% | MY | 1 Sep 2018 | 31 · 17 |
+| SVC8 | Service tax 8% | Service tax | 8% | MY | 1 Mar 2024 | 2 · 1 |
 
-No rate history yet: each code has one rate, open-ended.
+No rate history yet: each code has one rate, open-ended. *Type* is new (SRS FR-MST-055) and seeded as shown.
 
 ## Reference lists (C12)
 
@@ -184,17 +191,67 @@ New tables in C1, filled from the values the seeded records already use:
 | HQ-MAIN | HQ Shah Alam · main | HQ · HQ Shah Alam | HQ-MAIN/B-01, HQ-MAIN/B-02, HQ-MAIN/B-03, HQ-MAIN/B-04, HQ-MAIN/B-05 |
 | PNG-MAIN | Penang · main | PNG · Penang Branch | PNG-MAIN/A-01, PNG-MAIN/A-02 |
 
+Core edits warehouses (the Master Data contract puts them in Core). **Locations are read only**: bins and stock locations belong to Inventory, which here means the WMS (SRS FR-INV-001, SDD §6.1). Until the WMS is connected, the seeded locations are the opening ones.
+
+## In use (C03, C05, C07)
+
+Core asks Purchase and Sales where a record is used, through a read-only check that each of them provides. It never reads their tables.
+
+- **Delete** is possible only while nothing uses the record: no Purchase or Sales document of any status, and no other Core record. After that it is blocked, discontinued or ended instead (SRS DR-002, FR-MST-049).
+- **Block and Discontinue** wait while an *open* document uses the item, customer or supplier (SDD §5.3.1). The form lists those documents.
+- **Open** means a draft, a document waiting for approval, or a released document with something left to deliver, receive, invoice or bill. Released invoices waiting for payment do not count (choice 6).
+
+What the mockups show, from the seeded Purchase and Sales data:
+
+| Record | Used on | Still open |
+|---|---|---|
+| CH-DIN-01 (C03) | 20 Sales documents | 7: SO-0001 Partial, SO-0002 Pending approval, SO-0005 Draft, SO-0008 Pending approval, QT-0010 Released, QT-0012 Draft, CS-0004 Draft |
+| C-0012 (C05) | 23 Sales documents | 5: SO-0001 Partial, SO-0003 Released, QT-0006 Draft, DN-0001 Draft, EQ-L-0307 New |
+| S-0047 (C07) | 6 Purchase documents | 3: PO-0003 Pending approval, RFQ-0003 Waiting, RFQ-0004 Waiting |
+
+DO-0001 is not open (all 60 delivered are invoiced on INV-0001). C-0012's seven released invoices do not count.
+
 ## Import (C14)
 
-Nothing is seeded. The mockup's example rows (Taman Indah Hotel, Hotel Seri Bayu with a new phone number, Kedai Baru in a branch KL that does not exist) are *invented* to show a new record, an update and a row with an error.
+- **Check** reads the file and shows each row as *new*, *update* or *problem*. Nothing is saved.
+- **Load** saves the rows that passed, each on its own, so one bad row never stops the others.
+- The rows with a problem are left out. *Download rows with problems* gives them back as a CSV to fix and upload again (SRS BR-STA-005, DR-005, INT-013; SDD §9.6, §12.4).
+- Codes decide: a known code updates that record, and an empty code adds a new one with the next number.
+- Kinds of import: customers, suppliers, items and price-list prices. Imports go through the same rules as the screens (SRS BR-VAL-020).
 
-## Choices to confirm
+Nothing is seeded. The mockup's example rows (Taman Indah Hotel, Hotel Seri Bayu with a new phone number, Kedai Baru in a branch KL that does not exist) are *invented* to show a new record, an update and a row with a problem.
 
-| # | Where | Question | Choice made in the mockups |
+## Decided by the SRS and SDD
+
+Checked against `docs/requirements/ERP_SRS.md` and `ERP_SDD.md` after the first review. These are rules, not choices.
+
+| Topic | Rule | Source |
+|---|---|---|
+| Approval | Master-data changes need no approval; approvals are for documents. Every change is logged with the old and new values. | SRS FR-SEC-050, FR-WFL-001, NFR-AUD-001, DR-003 |
+| Codes | Customers `C-####`, suppliers `S-####` from numbering; codes unique per tenant. A code never changes (Master Data contract rule 1). | SRS FR-MST-048, DR-004; SDD §8.3 |
+| Delete | Only while nothing uses the record; after that block, discontinue or end it. | SRS DR-002, FR-MST-049; SDD §7.3 |
+| Block, discontinue | Not while an open document uses the item, customer or supplier. | SDD §5.3.1 |
+| Who edits | Sales agents only read master data; buyers also maintain suppliers. | SRS §3.3 |
+| Locations | Bins and stock locations belong to Inventory (the WMS), so Core shows them read only. | SRS FR-INV-001; SDD §6.1 |
+| e-Invoice fields | Items carry a classification code. Customers and suppliers carry TIN, ID type and number (BRN, NRIC, PASSPORT, ARMY), sales and service tax numbers and an e-Invoice email. Gaps are flagged when the record is entered. | SRS FR-MST-008, FR-MST-042, Appendix E; SDD §12.2 |
+| Tax codes | Each code has a type; rates are effective-dated. | SRS FR-MST-055, BR-TAX-006; SDD §8.3 |
+| Prices | Dated prices with history; a future price waits for its date. | SRS FR-MST-031, FR-MST-032, BR-PRC-003, BR-PRC-004 |
+| Import | Check first, saving nothing. Load the rows that pass, each on its own. Rows with a problem come back to fix. | SRS BR-STA-005, DR-005, INT-013, BR-VAL-020; SDD §9.6, §12.4 |
+
+## Choices made
+
+Not covered by the SRS or SDD. The user approved these defaults in C0.
+
+| # | Where | Question | Choice |
 |---|---|---|---|
 | 1 | C12, C01 | SV-DEL-01's group is “Services”; the other service items say “Service”. | Leave it as seeded and flag it under *Needs attention*. Merging into “Service” is one change in Core once you say so. |
-| 2 | C03, C01 | Items get a new e-Invoice classification code (SRS FR-MST-008), but no codes are known yet. | Empty for all 39 items and flagged; the LHDN codes are filled in Core (or by import) when you have them. |
-| 3 | C06, C07 | The 8 regular suppliers have no TIN, which e-Invoices need. | Leave empty and flag it; real TINs come from you. Walk-in shops are not flagged. |
+| 2 | C03, C01 | No LHDN classification codes are known yet. | Empty for all 39 items and flagged. They are filled in Core (or by import) when you have them. |
+| 3 | C05, C07, C01 | No supplier TINs and no ID numbers are known yet. | Empty and flagged. Walk-in shops and the cash customer are not flagged. |
 | 4 | Sidebar | The plan does not group the screens. | Five groups: Items & Units, Customers & Suppliers, Prices & Tax, Warehouses & Locations, Setup (Reference Lists, Import). |
-| 5 | C05 | Prospect to customer (decision 7). | The customer form has *Came from enquiry*; for a new customer it takes the enquiry number, and Sales links that enquiry. |
-| 6 | C14 | What happens when a file has a bad row. | Nothing is saved until every row passes; a known code updates, an empty code adds a record with the next number. |
+| 5 | C05 | Prospect to customer (decision 7); the SRS has no prospects, they come from FlowS1. | The customer form has *Came from enquiry*. For a new customer it takes the enquiry number, and Sales links that enquiry. |
+| 6 | C03, C05, C07 | What counts as an open document for Block and Discontinue. | Drafts, documents waiting for approval, and released documents with something left to deliver, receive, invoice or bill. Released invoices waiting for payment do not count, so a customer who does not pay can still be blocked. |
+| 7 | C07 | Buyers maintain suppliers (SRS §3.3). Who changes contract prices? | Only the Purchasing Manager and the Master Data Admin, because a contract price lets an order skip the RFQ (Purchase rule 4). |
+| 8 | C05, C07 | FR-MST-042 also lists *tax registration number* and *tax type*. | Left out: the SRS does not say what they hold, and MyInvois does not ask for them. The customer keeps its *Tax mode*. Each is one field to add if your old system uses it. |
+| 9 | C09 | Quantity breaks on prices (SRS FR-MST-030). | Later, together with the Sales change that applies them. Sales does not use them today, so a break entered in Core would do nothing. |
+| 10 | C10 | *Exemption permitted* on tax codes (SRS FR-MST-055). | Comes with tax exemptions, which are not in Phase 3. |
+| 11 | C05 | Who sets credit limits; the SRS does not say. | The Finance Manager and the Master Data Admin (`core.customer.credit`). |

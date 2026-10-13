@@ -1,12 +1,22 @@
 # Master Data contract
 
-Master Data (Core) is the single owner of shared reference data. Sales, Purchase, WMS and MES **read** it; they never create or edit it. This file is the agreement between all modules, including the existing WMS and MES.
+Master Data (Core) is the single owner of shared reference data. Sales, Purchase, WMS and MES **read** it; they never create or edit it. The one exception is storage locations, which the WMS maintains (see *Warehouse and location*). This file is the agreement between all modules, including the existing WMS and MES.
 
 ## The three rules
 
 1. **Same code everywhere.** Every module uses the same business code for the same thing: item `FB-OAK-01`, supplier `S-0021`, customer `C-0012`, warehouse `HQ-MAIN`. Codes are what other systems match on. Internal IDs may differ per system; codes may not.
 2. **Same meaning everywhere.** Units, tax codes, statuses and decimals mean the same thing in every module (see the field tables below).
 3. **One owner, everyone else reads.** Only Master Data writes. Other modules read through an API and get told about changes by events (`mdm.item.updated` …). A document copies the values it needs at the moment it is created (a *snapshot*), so later changes in Master Data never rewrite old documents.
+
+## Life of a record
+
+Decided in Phase 3 from SRS DR-002, FR-MST-049 and SDD §5.3.1:
+
+- A code never changes once it is saved.
+- A record that nothing has used yet can be deleted, and `mdm.<record>.deleted` is published.
+- Once any document uses a record, it is never deleted. It is blocked, discontinued or ended instead, and stays readable.
+- An item, customer or supplier is not blocked or discontinued while an open document uses it.
+- Master Data learns where a record is used from each module, through a read-only check, without reading the module's tables.
 
 ## How Purchase and Sales read Master Data
 
@@ -17,7 +27,7 @@ Master Data (Core) is the single owner of shared reference data. Sales, Purchase
 
 ## Entities
 
-Owner is Master Data for all of them. “Used by” shows who reads it.
+Owner is Master Data for all of them, except locations (WMS). “Used by” shows who reads it.
 
 ### Company and branch
 | Field | Type | Notes |
@@ -35,7 +45,7 @@ Used by: all modules.
 | warehouse.branchCode | string | |
 | location.code | string ≤ 30 | `HQ-MAIN/B-03` (rack). **Must match WMS location codes** |
 | isActive | boolean | |
-Used by: Purchase (receive to), Sales (deliver from, return to), WMS (owner of bins in practice — agree who maintains), MES.
+Used by: Purchase (receive to), Sales (deliver from, return to), WMS, MES. **Locations are maintained by the WMS** (SRS FR-INV-001, SDD §6.1). Core edits warehouses and shows locations read only.
 
 ### Item
 | Field | Type | Notes |
@@ -50,6 +60,7 @@ Used by: Purchase (receive to), Sales (deliver from, return to), WMS (owner of b
 | defaultTaxCode (purchase / sales) | string | `SST10`, `SVC8`, `EXEMPT` |
 | preferredSupplierCode | string | `S-0021` |
 | reorderLevel / packSize | decimal | Used by the demand list |
+| einvoiceClassification | string | LHDN classification code for e-Invoice lines (added in Phase 3) |
 | status | enum | `ACTIVE`, `BLOCKED`, `DISCONTINUED` |
 Used by: Sales, Purchase, WMS, MES.
 
@@ -64,6 +75,7 @@ Used by: Sales, Purchase, WMS, MES.
 | Field | Type | Notes |
 |---|---|---|
 | code | string | `SST10` sales tax 10%, `SVC8` service tax 8%, `EXEMPT` 0% |
+| type | enum | `SALES_TAX`, `SERVICE_TAX`, `EXEMPT` (added in Phase 3) |
 | rate | decimal(5,2) | |
 | country | string(2) | `MY` |
 | validFrom / validTo | date | Rates change; documents snapshot the rate |
@@ -73,7 +85,7 @@ Used by: Sales, Purchase, WMS, MES.
 |---|---|---|
 | code | string | `S-0021` |
 | name | string | `Kilang Kain Jaya Sdn Bhd` |
-| regNo / tin / sstNo | string | For e-Invoice and tax |
+| tin, idType, regNo, sstNo, serviceTaxNo, einvoiceEmail | string | e-Invoice identity. `idType` is `BRN`, `NRIC`, `PASSPORT` or `ARMY`, and `regNo` is the ID number. `sstNo` is the sales tax number. `idType`, `serviceTaxNo` and `einvoiceEmail` were added in Phase 3 |
 | paymentTermDays | int | `30` |
 | currency | string(3) | `MYR` |
 | email / phone / address | string | PO and RFQ emails go here |
@@ -85,6 +97,7 @@ Used by: Purchase, WMS (inbound), Finance.
 |---|---|---|
 | code | string | `C-0012` |
 | name, tin, address, contacts | | |
+| idType, idNumber, salesTaxNo, serviceTaxNo, einvoiceEmail | string | e-Invoice identity (added in Phase 3). `idType` as for suppliers |
 | creditLimit / overdueLimit | decimal | Used by the Sales credit check |
 | creditTermDays, priceListCode, defaultAgent | | |
 | status | enum | `ACTIVE`, `BLOCKED`, `PROSPECT` |
@@ -103,5 +116,6 @@ Used by: all modules for approvals and audit.
 - [ ] List the item, warehouse, location, supplier and customer codes WMS and MES use today.
 - [ ] Where codes differ, decide which system is the master and build a mapping table until they are merged.
 - [ ] Agree unit conversions per item.
-- [ ] Agree who maintains bin/location codes (usually WMS) and how Master Data learns about them.
+- [x] Who maintains bin/location codes: the WMS (decided in Phase 3).
+- [ ] Agree how Master Data learns about WMS locations (event or API).
 - [ ] Agree the events in `EVENTS.md` and their payloads.

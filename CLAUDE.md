@@ -400,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C0 is done and waiting for the user's review: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`. C1's shell is built (Core module, permissions and role, customer and supplier numbering, audit and event helpers, Core shell and C01 home; commit `1c4012f`). After the review: the rest of C1 (the data changes below), then C2.
+**Status:** C0 was revised after checking every decision against the SRS and SDD, and is waiting for the user's last look: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`. C1's shell is built (Core module, permissions and role, customer and supplier numbering, audit and event helpers, Core shell and C01 home; commit `1c4012f`). After the review: the rest of C1 (the data changes, the record-usage check and the permission split below), then C2.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 
@@ -408,12 +408,18 @@ Everything above still applies to Core: stack, database and API conventions, no 
 
 - **Core owns the shared reference data** that every module reads (`MASTER_DATA_CONTRACT.md`): items, units and conversions, customers, suppliers, price lists, tax codes, warehouses and the small lists behind them.
 - **Today the `mdm_` tables are filled only by the seed.** Phase 3 makes Core a working module with screens, so an administrator can create and maintain that data, with an audit trail and events.
-- **Purchase and Sales do not change.** They keep reading through `MasterDataPort`. The port's methods and answers stay the same, so no Purchase or Sales code changes and their tests and seed checks keep passing.
+- **Purchase and Sales behave the same.** They keep reading through `MasterDataPort`, whose methods and answers stay the same, so their tests and seed checks keep passing. The only code they get is a read-only provider for the record-usage check (below), which the user approved in C0.
 - The launcher's **Core** tile ("Items, customers, suppliers, tax and price lists") opens it. The legacy system kept this in its *Common* module (SRS Appendix B.2); SRS §6.2 and SDD §8.3 have the detail.
 
-**Not in Phase 3:**
+**Not in Phase 3** (each comes with the module or phase that needs it):
 - **Configuration** (users, roles, branches, company settings) and login. They stay seeded until their own phase.
-- Bills of material (with MES), tax profiles and exemptions, merging duplicate parties, bank accounts, derived and foreign-currency price lists, item scope per branch (Sales' *Excluded items* covers selling).
+- Bills of material (with MES), tax profiles and exemptions (with the *exemption permitted* flag on tax codes), merging duplicate parties, bank accounts, derived and foreign-currency price lists, item scope per branch (Sales' *Excluded items* covers selling).
+- Quantity breaks on prices (SRS FR-MST-030), together with the Sales change that applies them.
+- Brands, tariff codes, payment plans and departments (FR-MST-001, FR-MST-058).
+- Item fields for stock and costing: stock-keeping method, costing method, minimum level, weight and size, putaway flag (FR-MST-003 to 007), with Inventory/WMS. Extra descriptions and an image (FR-MST-001).
+- Party fields: company or individual, salutation, notes, several addresses and contacts, a second agent, payment and delivery terms, currency and control account (FR-MST-040, 041, 044); shared or branch-private accounts (FR-MST-047). *Tax registration number* and *tax type* from FR-MST-042 (`CORE_SEED_DATA.md` choice 8).
+- Checking a TIN online with LHDN (FR-MST-043, FR-EIV-003), with the LHDN phase.
+- Item codes prefixed by group (FR-MST-010) and party codes numbered per letter (BR-NUM-004).
 - Inventory, WMS and Finance, as before.
 
 ## Must-read for Core
@@ -421,22 +427,24 @@ Everything above still applies to Core: stack, database and API conventions, no 
 - `docs/integration/MASTER_DATA_CONTRACT.md`: entities, the three rules (same code, same meaning, one owner), field tables.
 - SRS §6.2 *Master Data* and §9.2 *Master data entities*; SDD §8.3 *Master data*.
 - **Mockups:** `docs/design/mockups/Core*.html` and `docs/design/screenshots/C*.png`, made in C0 in the app's current layout. Once approved they are the design, like the Purchase and Sales mockups.
-- **Seed data:** `docs/design/CORE_SEED_DATA.md`: the master data as Core shows it, and the choices made. Its choices list wins over the mockups.
+- **Seed data:** `docs/design/CORE_SEED_DATA.md`: the master data as Core shows it, the rules the SRS and SDD decide (with references), and the choices made. Its choices list wins over the mockups.
 
-## Decisions to confirm in C0
+## Decisions (confirmed in C0)
 
-Each has a recommended default. The user confirms or changes them before C1.
+Checked against the SRS and SDD after the first review; where they decide, they are followed. The user approved the rest.
 
-| # | Decision | Recommended default |
-|---|---|---|
-| 1 | Scope | Items with units and conversions, customers, suppliers with their contract prices, price lists, tax codes, reference lists (item groups, customer categories, areas, credit terms), warehouses and locations. CSV import last (C7) |
-| 2 | Who maintains | A new role `MASTER_DATA_ADMIN`, given to Admin. Customer credit fields (credit limit, overdue limit, credit term, credit scope) also editable by the Finance Manager. Everyone else reads |
-| 3 | Approval for changes | None, as the SRS sets no approval for master data. Every change is audited with before and after values |
-| 4 | Codes | Customers and suppliers numbered by `NumberingService` (`C-####`, `S-####`, module `core`). Item, warehouse and price-list codes typed by the user. **A code never changes after it is saved** (other systems match on codes) |
-| 5 | Delete | Items, customers, suppliers, tax codes and price lists are never deleted: they are blocked or discontinued instead (SRS FR-MST-049). Reference-list entries can be deleted while no Core record uses them |
-| 6 | Locations | Core shows and edits warehouses. Locations are kept, but who maintains bins is agreed when WMS is connected (contract checklist) |
-| 7 | Prospect → customer | Core's *New customer* can take an enquiry number. `mdm.customer.created` carries it, and Sales links that enquiry to the new customer (FlowS1 step 2: "the enquiry keeps its link") |
-| 8 | Theme | Core is indigo, like its launcher tile (`--tile-core`). C0 adds its module tokens to `DESIGN_TOKENS.md` |
+| # | Decision | What it means | Source |
+|---|---|---|---|
+| 1 | Scope | Items with units and conversions, customers, suppliers with their contract prices, price lists, tax codes, reference lists (item groups, customer categories, areas, credit terms), warehouses (locations read only). CSV import last (C7): customers, suppliers, items and price-list prices | SRS §6.2, part of it; the rest is under *Not in Phase 3* |
+| 2 | Who maintains | `MASTER_DATA_ADMIN` (Admin) changes everything. The Finance Manager also changes customer credit (credit limit, overdue limit, credit term, credit scope). Buyers and the Purchasing Manager also change suppliers, but only the Purchasing Manager and the Master Data Admin change contract prices, because a contract price lets an order skip the RFQ. Everyone else reads; sales agents never change master data | SRS §3.3; choices 7 and 11 |
+| 3 | Approval for changes | None: approvals are for documents. Every change is logged with before and after values | SRS FR-SEC-050, FR-WFL-001, NFR-AUD-001, DR-003 |
+| 4 | Codes | Customers and suppliers numbered by `NumberingService` (`C-####`, `S-####`, module `core`). Item, unit, warehouse, price-list and tax codes typed by the user. Unique per tenant. **A code never changes after it is saved** (other systems match on codes) | SRS FR-MST-048, DR-004; SDD §8.3; contract rule 1 |
+| 5 | Delete and deactivate | A record can be deleted only while nothing uses it: no Purchase or Sales document of any status and no other Core record. After that it is blocked, discontinued or ended. An item, customer or supplier cannot be blocked or discontinued while an open document uses it | SRS DR-002, FR-MST-049; SDD §5.3.1, §7.3; choice 6 says what *open* means |
+| 6 | Locations | Core edits warehouses. Locations are read only: bins and stock locations belong to Inventory, which here is the WMS. Until it is connected, the seeded locations stay as they are | SRS FR-INV-001; SDD §6.1; contract checklist |
+| 7 | Prospect → customer | Core's *New customer* can take an enquiry number. `mdm.customer.created` carries it, and Sales links that enquiry to the new customer (FlowS1 step 2: "the enquiry keeps its link") | FlowS1; not in the SRS |
+| 8 | Theme | Core is indigo, like its launcher tile (`--tile-core`). C0 adds its module tokens to `DESIGN_TOKENS.md` | Design |
+| 9 | e-Invoice identity | Items carry an e-Invoice classification code. Customers and suppliers carry TIN, ID type (`BRN`, `NRIC`, `PASSPORT`, `ARMY`; default `BRN`), ID number, sales tax no, service tax no and e-Invoice email. Missing values are flagged on C01 and on the form, never blocking. Nothing is checked online in this phase | SRS FR-MST-008, FR-MST-042, FR-EIV-002, Appendix E; SDD §12.2; choice 8 |
+| 10 | Import | *Check* reads the file and saves nothing. *Load* saves the rows that passed, each on its own. Rows with a problem come back as a CSV to fix and upload again. Imports go through the same services and rules as the screens | SRS BR-STA-005, DR-005, INT-013, BR-VAL-020; SDD §9.6, §12.4 |
 
 ## Layout additions
 
@@ -446,6 +454,8 @@ backend/src/core/
 ├─ shared/        audit diff (before/after), code rules, status rules (+ .spec.ts)
 └─ items/ uoms/ customers/ suppliers/ price-lists/ tax-codes/ reference/ warehouses/ imports/ dashboard/
    each: <name>.controller.ts, <name>.query.ts, <name>.service.ts, dto/, <name>.rules.ts (+ .spec.ts)
+backend/src/platform/usage/   record-usage registry (no business rules)
+backend/src/purchase/usage/, backend/src/sales/usage/   their read-only providers (+ .spec.ts)
 frontend/src/modules/core/    router.ts, menu.ts, types.ts, api/, views/ (one view per C-code)
 docs/design/mockups/Core*.html, docs/design/CORE_SEED_DATA.md (made in C0)
 ```
@@ -456,9 +466,19 @@ docs/design/mockups/Core*.html, docs/design/CORE_SEED_DATA.md (made in C0)
 
 1. Core is the **only** module that writes `mdm_` tables. Purchase and Sales keep reading only through `MasterDataPort`.
 2. `core/` never imports `purchase/` or `sales/`, and the reverse; the frontend modules likewise.
-3. Core never reads `pur_` or `sal_` tables. Anything it needs from them comes as events.
+3. Core never reads `pur_` or `sal_` tables. Where a record is used comes from the record-usage check; anything else comes as events.
 4. A change in Core never rewrites an existing document: documents keep their snapshots (contract rule 3).
 5. Every change, in one transaction: the record, `sys_activity` with before and after values, and an `mdm.*` event.
+
+## Record-usage check
+
+How Core knows whether a record is used (decision 5) without reading other modules' tables. The user approved it in C0.
+
+- **Registry:** `platform/usage/` keeps a list of providers, the same way `OutboxConsumers` keeps listeners. Core asks it about one record: an item, customer, supplier, unit, tax code, price list or warehouse.
+- **Providers:** Purchase and Sales each register one. It reads only its own module's tables and answers two things: how many of its documents use the record, and which of them are open (document type, number, status). Core imports neither module.
+- **Open** (`CORE_SEED_DATA.md` choice 6): a draft, a document waiting for approval, or a released document with something left to deliver, receive, invoice or bill. Released invoices waiting for payment do not count.
+- **No behaviour change:** a provider only reads. Purchase and Sales tests and seed checks keep passing. Each provider has unit tests for its *open* rule. An e2e test checks the seeded answers: CH-DIN-01 on 20 documents with 7 open, C-0012 on 23 with 5 open, S-0047 on 6 with 3 open.
+- **Later:** WMS and MES get a provider too, answering through their API.
 
 ## Data changes (step C1)
 
@@ -468,6 +488,8 @@ What the contract and SRS need that the `mdm_` tables lack today:
 - **Dated prices** (SRS BR-PRC-003/004): price-list prices carry `validFrom`, so a future price waits for its date and the price on any past date can be shown. `listPrices(onDate)` keeps its meaning.
 - **Reference lists:** `mdm_item_group`, `mdm_customer_category`, `mdm_area`, `mdm_credit_term`, so these are picked from a list instead of typed (today they are free text).
 - **Item:** e-Invoice classification code (SRS FR-MST-008).
+- **Customer and supplier:** e-Invoice identity (SRS FR-MST-042): `idType` (default `BRN`), `idNumber`, `salesTaxNo`, `serviceTaxNo`, `einvoiceEmail`. The supplier's existing `regNo` and `sstNo` serve as its ID number and sales tax no; columns the port already reads keep their names.
+- **Tax code:** `type`: `SALES_TAX`, `SERVICE_TAX` or `EXEMPT` (SRS FR-MST-055).
 - **Kept as they are:** one address and one contact per party. Multiple addresses and contacts come later.
 
 ## Roles and permissions
@@ -475,9 +497,16 @@ What the contract and SRS need that the `mdm_` tables lack today:
 - **New role:** `MASTER_DATA_ADMIN` (decision 2).
 - **Permissions:**
   - `core.view`
-  - `core.item.edit`, `core.customer.edit`, `core.customer.credit`, `core.supplier.edit`
+  - `core.item.edit`, `core.customer.edit`, `core.customer.credit`, `core.supplier.edit`, `core.supplier.contract`
   - `core.price_list.edit`, `core.tax.edit`, `core.reference.edit`, `core.warehouse.edit`
   - `core.import`
+- **Grants:**
+  - `MASTER_DATA_ADMIN`: all of them.
+  - `FINANCE_MANAGER`: view, `core.customer.credit`.
+  - `PURCHASE_BUYER`: view, `core.supplier.edit`.
+  - `PURCHASE_MANAGER`: view, `core.supplier.edit`, `core.supplier.contract`.
+  - Every other Purchase and Sales role: view.
+- C1's shell has a single `core.edit`. The rest of C1 splits it into the permissions above.
 
 ## Core business rules (enforce on the server, test in `*.rules.spec.ts`)
 
@@ -487,21 +516,33 @@ What the contract and SRS need that the `mdm_` tables lack today:
    - Customer `ACTIVE` / `BLOCKED` / `PROSPECT`.
    - Supplier `ACTIVE` / `BLOCKED`.
    - Purchase and Sales already use only active records.
-3. **No delete** for records that documents can use (decision 5). Block or discontinue instead.
-4. **Required to activate:**
+3. **Delete** (SRS DR-002, FR-MST-049):
+   - Only while nothing uses the record: the record-usage check finds no document of any status, and no Core record points to it (an item's unit, a customer's price list …).
+   - Otherwise 409, naming where it is used, e.g. `CH-DIN-01 is used on 20 documents, so it cannot be deleted. Discontinue it instead.`
+   - A delete is logged with the record as it was, and publishes `mdm.<record>.deleted`.
+   - Reference-list entries follow the same rule against Core records.
+4. **Block and discontinue** (SDD §5.3.1): refused while an open document uses the item, customer or supplier. The 409 names the documents, e.g. `C-0012 is on 5 open documents (SO-0001, SO-0003, QT-0006 …). Finish or cancel them first.` *Activate* is always allowed when the required fields are filled.
+5. **Required to activate:**
    - Item: name, group, type, base unit, purchase tax if purchasable, sales tax if sellable.
    - Customer: name, branch, price list, credit term.
    - Supplier: name, payment term, currency.
-5. **Units:**
+6. **Units:**
    - A conversion factor is greater than 0.
    - A factor below 1 against the base unit is refused where it would give a fractional base quantity beyond the unit's decimals (SRS FR-MST-017).
    - Changing a factor never changes documents.
-6. **Tax:** effective-dated, no overlapping periods for the same code, and documents keep the rate they used.
-7. **Price lists:** one price per item, unit and date (and minimum quantity, if quantity breaks are confirmed). A future price waits for its date.
-8. **Customer credit:**
+7. **Tax** (SRS BR-TAX-006, FR-MST-055): every code has a type; rates are effective-dated, with no overlapping periods for the same code; documents keep the rate they used.
+8. **Price lists** (SRS BR-PRC-003, BR-PRC-004): one price per item, unit and date. A future price waits for its date, and the price on any past date can be shown. Quantity breaks come later (*Not in Phase 3*).
+9. **Customer credit:**
    - Credit limit and overdue limit are 0 or more, or empty for no limit.
    - Changes need `core.customer.credit` and are logged with before and after values.
-9. **Audit:** every save writes `sys_activity` with the changed fields, old and new values.
+10. **Contract prices** need `core.supplier.contract`: a contract price lets an order skip the RFQ (Purchase rule 4).
+11. **e-Invoice gaps** (decision 9): a missing classification code, TIN or ID number is flagged on C01 and on the form. It never blocks a save, and Purchase and Sales keep working.
+12. **Import** (decision 10):
+    - *Check* saves nothing.
+    - *Load* saves each passing row in its own transaction, through the same service as the screen.
+    - A known code updates that record; an empty code adds one with the next number.
+    - Rows with a problem are returned as a CSV.
+13. **Audit:** every save writes `sys_activity` with the changed fields, old and new values.
 
 ## Events Core publishes
 
@@ -509,9 +550,11 @@ What the contract and SRS need that the `mdm_` tables lack today:
 |---|---|
 | `mdm.item.created` / `mdm.item.updated` | Item saved (including status changes) |
 | `mdm.customer.created` / `mdm.customer.updated` | Customer saved. `created` may carry the enquiry number it came from (decision 7) |
-| `mdm.supplier.created` / `mdm.supplier.updated` | Supplier saved |
+| `mdm.supplier.created` / `mdm.supplier.updated` | Supplier saved, including its contract prices |
 | `mdm.price_list.updated` | Price list or its prices saved |
 | `mdm.tax_code.updated` | Tax rate added or changed |
+| `mdm.uom.updated`, `mdm.warehouse.updated` | Unit or warehouse saved |
+| `mdm.<record>.deleted` | A record that nothing used was deleted (rule 3) |
 
 Payloads carry the code and the full snapshot after the change, plus the list of changed fields. Purchase and Sales read through the port and need no cache, so these events are mainly for WMS, MES and Finance later. **Sales listens to `mdm.customer.created`** to link an enquiry's prospect (decision 7).
 
@@ -519,36 +562,42 @@ Payloads carry the code and the full snapshot after the change, plus the list of
 
 | Code | Screen | Route |
 |---|---|---|
-| C01 | Core home: counts, recently changed, records needing attention (an item without a price, a customer without a TIN …) | `/core` |
-| C02, C03 | Item list; item form (general, units and conversions, buying, selling, activity) | `/core/items`, `/core/items/:id` |
-| C04, C05 | Customer list (Active, Prospect, Blocked); customer form (general, address and contact, tax identity, credit, activity) | `/core/customers`, `/core/customers/:id` |
-| C06, C07 | Supplier list; supplier form (general, contact, tax identity, terms, contract prices, activity) | `/core/suppliers`, `/core/suppliers/:id` |
+| C01 | Core home: counts, recently changed, records needing attention (items without an e-Invoice classification code, parties without a TIN or ID number …) | `/core` |
+| C02, C03 | Item list; item form (general, units and conversions, buying, selling, where it is used, activity) | `/core/items`, `/core/items/:id` |
+| C04, C05 | Customer list (Active, Prospect, Blocked); customer form (general, address and contact, tax identity, credit, where it is used, activity) | `/core/customers`, `/core/customers/:id` |
+| C06, C07 | Supplier list; supplier form (general, contact, tax identity, terms, contract prices, where it is used, activity) | `/core/suppliers`, `/core/suppliers/:id` |
 | C08, C09 | Price lists; price list with its dated prices | `/core/price-lists`, `/core/price-lists/:id` |
-| C10 | Tax codes with their rate history | `/core/tax-codes` |
+| C10 | Tax codes with their type and rate history | `/core/tax-codes` |
 | C11 | Units of measure and conversions | `/core/uoms` |
 | C12 | Reference lists: item groups, customer categories, areas, credit terms | `/core/reference` |
-| C13 | Warehouses and locations | `/core/warehouses` |
-| C14 | Import from CSV: preview, check, then load (idempotent on codes) | `/core/import` |
+| C13 | Warehouses; their locations read only | `/core/warehouses` |
+| C14 | Import from CSV: check (saves nothing), then load the rows that pass; rows with a problem to download (idempotent on codes) | `/core/import` |
 
-API under `/api/v1/core/...` with the usual list, detail, create, update, plus status actions (`block`, `activate`, `discontinue`).
+API under `/api/v1/core/...` with the usual list, detail, create, update and delete (only while unused), plus status actions (`block`, `activate`, `discontinue`). Details include where the record is used.
 
 ## Build order for phase 3 (stop after each step for the user to review)
 
 **C0 · Planning and design.** This section; the decisions above; mockups for C01–C14 (`docs/design/mockups/Core*.html` + screenshots, same style as Purchase and Sales); `CORE_SEED_DATA.md` (the existing master-data seed plus anything the mockups show); the Core section in `SCREENS.md`; Core theme tokens. The user approves the mockups and decisions.
 
-**C1 · Module, schema and shell.** Core module, permissions and role; the data changes above with migrations; audit diff helper; numbering for customers and suppliers; Core shell (theme, layout, menu, all routes with placeholders); C01 home; the launcher tile opens Core. Purchase and Sales seed checks and tests still pass.
+**C1 · Module, schema and shell.**
+- Core module, permissions and role, with `core.edit` split into the permissions above.
+- The data changes above, with migrations and their seed values (`CORE_SEED_DATA.md`).
+- Audit diff helper; numbering for customers and suppliers.
+- The record-usage check, with the Purchase and Sales providers.
+- Core shell (theme, layout, menu, all routes with placeholders); C01 home with *Needs attention*; the launcher tile opens Core.
+- Purchase and Sales seed checks and tests still pass.
 
-**C2 · Items and units.** C02, C03, C11.
+**C2 · Items and units.** C02, C03 (with where it is used, delete and discontinue), C11.
 
-**C3 · Customers.** C04, C05, credit fields with their own permission, and the prospect link with Sales (`mdm.customer.created`).
+**C3 · Customers.** C04, C05: credit fields with their own permission, the e-Invoice identity fields, where it is used, and the prospect link with Sales (`mdm.customer.created`).
 
-**C4 · Suppliers.** C06, C07 with contract prices.
+**C4 · Suppliers.** C06, C07 with contract prices (`core.supplier.contract`), the e-Invoice identity fields and where it is used. Buyers and the Purchasing Manager can edit suppliers.
 
 **C5 · Price lists.** C08, C09 with dated prices; Sales still reads prices through the port with the same answers.
 
-**C6 · Tax, reference lists, warehouses.** C10, C12, C13.
+**C6 · Tax, reference lists, warehouses.** C10 with tax types, C12, C13 with read-only locations.
 
-**C7 · Import.** C14: customers, suppliers and items from CSV, with a preview and row-level errors before anything is saved.
+**C7 · Import.** C14: customers, suppliers, items and price-list prices from CSV. Check first (saves nothing), then load the rows that pass, each on its own; the rows with a problem download as a CSV.
 
 **C8 · Core journeys.** End-to-end tests for the Core journeys, the Core handbook, and a final review.
 
