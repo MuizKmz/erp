@@ -241,6 +241,4 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
     })),
   });
 
-  // Sales-order demand is no longer stubbed: Purchase keeps its own copy from Sales events (pur_sales_demand).
-  await prisma.salDemandStub.deleteMany({ where: { tenantId } });
 }

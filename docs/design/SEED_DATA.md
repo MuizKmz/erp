@@ -64,7 +64,7 @@ Stock on hand comes from a read-only stub (`inv_stock_snapshot`) until the Inven
 | SV-INS-01 | Installation and operator training | LOT | SERVICE | SVC8 | 500.00 | S-0052 | — | — |
 | OF-TNR-01 | Printer toner | PCS | NON_STOCK | SST10 | 90.00 | — | — | — |
 
-**Demand list on 29 Sep (P04)** — the seed must reproduce it: SC-WOD-08 buy 20 and VR-LAC-01 buy 8 (below reorder, selected), CH-DIN-01 buy 90 (40 for SO-0001 + top up to 50), TB-DIN-06 buy 31 (30 for SO-0008 + 1). Already covered: SF-CUS-03 by PO-0003, FB-OAK-01 by PO-0001 and PO-0004 (65 on order), FM-SEA-05 by PO-0005. Estimated value RM 40,040.00. Sales-order needs come from a stub table (`sal_demand_stub`) until Sales is built.
+**Demand list on 29 Sep (P04)** — the seed must reproduce it: SC-WOD-08 buy 20, TB-DIN-06 buy 1 and VR-LAC-01 buy 8 (below reorder, selected), CH-DIN-01 buy 90 (40 for SO-0001 + top up to 50). Already covered: SF-CUS-03 by PO-0003, FB-OAK-01 by PO-0001 and PO-0004 (65 on order), FM-SEA-05 by PO-0005. Estimated value RM 15,440.00. Sales-order needs come from released Sales orders: Purchase keeps its own copy, fed by Sales events. The mockup's TB-DIN-06 buy 31 and RM 40,040.00 came from a demo SO-0008 that is not a released order (`SALES_SEED_DATA.md`, conflict 16).
 
 ## Settings
 

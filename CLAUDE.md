@@ -1,6 +1,6 @@
 # Zora Pro ERP — build guide for Claude Code
 
-We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module** (done, steps 0–10). **Phase 2 = the Sales module** (section *Phase 2 · Sales module* at the end, steps S0–S10). Both are working apps with a real API and database (no login yet). Read this file fully before writing code, then read the docs it points to.
+We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module** (done, steps 0–10). **Phase 2 = the Sales module** (section *Phase 2 · Sales module*, done, steps S0–S10). Both are working apps with a real API and database (no login yet). Read this file fully before writing code, then read the docs it points to.
 
 ## Must-read docs
 
@@ -14,7 +14,7 @@ We are building a modular ERP. **Phase 1 = the module launcher and the Purchase 
 | `docs/design/SALES_SEED_DATA.md` | Exact Sales demo data, and the mockup conflicts with the choice made |
 | `docs/design/DESIGN_TOKENS.md` | Colours, type, chips, buttons |
 | `docs/integration/MASTER_DATA_CONTRACT.md` | What Purchase reads from Master Data and how |
-| `docs/integration/EVENTS.md` | Events Purchase publishes and listens to |
+| `docs/integration/EVENTS.md` | Events each module publishes and listens to, and the dispatcher rules |
 | `docs/requirements/ERP_SRS.md`, `ERP_SDD.md` | Full requirements and architecture. Long; search them when you need detail |
 
 **If this file and the SDD disagree, this file wins.** Differences from the SDD on purpose: MySQL instead of PostgreSQL, Vue instead of React, no Redis yet, simpler folder layout for phase 1 (rules kept in pure `*.rules.ts` files so they can move into a domain layer later), and document numbers assigned on first save (the mockups show numbers on drafts).
@@ -33,7 +33,8 @@ Source Code/
 ├─ docs/                      design, integration, requirements (read-only reference)
 ├─ backend/                   NestJS API on http://localhost:3000, prefix /api/v1
 │  ├─ prisma/schema.prisma    one schema, table prefixes per module
-│  ├─ prisma/seed.ts          seeds docs/design/SEED_DATA.md
+│  ├─ prisma/seed.ts          seeds docs/design/SEED_DATA.md and SALES_SEED_DATA.md
+│  ├─ test/                   end-to-end journeys: npm run test:e2e (resets the demo data)
 │  └─ src/
 │     ├─ platform/            shared building blocks, no business rules
 │     │  ├─ prisma/           PrismaService
@@ -41,7 +42,7 @@ Source Code/
 │     │  ├─ numbering/        NumberingService (locks the sequence row)
 │     │  ├─ activity/         ActivityService → sys_activity
 │     │  ├─ approvals/        generic approval requests
-│     │  ├─ outbox/           OutboxWriter + dispatcher (cron)
+│     │  ├─ outbox/           OutboxWriter + dispatcher (polls; receiving systems and module listeners)
 │     │  ├─ attachments/      local file storage under backend/uploads
 │     │  └─ http/             list query DTO, list response, error filter
 │     ├─ master-data/         MasterDataPort (interface) + Prisma adapter, READ ONLY
@@ -50,6 +51,7 @@ Source Code/
 │        ├─ shared/           statuses, totals.rules.ts, approval-limit.rules.ts, match.rules.ts (+ .spec.ts)
 │        └─ requests/ rfqs/ orders/ receipts/ cancel-orders/ invoices/
 │           cash-purchases/ debit-notes/ returns/ approvals/ demand/ dashboard/ settings/
+│           sales-link/ (listens to Sales events: buy-to-order POs, pur_sales_demand)
 │           each: <name>.controller.ts, <name>.service.ts, dto/, <name>.rules.ts (+ .spec.ts)
 └─ frontend/                  TailAdmin Vue Pro base, http://localhost:5173
    └─ src/
@@ -66,12 +68,12 @@ Source Code/
 1. Sales and Purchase are separate modules. `purchase/` never imports from `sales/` and the reverse.
 2. A module only reads and writes its own tables. Shared data comes from `MasterDataPort`; cross-module effects go out as outbox events.
 3. Purchase never writes `mdm_` tables and never queries them directly — only through `MasterDataPort`. Phase 1 adapter reads local seed tables; later it will call the real Master Data API, and nothing in `purchase/` may need to change.
-4. Stock on hand comes from a read-only stub (`inv_stock_snapshot`) until Inventory/WMS is connected. Sales-order demand comes from `sal_demand_stub` until Sales exists.
+4. Stock on hand comes from a read-only stub (`inv_stock_snapshot`) until Inventory/WMS is connected. Sales-order demand comes from Purchase's own copy (`pur_sales_demand`), kept from Sales events (`EVENTS.md`).
 5. When another module is not connected, never block the user: save the event and show the amber banner (“Inventory is not connected yet…”).
 
 ## Database conventions (MySQL + Prisma)
 
-- One database `zora_erp`. Table prefixes via `@@map`: `sys_` platform, `mdm_` master data (seed only), `inv_` stubs, `pur_` purchase, later `sal_`. Prisma model names: `PurPurchaseOrder` → `@@map("pur_purchase_order")`.
+- One database `zora_erp`. Table prefixes via `@@map`: `sys_` platform, `mdm_` master data (seed only), `inv_` and `fin_` stubs, `pur_` purchase, `sal_` sales. Prisma model names: `PurPurchaseOrder` → `@@map("pur_purchase_order")`.
 - IDs: `String @id @default(uuid()) @db.Char(36)`. Every table has `tenantId` (one tenant seeded) and an index starting with it.
 - Money `Decimal(18,2)`, unit price `Decimal(18,4)`, quantity `Decimal(18,4)`, rates `Decimal(7,4)`. **Never use JS floats for money or quantity.** Calculate with `Prisma.Decimal` on the server; send as strings in JSON.
 - Rounding: line amount = round(qty × price, 2); line tax = round(amount × rate, 2); header totals = sums of lines.
@@ -178,6 +180,7 @@ backend/src/sales/
 │                 credit.rules.ts (exposure + policy decision), price.rules.ts, linked-docs (+ .spec.ts)
 └─ enquiries/ quotations/ orders/ deliveries/ invoices/ proformas/ cash-sales/ debit-notes/
    returns/ cancel-orders/ approvals/ dashboard/ reports/ settings/ lookups/
+   buy-to-order/ (listens to Purchase events: PO number, received and cancelled quantities)
    each: <name>.controller.ts, <name>.query.ts (reads), <name>.service.ts (commands), dto/, <name>.rules.ts (+ .spec.ts)
 frontend/src/modules/sales/   router.ts, menu.ts, types.ts, routes.ts, api/, views/ (one view per S-code)
 ```
@@ -192,7 +195,7 @@ frontend/src/modules/sales/   router.ts, menu.ts, types.ts, routes.ts, api/, vie
 3. **Stock** comes from `inv_stock_snapshot`, read only.
 4. **Payments** come from a new read-only stub `fin_receipt_stub` until Finance exists. Sales never changes a balance by hand.
 5. Cross-module effects go out only as outbox events (`EVENTS.md` → *Sales publishes*). A module that is not connected never blocks the user: save the event and show the amber banner.
-6. Purchase keeps reading `sal_demand_stub` for its demand list until step S10 decides how to replace it. Sales does not write that table.
+6. Purchase's demand list reads `pur_sales_demand`, its own copy of open sales-order lines, kept from `sales.order.released`, `sales.shipment.requested` and `sales.order.balance_cancelled` (decided at the end of Phase 2, `SALES_SEED_DATA.md` conflict 16). Sales never writes `pur_` tables, and Purchase never writes `sal_` tables.
 
 ## Master data and platform additions (step S1)
 
@@ -320,6 +323,16 @@ Like the quotation and invoice, a rejected sales order goes back to DRAFT with t
 
 Each event is written in the same transaction as the document change, together with `sys_activity` and the `sys_doc_link` edges.
 
+## Events Sales listens to
+
+| Event | What Sales does |
+|---|---|
+| `purchase.buy_to_order.handled` | Puts the PO number, or the reason there is none, on each buy-to-order line |
+| `purchase.goods.received` | Adds the received quantity to the order lines on that PO; received goods count as ready on the delivery waiting list |
+| `purchase.order.balance_cancelled` | Adds the cancelled quantity to those lines, counting only what the order is short |
+
+Purchase and Sales react to each other as **module listeners** (`OutboxConsumers.listen`). A listener never changes an event's status, so the "not connected" banners stay true for Inventory and Finance. See `EVENTS.md` → *Two kinds of consumer*.
+
 ## Frontend notes (Sales)
 
 - **Sidebar:**
@@ -375,8 +388,8 @@ Each event is written in the same transaction as the document change, together w
 **S9 · Flow, settings and report.** S03 document flow, S29 credit control, S30 document types, S31 enquiry types, S32 excluded items, S33 email templates, S05 sales by customer.
 
 **S10 · Link with Purchase.**
-- Purchase subscribes to `sales.order.released`: buy-to-order lines auto-draft a PO when the Purchase setting "Auto-draft a PO for buy-to-order sales lines" is on.
-- Sales subscribes to `purchase.goods.received` and `purchase.order.balance_cancelled` to show buy-to-order line status.
-- Decide with the user whether Purchase demand switches from `sal_demand_stub` to a Purchase-owned table fed by Sales events. That would change P04's numbers, because SO-0008 is not released.
+- Purchase listens to `sales.order.released`: buy-to-order lines auto-draft a PO when the Purchase setting "Auto-draft a PO for buy-to-order sales lines" is on, and Purchase answers with `purchase.buy_to_order.handled`.
+- Sales listens to `purchase.buy_to_order.handled`, `purchase.goods.received` and `purchase.order.balance_cancelled` to show buy-to-order line status.
+- Decided at the end of Phase 2: Purchase demand comes from a Purchase-owned table fed by Sales events (`pur_sales_demand`, `SALES_SEED_DATA.md` conflict 16). P04's seed estimate is RM 15,440.00, because SO-0008 is not released. `sal_demand_stub` is dropped.
 
 **Definition of done for every Sales step:** the same as Purchase. The screen matches its mockup (or the choice in the conflicts list); the seed shows the mockup numbers; rules have unit tests; backend `npm run build` and frontend `npm run type-check` and lint pass; Purchase tests still pass; a short "what to click" note; a commit with a clear message.

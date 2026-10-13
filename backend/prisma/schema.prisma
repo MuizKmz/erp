@@ -443,32 +443,6 @@ model InvStockSnapshot {
   @@map("inv_stock_snapshot")
 }
 
-enum SalDemandKind {
-  DIRECT // the sales line sells this item: counts in the demand list
-  COMPONENT // the item is used to make what is sold: shown for information only
-}
-
-/// Open sales-order needs from before the Sales module existed. Unused since Purchase keeps its own copy from Sales
-/// events (PurSalesDemand); kept, empty, until dropping it is agreed.
-model SalDemandStub {
-  id           String        @id @default(uuid()) @db.Char(36)
-  tenantId     String        @db.Char(36)
-  branchCode   String        @db.VarChar(10)
-  soNo         String        @db.VarChar(30)
-  soDate       DateTime      @db.Date
-  customerName String        @db.VarChar(150)
-  soTotal      Decimal       @db.Decimal(18, 2)
-  itemCode     String        @db.VarChar(30)
-  qty          Decimal       @db.Decimal(18, 4)
-  kind         SalDemandKind @default(DIRECT)
-  isBuyToOrder Boolean       @default(false)
-  neededBy     DateTime?     @db.Date
-
-  @@index([tenantId, itemCode])
-  @@index([tenantId, soNo])
-  @@map("sal_demand_stub")
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // pur_ · purchase
 // Every document: docNo (unique per tenant), docDate, status, branchCode, remarks, version, created/updated
