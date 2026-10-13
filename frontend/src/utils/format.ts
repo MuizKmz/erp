@@ -104,6 +104,14 @@ export function formatTime(moment: Date | string): string {
     .format(new Date(moment))
 }
 
+/** A moment → "Good morning" / "Good afternoon" / "Good evening" by the hour in Malaysia time */
+export function greeting(moment: Date | string): string {
+  const hour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: BUSINESS_TIMEZONE }).format(new Date(moment)))
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
 /** A moment → "24 Sep" (its calendar day in Malaysia time) */
 export function formatShortDate(moment: Date | string): string {
   const parts = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', timeZone: BUSINESS_TIMEZONE }).formatToParts(new Date(moment))

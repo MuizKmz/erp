@@ -36,13 +36,13 @@ function onEnter() {
 
 <template>
   <div class="relative w-[380px] max-w-full">
-    <div class="flex h-[34px] items-center gap-2 rounded-full bg-mod-pill px-3.5">
-      <Search :size="15" class="text-erp-on-dark" aria-hidden="true" />
+    <div class="flex h-8 items-center gap-2 rounded-full border border-erp-border bg-erp-head px-3.5 focus-within:border-mod-line">
+      <Search :size="15" class="text-erp-muted" aria-hidden="true" />
       <input
         v-model="query"
         aria-label="Search pages and modules"
         placeholder="Search pages, modules..."
-        class="min-w-0 flex-1 border-0 bg-transparent font-[inherit] text-[13px] text-erp-on-dark placeholder:text-erp-on-dark/60 outline-none"
+        class="min-w-0 flex-1 border-0 bg-transparent font-[inherit] text-[13px] text-erp-text placeholder:text-erp-muted outline-none"
         @focus="focused = true"
         @blur="focused = false"
         @keydown.enter.prevent="onEnter"

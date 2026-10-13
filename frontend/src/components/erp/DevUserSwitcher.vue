@@ -8,7 +8,7 @@ import { initials } from '@/utils/format'
  * Dev user switcher (no login yet). Shows who you are; click to act as another seeded user — this is how
  * approvals are tested (e.g. Lim Mei Ying sends, Ahmad Zaki approves). The choice is kept in localStorage.
  *
- * variant: "module" = green top bar, "home" = white module home header, "launcher" = dark launcher bar.
+ * variant: "module" = floating module top bar, "home" = white module home header, "launcher" = launcher top bar.
  */
 const props = withDefaults(defineProps<{ variant?: 'module' | 'home' | 'launcher'; subtitle?: string }>(), {
   variant: 'module',
@@ -49,7 +49,7 @@ onBeforeUnmount(() => {
 const avatarClass = computed(
   () =>
     ({
-      module: 'bg-erp-on-dark text-mod-accent',
+      module: 'bg-mod-chip-bg text-mod-chip-text',
       home: 'bg-mod-chip-bg text-mod-chip-text',
       launcher: 'bg-launcher-avatar text-launcher-bar',
     })[props.variant],
@@ -60,8 +60,7 @@ const avatarClass = computed(
   <div ref="root" class="relative">
     <button
       type="button"
-      class="flex items-center gap-2 rounded-lg border-0 bg-transparent p-1 text-left font-[inherit] text-[13px]"
-      :class="variant === 'home' ? 'text-erp-text' : 'text-erp-on-dark'"
+      class="flex items-center gap-2 rounded-lg border-0 bg-transparent p-1 text-left font-[inherit] text-[13px] text-erp-text"
       :aria-expanded="open"
       aria-haspopup="menu"
       title="Dev user switcher: act as another user"

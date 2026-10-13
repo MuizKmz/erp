@@ -68,7 +68,7 @@
   --tile-purchase: #15803d;
   --tile-sales: #7b4fe0;
   --tile-mes: #b45309;
-  --tile-wms: #2b35d8;
+  --tile-wms: #0e7490; /* teal, so it does not read as Core's indigo */
   --tile-config: #5b6170;
 
   /* Module colours default to Purchase until a layout sets data-module */
