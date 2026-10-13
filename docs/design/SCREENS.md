@@ -19,7 +19,7 @@ Screenshots of the same screens are in `docs/design/screenshots/`.
 |---|---|---|---|---|
 | 00 | Choose a module | `Launcher.html` | `/` | `GET /api/v1/me/modules` (static list for now) |
 
-Tiles: Core (Master Data, existing), Purchase (open), Sales (open), MES (later), WMS (existing), Configuration. Only Purchase and Sales are clickable in phase 1.
+Tiles: Core (Master Data, open since phase 3), Purchase (open), Sales (open), MES (later), WMS (existing, another team), Configuration (later). Core, Purchase and Sales are clickable.
 
 ---
 
@@ -117,3 +117,29 @@ Theme: purple. Sidebar groups: **Sales Transaction**, **Billing**, **Operation P
 | S33 | Email templates | `EmailTemplates.html` | `/sales/settings/email-templates` |
 
 Sales guide and flows: `SalesUxGuide.html`, `SalesNavMap.html`, `FlowS1.html` … `FlowS6.html`.
+
+---
+
+## Core module (Master Data, phase 3)
+
+Theme: indigo. Sidebar groups: **Items & Units**, **Customers & Suppliers**, **Prices & Tax**, **Warehouses & Locations**, **Setup**. Seed data: `CORE_SEED_DATA.md`. Core is the only module that writes `mdm_` tables; Purchase and Sales keep reading them through `MasterDataPort`.
+
+The Core mockups were made in step C0, after the app's layout redesign, so they show the current shell (icon rail, group panel, floating top bar). Lists and forms follow the Purchase and Sales patterns.
+
+| Code | Screen | Mockup | Route | Main API |
+|---|---|---|---|---|
+| C01 | Core home | `CoreHome.html` | `/core` | GET /api/v1/core/dashboard |
+| C02 | Item list | `CoreItemList.html` | `/core/items` | GET /api/v1/core/items |
+| C03 | Item | `CoreItemForm.html` | `/core/items/:id` | GET, POST, PATCH /api/v1/core/items/:id · POST …/block, …/activate, …/discontinue |
+| C04 | Customer list | `CoreCustomerList.html` | `/core/customers` | GET /api/v1/core/customers |
+| C05 | Customer | `CoreCustomerForm.html` | `/core/customers/:id` | GET, POST, PATCH /api/v1/core/customers/:id (credit fields need core.customer.credit) · POST …/block, …/activate |
+| C06 | Supplier list | `CoreSupplierList.html` | `/core/suppliers` | GET /api/v1/core/suppliers |
+| C07 | Supplier with contract prices | `CoreSupplierForm.html` | `/core/suppliers/:id` | GET, POST, PATCH /api/v1/core/suppliers/:id · POST …/block, …/activate |
+| C08 | Price lists | `CorePriceLists.html` | `/core/price-lists` | GET /api/v1/core/price-lists |
+| C09 | Price list with its prices | `CorePriceListForm.html` | `/core/price-lists/:id` | GET, POST, PATCH /api/v1/core/price-lists/:id |
+| C10 | Tax codes | `CoreTaxCodes.html` | `/core/tax-codes` | GET, POST /api/v1/core/tax-codes · POST …/:code/rates |
+| C11 | Units of measure | `CoreUoms.html` | `/core/uoms` | GET, POST, PATCH /api/v1/core/uoms |
+| C12 | Reference lists | `CoreReference.html` | `/core/reference` | GET, POST, PATCH /api/v1/core/reference/:list |
+| C13 | Warehouses and locations | `CoreWarehouses.html` | `/core/warehouses` | GET, POST, PATCH /api/v1/core/warehouses, …/:code/locations |
+| C14 | Import from CSV | `CoreImport.html` | `/core/import` | POST /api/v1/core/imports (check) · POST /api/v1/core/imports/:id/load |
+

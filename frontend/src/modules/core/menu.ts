@@ -1,7 +1,7 @@
-import { Package, Percent, Ruler, Tags, Truck, Users, Warehouse } from '@lucide/vue'
+import { FileUp, ListChecks, Package, Percent, Ruler, SlidersHorizontal, Tags, Truck, Users, Warehouse } from '@lucide/vue'
 import type { MenuGroup } from '../common/menu'
 
-/** Core sidebar (CLAUDE.md → Phase 3 · Screens). No mockups: groups follow the kinds of master data. */
+/** Core sidebar (CoreHome.html and the other Core mockups). Labels exactly as in the mockups. */
 export const CORE_MENU: MenuGroup[] = [
   {
     key: 'catalog',
@@ -39,5 +39,15 @@ export const CORE_MENU: MenuGroup[] = [
     icon: Warehouse,
     to: '/core/warehouses',
     items: [{ key: 'warehouses', label: 'Warehouses', to: '/core/warehouses', icon: Warehouse }],
+  },
+  {
+    key: 'setup',
+    title: 'Setup',
+    icon: SlidersHorizontal,
+    to: '/core/reference',
+    items: [
+      { key: 'reference', label: 'Reference Lists', to: '/core/reference', icon: ListChecks },
+      { key: 'import', label: 'Import', to: '/core/import', icon: FileUp },
+    ],
   },
 ]

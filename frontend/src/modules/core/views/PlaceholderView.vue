@@ -11,8 +11,11 @@ const isRecord = computed(() => Boolean(route.meta.parent))
 
 const STEP_NAMES: Record<number, string> = {
   2: 'Items and units',
-  3: 'Customers and suppliers',
-  4: 'Price lists, tax codes, warehouses',
+  3: 'Customers',
+  4: 'Suppliers',
+  5: 'Price lists',
+  6: 'Tax, reference lists, warehouses',
+  7: 'Import',
 }
 </script>
 
@@ -28,7 +31,7 @@ const STEP_NAMES: Record<number, string> = {
     <NoticeBanner kind="info">
       This screen is built in <strong>step C{{ route.meta.step }}</strong>
       <template v-if="route.meta.step && STEP_NAMES[route.meta.step]"> · {{ STEP_NAMES[route.meta.step] }}</template>.
-      Until then, Purchase and Sales keep using the master data that is already loaded.
+      The approved design is <code>docs/design/mockups/{{ route.meta.mockup }}</code>. Until then, Purchase and Sales keep using the master data that is already loaded.
     </NoticeBanner>
   </section>
 </template>

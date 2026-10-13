@@ -12,6 +12,7 @@ We are building a modular ERP. **Phase 1 = the module launcher and the Purchase 
 | `docs/design/SEED_DATA.md` | Exact demo data. After seeding, screens must show the same numbers as the mockups |
 | `docs/design/mockups/SalesUxGuide.html`, `SalesNavMap.html`, `FlowS1–S6.html` | Sales rules and journeys. Each flow’s *Step by step* table is the acceptance criteria |
 | `docs/design/SALES_SEED_DATA.md` | Exact Sales demo data, and the mockup conflicts with the choice made |
+| `docs/design/CORE_SEED_DATA.md` | Core master data as seeded, and the choices made in the Core mockups |
 | `docs/design/DESIGN_TOKENS.md` | Colours, type, chips, buttons |
 | `docs/integration/MASTER_DATA_CONTRACT.md` | What Purchase reads from Master Data and how |
 | `docs/integration/EVENTS.md` | Events each module publishes and listens to, and the dispatcher rules |
@@ -399,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C1's shell is built (Core module, permissions and role, customer and supplier numbering, audit and event helpers, Core shell and C01 home; commit `1c4012f`). Next: C0, the mockups and decisions, then the rest of C1 (the data changes below).
+**Status:** C0 is done and waiting for the user's review: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`. C1's shell is built (Core module, permissions and role, customer and supplier numbering, audit and event helpers, Core shell and C01 home; commit `1c4012f`). After the review: the rest of C1 (the data changes below), then C2.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 
@@ -419,7 +420,8 @@ Everything above still applies to Core: stack, database and API conventions, no 
 
 - `docs/integration/MASTER_DATA_CONTRACT.md`: entities, the three rules (same code, same meaning, one owner), field tables.
 - SRS §6.2 *Master Data* and §9.2 *Master data entities*; SDD §8.3 *Master data*.
-- **There are no Core mockups yet.** Step C0 makes them, in the same style as the Purchase and Sales mockups, and they become the approved design.
+- **Mockups:** `docs/design/mockups/Core*.html` and `docs/design/screenshots/C*.png`, made in C0 in the app's current layout. Once approved they are the design, like the Purchase and Sales mockups.
+- **Seed data:** `docs/design/CORE_SEED_DATA.md`: the master data as Core shows it, and the choices made. Its choices list wins over the mockups.
 
 ## Decisions to confirm in C0
 

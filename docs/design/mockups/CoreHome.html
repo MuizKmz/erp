@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Core · Core home</title>
+</head>
+<body>
+<div class="mockup-root">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:10px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl td:first-child{white-space:nowrap}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.nw{white-space:nowrap}
+.muted{color:#5E6478}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between}
+.inp.ro{background:#F7F8FB;color:#475069}
+.inp.ph{color:#9AA0B4}
+.ta{min-height:58px;height:auto;padding:9px 12px;align-items:flex-start;line-height:1.4}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-prim{background:#4448C9;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.b-redline{background:#FFFFFF;color:#B91C1C;border-color:#F3B4B4}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-dark{background:#475069;color:#FFFFFF}
+.b-off{background:#B9BBEE;color:#FFFFFF}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-act{background:#DCFCE7;color:#166534}
+.st-blk{background:#FEE2E2;color:#991B1B}
+.st-disc{background:#EEF0F4;color:#475069}
+.st-pros{background:#FEF3C7;color:#92400E}
+.st-mod{background:#E6E7FD;color:#3A3DB5}
+.tabs{display:flex;gap:24px;border-bottom:1px solid #E4E6EE;font-size:13px}
+.tab{padding:0 0 10px;color:#5E6478;font-weight:600}
+.tab.on{color:#3A3DB5;border-bottom:2px solid #4F53D6}
+.h2{margin:0;font-size:15px;font-weight:700}
+.note{border-radius:10px;padding:10px 14px;font-size:13px;display:flex;gap:10px;align-items:flex-start;line-height:1.45}
+.n-info{background:#F5F5FF;border:1px solid #D9DAFB;color:#3A3DB5}
+.n-warn{background:#FFF8E6;border:1px solid #F6D58E;color:#8A5300}
+.tick{color:#15803D;font-weight:700}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#1E2233;font-weight:500}
+.sw{width:34px;height:20px;border-radius:10px;background:#D9DCE6;position:relative;display:inline-block}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw.on{background:#4F53D6}
+.sw.on::after{left:16px}
+.lock{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#5E6478}
+.pager{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#5E6478}
+.pg{display:inline-flex;gap:6px}
+.pg span{width:28px;height:28px;border-radius:6px;border:1px solid #D9DCE6;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:#1E2233;background:#fff}
+.pg span.on{background:#4F53D6;border-color:#4F53D6;color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 18px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px 18px}
+.span2{grid-column:span 2}
+.span3{grid-column:span 3}
+.act{display:flex;flex-direction:column;gap:2px;font-size:12px;padding:8px 0;border-bottom:1px solid #EEF0F4}
+</style>
+<div style="width:1440px;min-height:1000px;position:relative;background:#F3F4F8;overflow:hidden">
+
+<header style="height:64px;background:#FFFFFF;border-bottom:1px solid #E4E6EE;display:flex;align-items:center;justify-content:space-between;padding:0 32px">
+<div style="display:flex;align-items:center;gap:12px"><div style="width:34px;height:34px;border-radius:8px;background:#141A3C;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center">Z</div>
+<div style="font-size:18px;font-weight:700">Zora <span style="color:#2563EB">Pro</span> ERP</div><span class="chip st-mod">Core module</span><a href="Launcher.html" style="font-size:13px;font-weight:600;padding-left:8px">‹ All modules</a></div>
+<div style="display:flex;align-items:center;gap:18px"><div style="text-align:right;font-size:13px"><div style="font-weight:600">admin@warehouse.com <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5E6478" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div><div style="font-size:12px;color:#5E6478">Tuesday, 29 September 2026</div></div>
+<span style="width:36px;height:36px;border-radius:8px;border:1px solid #D9DCE6;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E6478" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></span></div>
+</header>
+<main style="padding:24px 32px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;gap:16px"><a href="CoreItemList.html" style="width:132px;height:100px;border-radius:12px;background:#3A3DB5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:8px;box-sizing:border-box"><span style="width:36px;height:36px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3A3DB5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg></span>Items &amp; Units</a><a href="CoreCustomerList.html" style="width:132px;height:100px;border-radius:12px;background:#4448C9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:8px;box-sizing:border-box"><span style="width:36px;height:36px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4448C9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Customers &amp; Suppliers</a><a href="CorePriceLists.html" style="width:132px;height:100px;border-radius:12px;background:#4F53D6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:8px;box-sizing:border-box"><span style="width:36px;height:36px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F53D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1"/></svg></span>Prices &amp; Tax</a><a href="CoreWarehouses.html" style="width:132px;height:100px;border-radius:12px;background:#6A6EE0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:8px;box-sizing:border-box"><span style="width:36px;height:36px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6A6EE0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg></span>Warehouses &amp; Locations</a><a href="CoreReference.html" style="width:132px;height:100px;border-radius:12px;background:#8285E8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:8px;box-sizing:border-box"><span style="width:36px;height:36px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8285E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></span>Setup</a></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 class="h2">Master data</h2><span style="font-size:12px;color:#5E6478">Purchase and Sales read these. A change applies to new documents; released documents keep what they had.</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px"><a href="CoreItemList.html" class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px;color:#1E2233"><span style="font-size:13px;font-weight:600;color:#5E6478">Items</span><span style="font-size:24px;font-weight:700">39</span><span style="font-size:12px;color:#5E6478">39 active</span></a><a href="CoreCustomerList.html" class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px;color:#1E2233"><span style="font-size:13px;font-weight:600;color:#5E6478">Customers</span><span style="font-size:24px;font-weight:700">7</span><span style="font-size:12px;color:#5E6478">7 active</span></a><a href="CoreSupplierList.html" class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px;color:#1E2233"><span style="font-size:13px;font-weight:600;color:#5E6478">Suppliers</span><span style="font-size:24px;font-weight:700">10</span><span style="font-size:12px;color:#5E6478">10 active</span></a><a href="CorePriceLists.html" class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px;color:#1E2233"><span style="font-size:13px;font-weight:600;color:#5E6478">Price lists</span><span style="font-size:24px;font-weight:700">2</span><span style="font-size:12px;color:#5E6478">2 active</span></a><a href="CoreTaxCodes.html" class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px;color:#1E2233"><span style="font-size:13px;font-weight:600;color:#5E6478">Tax codes</span><span style="font-size:24px;font-weight:700">3</span><span style="font-size:12px;color:#5E6478">3 active</span></a><a href="CoreUoms.html" class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px;color:#1E2233"><span style="font-size:13px;font-weight:600;color:#5E6478">Units of measure</span><span style="font-size:24px;font-weight:700">9</span><span style="font-size:12px;color:#5E6478">9 active</span></a><a href="CoreWarehouses.html" class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:6px;color:#1E2233"><span style="font-size:13px;font-weight:600;color:#5E6478">Warehouses</span><span style="font-size:24px;font-weight:700">3</span><span style="font-size:12px;color:#5E6478">3 active · 8 locations</span></a></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+<section class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;align-items:center"><h2 class=h2>Needs attention</h2><span style="font-size:12px;color:#5E6478">Checked when the page opens</span></div><ul style="margin:0;padding:0;list-style:none"><li style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #EEF0F4;font-size:13px"><span style="color:#B45309"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><span><a href="CoreItemList.html" style="font-weight:600">39 items</a> have no e-Invoice classification code yet. LHDN needs it on every e-Invoice line.</span></li><li style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #EEF0F4;font-size:13px"><span style="color:#B45309"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><span><a href="CoreSupplierList.html" style="font-weight:600">8 suppliers</a> have no TIN (walk-in shops left out). It is needed for e-Invoices with them.</span></li><li style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #EEF0F4;font-size:13px"><span style="color:#B45309"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><span><a href="CoreItemList.html" style="font-weight:600">3 purchasable items</a> have no preferred supplier: OF-DSK-01, OF-TNR-01, SV-FRT-01. Buyers pick one each time.</span></li><li style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #EEF0F4;font-size:13px"><span style="color:#B45309"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><span><a href="CoreReference.html" style="font-weight:600">Item groups</a> “Service” and “Services” look like the same group.</span></li></ul></section>
+<section class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;align-items:center"><h2 class=h2>Recently changed</h2></div><p style="margin:0;font-size:13px;color:#5E6478">Nothing has been changed in Core yet. Every change made here shows up in this list, with who made it and what changed.</p></section>
+</div>
+</main>
+<footer style="position:absolute;left:0;right:0;bottom:0;height:44px;background:#FFFFFF;border-top:1px solid #E4E6EE;display:flex;align-items:center;justify-content:space-between;padding:0 32px;font-size:12px;color:#5E6478"><span style="font-weight:600;color:#1E2233">Zora Pro ERP · CLB Groups</span><span>© 2026 All rights reserved.</span></footer>
+
+</div>
+</div>
+</body>
+</html>
