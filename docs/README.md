@@ -8,7 +8,7 @@ Reference material for building Zora Pro ERP. Nothing here is compiled; it is wh
 | `design/screenshots/` | The same screens as PNG images, named by screen code (`P09-PoList.png`) | Quick look, or when HTML is not convenient |
 | `design/SCREENS.md` | Screen code → mockup → route → API | Planning a screen |
 | `design/SEED_DATA.md` | The demo data the mockups use | Writing the seed, checking a screen |
-| `design/SALES_SEED_DATA.md`, `design/CORE_SEED_DATA.md` | Sales and Core demo data, with the mockup conflicts and choices decided in each phase | Working on Sales or Core |
+| `design/SALES_SEED_DATA.md`, `design/CORE_SEED_DATA.md`, `design/CONFIG_SEED_DATA.md` | Sales, Core and Configuration demo data, with the mockup conflicts and choices decided in each phase | Working on Sales, Core or Configuration |
 | `design/DESIGN_TOKENS.md` | Colours, type, chips, buttons per module | Styling |
 | `integration/MASTER_DATA_CONTRACT.md` | Shared codes and fields Master Data owns, for Sales, Purchase, WMS and MES | Any field that comes from Master Data |
 | `integration/EVENTS.md` | Events between modules | Anything another module needs to know about |

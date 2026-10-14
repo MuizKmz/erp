@@ -20,17 +20,19 @@ Values taken from the mockups. Put them in one place in the frontend (`src/asset
 
 Each module has its own sidebar colour so users always know where they are. Set these variables on the module layout root (for example `<div class="erp-module" data-module="purchase">`).
 
-| Variable | Purchase (green) | Sales (purple) | Core (indigo) | Use |
-|---|---|---|---|---|
-| `--mod-side` | `#15803D` | `#7B4FE0` | `#4F53D6` | Sidebar and top bar background |
-| `--mod-hover` | `#17733A` | `#6A42D6` | `#4448C9` | Sidebar item hover |
-| `--mod-active` | `#14532D` | `#5B35C9` | `#3A3DB5` | Active sidebar item |
-| `--mod-pill` | `#166534` | `#6A42D6` | `#4448C9` | Search box in the top bar |
-| `--mod-primary` | `#166534` | `#6D45DB` | `#4448C9` | The one filled “next step” button (Release, Award, Confirm) |
-| `--mod-accent` | `#166534` | `#5B35C9` | `#3A3DB5` | Active tab text, badge text |
-| `--mod-line` | `#15803D` | `#6D45DB` | `#4F53D6` | Active tab underline, focused cell border |
-| `--mod-light` | `#F0FDF4` | `#F8F5FF` | `#F5F5FF` | Selected row, info notes |
-| `--mod-light-border` | `#BBF7D0` | `#DDD6FE` | `#D9DAFB` | Border for info notes |
+| Variable | Purchase (green) | Sales (purple) | Core (indigo) | Configuration (slate) | Use |
+|---|---|---|---|---|---|
+| `--mod-side` | `#15803D` | `#7B4FE0` | `#4F53D6` | `#5B6170` | Sidebar and top bar background |
+| `--mod-hover` | `#17733A` | `#6A42D6` | `#4448C9` | `#525868` | Sidebar item hover |
+| `--mod-active` | `#14532D` | `#5B35C9` | `#3A3DB5` | `#454A59` | Active sidebar item |
+| `--mod-pill` | `#166534` | `#6A42D6` | `#4448C9` | `#525868` | Search box in the top bar |
+| `--mod-primary` | `#166534` | `#6D45DB` | `#4448C9` | `#4B5165` | The one filled “next step” button (Release, Award, Confirm) |
+| `--mod-accent` | `#166534` | `#5B35C9` | `#3A3DB5` | `#3D4352` | Active tab text, badge text |
+| `--mod-line` | `#15803D` | `#6D45DB` | `#4F53D6` | `#5B6170` | Active tab underline, focused cell border |
+| `--mod-light` | `#F0FDF4` | `#F8F5FF` | `#F5F5FF` | `#F4F5F8` | Selected row, info notes |
+| `--mod-light-border` | `#BBF7D0` | `#DDD6FE` | `#D9DAFB` | `#D8DBE3` | Border for info notes |
+
+Configuration takes its slate from its launcher tile (`--tile-config #5B6170`), as Core took its indigo. Home tiles darkest first: `#3D4352`, `#4B5165`, `#5B6170`, `#6E7487`. Module chip: `#E7E9EE` with `#3D4352` text.
 
 Launcher uses a neutral grey background `#DFE2E8` with one coloured tile per module.
 

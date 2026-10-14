@@ -145,3 +145,26 @@ The item, customer and supplier forms show where the record is used. Delete is p
 | C13 | Warehouses and locations (locations read only) | `CoreWarehouses.html` | `/core/warehouses` | GET /api/v1/core/warehouses (with their locations, read only) · POST · GET, PATCH, DELETE /api/v1/core/warehouses/:id (DELETE only if unused and without locations); selected warehouse in `?w=` |
 | C14 | Import from CSV | `CoreImport.html` | `/core/import` | GET /api/v1/core/imports/kinds (with the template columns) · POST /api/v1/core/imports/check (multipart: file, kind; saves nothing) · POST /api/v1/core/imports/load (multipart: file, kind; saves each passing row on its own) |
 
+## Configuration module (phase 4)
+
+Theme: slate. Rail groups: **Organisation**, **Users & Access**, **Security**, **My Account**. Seed data: `CONFIG_SEED_DATA.md`. Configuration is the only module that writes the identity and organisation tables (`sys_legal_entity`, `sys_branch`, `sys_user`, `sys_role` …); the other modules keep reading users and branches through `MasterDataPort`.
+
+The mockups were made in step A0 in the current shell. The top bar of every module gets the active-branch switch (shown in these mockups) and a user menu with *My account* and *Sign out* in step A5. Sign-in pages (A02, A03) sit outside the module layout. With `AUTH_MODE=dev` the user switcher stays and sign-in is skipped.
+
+| Code | Screen | Mockup | Route | Main API |
+|---|---|---|---|---|
+| A01 | Configuration home | `CfgHome.html` | `/config` | GET /api/v1/config/dashboard |
+| A02 | Sign in | `CfgSignIn.html` | `/sign-in` | POST /api/v1/auth/sign-in · POST /api/v1/auth/refresh · POST /api/v1/auth/sign-out · POST /api/v1/auth/forgot · POST /api/v1/auth/reset |
+| A03 | Two-factor set-up and code | `CfgTwoFactor.html` | `/sign-in/two-factor` | POST /api/v1/auth/two-factor/setup · POST /api/v1/auth/two-factor/verify |
+| A04 | Company, with its branches | `CfgCompany.html` | `/config/company` | GET, PATCH /api/v1/config/companies/:id |
+| A05 | Branches: tree and branch form | `CfgBranches.html` | `/config/branches` | GET /api/v1/config/branches · POST · PATCH /api/v1/config/branches/:id |
+| A06 | User list | `CfgUserList.html` | `/config/users` | GET /api/v1/config/users |
+| A07 | User | `CfgUserForm.html` | `/config/users/:id` | GET, POST, PATCH /api/v1/config/users/:id · POST …/deactivate, …/activate, …/send-reset, …/revoke-sessions, …/reset-two-factor, …/unlock |
+| A08 | Role list | `CfgRoleList.html` | `/config/roles` | GET /api/v1/config/roles |
+| A09 | Role with its permissions | `CfgRoleForm.html` | `/config/roles/:id` | GET, POST, PATCH, DELETE /api/v1/config/roles/:id · POST …/reset-to-starter · GET /api/v1/config/permissions/catalogue |
+| A10 | Who can do what | `CfgPermissions.html` | `/config/permissions` | GET /api/v1/config/permissions/user/:id · GET /api/v1/config/permissions/compare?a=&b= |
+| A11 | My account | `CfgMyAccount.html` | `/account` | GET /api/v1/account · POST /api/v1/account/password · GET, DELETE /api/v1/account/sessions/:id · two-factor set-up as A03 |
+| A12 | Security log | `CfgSecurityLog.html` | `/config/security-log` | GET /api/v1/config/security-events |
+| A13 | Audit trail | `CfgAudit.html` | `/config/audit` | GET /api/v1/config/audit · GET /api/v1/config/audit/:id |
+| A14 | Sign-in settings | `CfgSignInSettings.html` | `/config/sign-in-settings` | GET, PATCH /api/v1/config/settings/sign-in |
+

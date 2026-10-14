@@ -1,6 +1,6 @@
 # Zora Pro ERP — build guide for Claude Code
 
-We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module** (done, steps 0–10). **Phase 2 = the Sales module** (section *Phase 2 · Sales module*, done, steps S0–S10). **Phase 3 = the Core module (Master Data)** (section *Phase 3 · Core module*, done, steps C0–C8). Purchase and Sales are working apps with a real API and database (no login yet). Read this file fully before writing code, then read the docs it points to.
+We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module** (done, steps 0–10). **Phase 2 = the Sales module** (section *Phase 2 · Sales module*, done, steps S0–S10). **Phase 3 = the Core module (Master Data)** (section *Phase 3 · Core module*, done, steps C0–C8). **Phase 4 = Configuration** (section *Phase 4 · Configuration*, in progress, steps A0–A8): company, branches, users, roles and sign-in. Purchase, Sales and Core are working apps with a real API and database (no login until Phase 4 · A5). Read this file fully before writing code, then read the docs it points to.
 
 ## Must-read docs
 
@@ -13,6 +13,7 @@ We are building a modular ERP. **Phase 1 = the module launcher and the Purchase 
 | `docs/design/mockups/SalesUxGuide.html`, `SalesNavMap.html`, `FlowS1–S6.html` | Sales rules and journeys. Each flow’s *Step by step* table is the acceptance criteria |
 | `docs/design/SALES_SEED_DATA.md` | Exact Sales demo data, and the mockup conflicts with the choice made |
 | `docs/design/CORE_SEED_DATA.md` | Core master data as seeded, and the choices made in the Core mockups |
+| `docs/design/CONFIG_SEED_DATA.md` | Company, branches, users, starter roles and sign-in settings as seeded, and the choices made in the Configuration mockups |
 | `docs/design/DESIGN_TOKENS.md` | Colours, type, chips, buttons |
 | `docs/integration/MASTER_DATA_CONTRACT.md` | What Purchase reads from Master Data and how |
 | `docs/integration/EVENTS.md` | Events each module publishes and listens to, and the dispatcher rules |
@@ -155,7 +156,7 @@ Source Code/
 
 - Before each step, write a short plan (files, tables, endpoints). After it, list what changed and how to check it.
 - **Ask first** before: adding a dependency not listed here (pre-approved: `@nestjs/config`, `@nestjs/schedule`, `@nestjs/event-emitter`, `prisma`, `@prisma/client`, `class-validator`, `class-transformer`, `pinia`), changing the design or a rule in this file, deleting files, or touching anything outside `Source Code`.
-- Do **not** build yet: login/JWT, real email sending, LHDN e-Invoice submission, Inventory/Finance/WMS/MES integrations (only their events and stubs).
+- Do **not** build yet: login/JWT (until Phase 4 · A5), real email sending, LHDN e-Invoice submission, Inventory/Finance/WMS/MES integrations (only their events and stubs).
 - Code, identifiers and comments in English. UI text exactly as in the mockups.
 - Keep secrets out of git (`.env` in `.gitignore`).
 
@@ -608,3 +609,161 @@ API under `/api/v1/core/...` with the usual list, detail, create, update and del
 **C8 · Core journeys.** End-to-end tests for the Core journeys, the Core handbook, and a final review.
 
 **Definition of done for every Core step:** as for Sales, plus: backend `npm run test:e2e` passes; Purchase and Sales tests and seed checks still pass unchanged; the screen matches its approved Core mockup.
+
+---
+
+# Phase 4 · Configuration
+
+**Status:** A0 is done and waiting for the user's review: this section, the Configuration mockups (A01–A14), `CONFIG_SEED_DATA.md` and the Configuration section in `SCREENS.md`, checked against the SRS and SDD. Next: A1.
+
+Everything above still applies: stack, database and API conventions, the working agreement and the definition of done. This section adds what is different, and it **replaces "No login yet" and the "login/JWT" item of "Do not build yet"** from step A5 on. **Purchase, Sales and Core keep their behaviour**, with two agreed exceptions: sign-in (A5) and data scopes (A7). If any other step seems to need a change there, ask first.
+
+## What Configuration is
+
+- The SRS module **Platform and Administration** (§6.1), opened from the launcher's existing **Configuration** tile ("Users · settings").
+- It owns **who works here and what they may do**: the company and its branches, users, roles and permissions, sign-in, the security log and the audit trail.
+- Users and branches are seeded today and read by every module through `MasterDataPort`. Roles are granted in code by each module. Phase 4 turns all of it into data maintained on screens, and adds real sign-in.
+
+**Not in Phase 4** (each comes with the module or phase that needs it):
+- Signing in through an outside identity provider (FR-SEC-067), accounts for integrations (FR-SEC-016, with WMS and LHDN), sign-in for the client portal.
+- Approval chains as data, delegation and escalation (FR-SEC-050 to 055); Purchase and Sales keep their approval rules.
+- Module settings in one generated screen (FR-PLT-006, 007), feature switches (FR-PLT-010), custom fields, maintenance mode, currencies and rates (with Finance).
+- Branch statutory numbers for payroll (employer, EPF, SOCSO), with payroll.
+- Masking sensitive personal fields (FR-SEC-042) and payroll data rules (FR-SEC-040, 041), with payroll.
+
+## Must-read for Configuration
+
+- SRS §5 *User Roles, Permissions and Access Control*, §6.1 *Platform and Administration*, §13.4 *Security*, §13.5 *Auditability*.
+- SDD §10 *Authentication and Authorisation*, §8.2 *Platform and identity*, §7.5 *Tenancy*, ADR-05, ADR-19.
+- **Mockups:** `docs/design/mockups/Cfg*.html` and `docs/design/screenshots/A*.png`, made in A0 in the app's current layout.
+- **Seed data:** `docs/design/CONFIG_SEED_DATA.md`: the company, branches, users, starter roles, permission catalogue, sign-in settings, data scopes, the rules the SRS and SDD decide, and the choices made. Its choices list wins over the mockups.
+
+## Decisions (confirmed by the user on 14 Oct 2026)
+
+| # | Decision | What it means | Source |
+|---|---|---|---|
+| 1 | Scope | Company and branches, users, roles and permissions, sign-in with two-factor, my account and sessions, sign-in settings, security log, audit trail, data scopes | SRS §5, §6.1; user |
+| 2 | Company | One company, CLB Groups Sdn Bhd, with HQ and Penang as its branches. A company is separate from its branches | SDD ADR-19; user |
+| 3 | Packages | `argon2`, `@nestjs/jwt`, `cookie-parser`, `otplib` are approved | User |
+| 4 | Two-factor | Built now (TOTP), required for Administrator, Master Data Admin, Finance Director and Finance Manager, in sign-in mode only | SRS FR-SEC-061; user |
+| 5 | Data scopes | Built in this phase (A7): branch scope on documents and customers, sales-agent scope, on every route | SRS FR-SEC-020 to 033; user |
+| 6 | Dev mode stays | `AUTH_MODE=dev` keeps the user switcher and `x-dev-user`, so the tests and the three handbooks keep working; `AUTH_MODE=jwt` turns on sign-in | Working agreement |
+| 7 | Roles as data | Starter roles are today's code grants, unchanged; Administrator holds everything and cannot be changed; new starter role Auditor | SRS FR-SEC-001, 003, 014, 015 |
+| 8 | Ownership | Users and branches move to Configuration's `sys_` tables; `MasterDataPort` keeps giving the same answers | SDD 8.2; choice 3 |
+
+## Layout additions
+
+```
+backend/src/configuration/
+├─ configuration.module.ts, configuration.permissions.ts
+├─ shared/        password policy, lockout, scope rules (+ .spec.ts)
+└─ organisation/ users/ roles/ auth/ account/ settings/ security-log/ audit/ dashboard/
+   each: <name>.controller.ts, <name>.query.ts, <name>.service.ts, dto/, <name>.rules.ts (+ .spec.ts)
+backend/src/platform/context/   the permission registry reads roles from the database; a JWT guard next to the dev guard
+backend/src/platform/scope/     data-scope registry: modules register their scope providers (A7)
+frontend/src/modules/configuration/   router.ts, menu.ts, types.ts, api/, views/ (one view per A-code)
+frontend/src/modules/auth/            sign-in, two-factor, set and reset password pages (outside the module layout)
+```
+
+## Module boundaries (Configuration)
+
+1. Configuration is the only writer of the identity and organisation tables (`sys_legal_entity`, `sys_branch`, `sys_user`, `sys_role` …). Other modules read users and branches through `MasterDataPort` and permissions through `@RequirePermission()`.
+2. `configuration/` never imports `purchase/`, `sales/` or `core/`, and the reverse. Each module declares its own permission catalogue and starter grants; the platform aggregates them (FR-SEC-010).
+3. Data scopes are applied by the platform: modules register a scope provider for their own tables (A7); Configuration owns only the user's branches and the role switches.
+4. Every change, in one transaction: the record, `sys_activity` with before and after values, and a `config.*` event. Sign-in events go to `sys_security_event`.
+
+## Data changes (step A1)
+
+- **New tables:** `sys_legal_entity`, `sys_branch` (tree, document prefix, MyInvois branch name), `sys_user` (with password hash, two-factor secret and recovery codes, lockout counters), `sys_role` (with the agent-scope switches), `sys_role_permission`, `sys_user_role` (with optional valid-from and valid-until), `sys_user_branch` (with the default branch), `sys_session` (refresh-token family, device, last activity), `sys_login_attempt`, `sys_security_event`, `sys_setting` (sign-in settings), `sys_auth_token` (single-use reset and set-password links).
+- **Moved:** `mdm_user` and `mdm_branch` into `sys_user`, `sys_user_role`, `sys_user_branch` and `sys_branch`. `MasterDataPort.listUsers`, `findUser` and `listBranches` keep their shapes.
+- **Changed:** `sys_activity` gets a `correlationId`, set by the platform from the request (FR-PLT-016). `mdm_customer` gets `visibleToAllBranches` (A7, FR-SEC-033).
+- **Permission registry:** reads role grants from the database (cached, cleared on any role change), so a role change applies on the next request. `ADMIN` keeps holding every permission.
+
+## Roles and permissions
+
+- **Permissions:** `config.view`, `config.organisation.edit`, `config.user.edit`, `config.role.edit`, `config.settings.manage`, `config.security.view`, `config.audit.view`.
+- **Grants:** Administrator all of them. Auditor `config.view`, `config.security.view`, `config.audit.view`, plus `purchase.view`, `sales.view`, `core.view`. Every signed-in user may open *My account*.
+- **Catalogue:** each module exports its permission keys with an object and action label (Purchase 17, Sales 19, Core 11, Configuration 7). Adding labels is declarative; no permission check changes.
+
+## Sign-in (A5, A6)
+
+| Element | Design | Source |
+|---|---|---|
+| Who | Email or user code, and password | FR-SEC-060; choice 11 |
+| Password | argon2id; at least 10 characters; common passwords refused; no forced rotation | NFR-SEC-003; SDD 10.2 |
+| Lockout | 5 wrong passwords lock for 15 minutes, counted per account and per network address; every attempt recorded | FR-SEC-062; SDD 10.2 |
+| Tokens | Access token (JWT) for 15 minutes with user, tenant, session and active branch. Refresh token opaque, stored hashed, in an httpOnly cookie, 30 days, single use with rotation; reuse ends the whole session and logs a security event | NFR-SEC-008; SDD 10.2 |
+| Idle | A session ends after 30 minutes without activity | FR-SEC-065 |
+| Branch switch | Re-issues the access token with the new active branch; the branch cannot be set by a header in sign-in mode | FR-SEC-021; SDD 10.2 |
+| Two-factor | TOTP with 8 recovery codes; required by role (setting); the Administrator can reset it | FR-SEC-061; choices 9, 13 |
+| Sessions | Each user lists and revokes their own; the Administrator revokes anyone's | FR-SEC-065 |
+| Reset | Single-use link valid 60 minutes, written to `sys_email_log`; new users get a set-password link, never a password | FR-SEC-063, 064; choice 10 |
+| Coverage | Every endpoint needs a signed-in user except sign-in, reset and health. A test calls every route without a token (401) and without the permission (403) | FR-SEC-008; SDD 10.4 |
+
+## Data scopes (A7)
+
+- **Branch scope:** documents of Purchase and Sales by their branch, and customers by their branch unless *visible to all branches*. A user sees their own branches; the active branch stamps new documents. Applied by registered scope providers inside each module's queries, on lists, records, look-ups, reports, exports and dashboards.
+- **Sales-agent scope:** for a user holding an agent-scoped role (seed: Sales agent), only customers whose default agent is the user, and only the sales documents of those customers. The two switches on the role control customers and documents separately (FR-SEC-031).
+- **Not scoped:** suppliers, items, price lists, tax codes, warehouses (shared master data); event listeners and the seed (the *system*, logged).
+- **Out of scope answers 404**, never 403 (SDD 10.3.1).
+- **Tests:** for each scoped list and record endpoint, a Penang-only user cannot reach an HQ record and an agent cannot reach another agent's customer, by any route (SDD 10.4). The Purchase, Sales and Core journeys are re-run, and steps that cross a scope move to the right person.
+
+## Configuration business rules (enforce on the server, test in `*.rules.spec.ts`)
+
+1. **Codes** of companies, branches, users and roles are unique, never reused and never change.
+2. **Administrator:** holds every permission; cannot be edited or deleted; at least one active user always holds it.
+3. **Users:** an active user has at least one role and one branch, and a default branch among them. A user is deactivated, never deleted once they have signed in or appear in any document or activity. Deactivating ends their sessions.
+4. **Role assignments:** valid-until on or after valid-from; an expired assignment stops giving permissions on that day; a role cannot be deleted while a user holds it.
+5. **Permissions:** a role can only hold keys from the catalogue.
+6. **Branches:** a branch cannot be its own ancestor; a branch is made inactive only when no active user has it as their only branch and no open document needs it; a company is made inactive only when none of its branches is active.
+7. **Passwords and lockout** as in *Sign-in*; a reset or set-password link works once and expires.
+8. **Two-factor:** a user whose role requires it cannot finish sign-in without it; set-up needs a correct code; resetting it is logged.
+9. **Audit:** every change writes `sys_activity` with old and new values; the security log and the audit trail cannot be changed or deleted through the application.
+
+## Events Configuration publishes
+
+| Event | When |
+|---|---|
+| `config.user.created` / `config.user.updated` | User saved, including roles, branches and status |
+| `config.role.updated` | Role or its permissions saved |
+| `config.branch.updated`, `config.legal_entity.updated` | Branch or company saved |
+
+Payloads carry the code, the snapshot after the change and the changed fields. No module listens yet; Finance, WMS and MES will. Sign-in, lockout, password, two-factor and session events go to `sys_security_event`, not the outbox.
+
+## Screens (A-codes, mockups made in A0)
+
+| Code | Screen | Route |
+|---|---|---|
+| A01 | Configuration home: counts and *Needs attention* | `/config` |
+| A02, A03 | Sign in; two-factor set-up and code | `/sign-in`, `/sign-in/two-factor` |
+| A04 | Company, with its branches | `/config/company` |
+| A05 | Branches: tree and branch form | `/config/branches` |
+| A06, A07 | User list; user form (person, roles with dates, branches, sign-in) | `/config/users`, `/config/users/:id` |
+| A08, A09 | Role list; role form (data scope, permissions by module, users) | `/config/roles`, `/config/roles/:id` |
+| A10 | Who can do what: a person's permissions; compare two roles | `/config/permissions` |
+| A11 | My account: password, two-factor, sessions | `/account` |
+| A12 | Security log | `/config/security-log` |
+| A13 | Audit trail | `/config/audit` |
+| A14 | Sign-in settings | `/config/sign-in-settings` |
+
+## Build order for phase 4 (stop after each step for the user to review)
+
+**A0 · Planning and design.** This section; the mockups A01–A14; `CONFIG_SEED_DATA.md`; the Configuration section in `SCREENS.md`; the slate tokens in `DESIGN_TOKENS.md`. The user approves.
+
+**A1 · Module, schema and shell.** Configuration module and permissions; the new tables and the move of users and branches; the permission catalogue and roles as data, seeded from the code grants; correlation ids on activity; Configuration shell and A01 home; the launcher tile opens it. Purchase, Sales and Core tests, seed checks and journeys pass unchanged.
+
+**A2 · Company and branches.** A04, A05.
+
+**A3 · Users.** A06, A07: roles with dates, branches and default branch, deactivate.
+
+**A4 · Roles and permissions.** A08, A09, A10: permission editor, reset to starter, data-scope switches, a person's permissions, compare two roles.
+
+**A5 · Sign-in.** A02 and the sign-in flow: passwords, tokens, lockout, branch switch, sign-out; the top bar's branch switch and user menu; the JWT guard next to the dev guard; the every-endpoint 401/403 test.
+
+**A6 · My account and two-factor.** A11, A03, A14: change password, sessions, reset and set-password links, two-factor with recovery codes.
+
+**A7 · Security log, audit trail and data scopes.** A12, A13; the scope registry and providers in Purchase, Sales and Core; *visible to all branches* on customers; the scope tests; journeys re-run.
+
+**A8 · Configuration journeys.** End-to-end tests for the Configuration journeys, the Configuration handbook, and a final review.
+
+**Definition of done for every Configuration step:** as for Core, plus: the Purchase, Sales and Core journeys pass in dev mode (and, from A7, with the scopes on); from A5, the every-endpoint test passes.

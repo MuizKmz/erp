@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Configuration · Sign in</title>
+</head>
+<body>
+<div class="mockup-root">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#1E2233;background:#F3F4F8}
+a{color:#2563EB;text-decoration:none}
+.card{background:#FFFFFF;border:1px solid #E4E6EE;border-radius:12px;box-sizing:border-box}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#5E6478;padding:10px 10px;background:#F7F8FB;border-bottom:1px solid #E4E6EE;white-space:nowrap}
+.tbl td{padding:11px 10px;border-bottom:1px solid #EEF0F4;vertical-align:middle}
+.tbl td:first-child{white-space:nowrap}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.nw{white-space:nowrap}
+.muted{color:#5E6478}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#5E6478}
+.inp{height:38px;width:100%;box-sizing:border-box;border:1px solid #D9DCE6;border-radius:8px;padding:0 12px;font-family:inherit;font-size:13px;color:#1E2233;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between}
+.inp.ro{background:#F7F8FB;color:#475069}
+.inp.ph{color:#9AA0B4}
+.ta{min-height:58px;height:auto;padding:9px 12px;align-items:flex-start;line-height:1.4}
+.btn{height:36px;padding:0 16px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.b-blue{background:#2563EB;color:#FFFFFF}
+.b-prim{background:#4B5165;color:#FFFFFF}
+.b-ghost{background:#FFFFFF;color:#1E2233;border-color:#D9DCE6}
+.b-redline{background:#FFFFFF;color:#B91C1C;border-color:#F3B4B4}
+.b-green{background:#15803D;color:#FFFFFF}
+.b-dark{background:#475069;color:#FFFFFF}
+.b-off{background:#B5B9C4;color:#FFFFFF}
+.b-dis{background:#F7F8FB;color:#9AA0B4;border-color:#E4E6EE;cursor:not-allowed}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.st-act{background:#DCFCE7;color:#166534}
+.st-blk{background:#FEE2E2;color:#991B1B}
+.st-disc{background:#EEF0F4;color:#475069}
+.st-pros{background:#FEF3C7;color:#92400E}
+.st-mod{background:#E7E9EE;color:#3D4352}
+.tabs{display:flex;gap:24px;border-bottom:1px solid #E4E6EE;font-size:13px}
+.tab{padding:0 0 10px;color:#5E6478;font-weight:600}
+.tab.on{color:#3D4352;border-bottom:2px solid #5B6170}
+.h2{margin:0;font-size:15px;font-weight:700}
+.note{border-radius:10px;padding:10px 14px;font-size:13px;display:flex;gap:10px;align-items:flex-start;line-height:1.45}
+.n-info{background:#F4F5F8;border:1px solid #D8DBE3;color:#3D4352}
+.n-warn{background:#FFF8E6;border:1px solid #F6D58E;color:#8A5300}
+.tick{color:#15803D;font-weight:700}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#1E2233;font-weight:500}
+.sw{width:34px;height:20px;border-radius:10px;background:#D9DCE6;position:relative;display:inline-block}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:8px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw.on{background:#5B6170}
+.sw.on::after{left:16px}
+.lock{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#5E6478}
+.pager{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#5E6478}
+.pg{display:inline-flex;gap:6px}
+.pg span{width:28px;height:28px;border-radius:6px;border:1px solid #D9DCE6;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:#1E2233;background:#fff}
+.pg span.on{background:#5B6170;border-color:#5B6170;color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 18px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px 18px}
+.span2{grid-column:span 2}
+.span3{grid-column:span 3}
+.act{display:flex;flex-direction:column;gap:2px;font-size:12px;padding:8px 0;border-bottom:1px solid #EEF0F4}
+</style>
+<div style="width:1440px;min-height:760px;position:relative;background:#F3F4F8;overflow:hidden">
+
+<div style="height:56px;background:#141A5C;display:flex;align-items:center;padding:0 28px;gap:12px"><div style="width:30px;height:30px;border-radius:8px;background:#fff;color:#141A5C;font-weight:800;display:flex;align-items:center;justify-content:center">Z</div><span style="color:#fff;font-size:16px;font-weight:700">Zora Pro ERP</span></div>
+<div style="background:#DFE2E8;min-height:704px;display:flex;align-items:flex-start;justify-content:center;padding-top:72px;box-sizing:border-box"><div class="card" style="width:400px;padding:32px 32px 28px;display:flex;flex-direction:column;gap:16px">
+<div><h1 style="margin:0;font-size:20px;font-weight:700">Sign in</h1><p style="margin:6px 0 0;font-size:13px;color:#5E6478">CLB Groups · Zora Pro ERP</p></div>
+<label class="fld ">Email or user code<div class="inp">aina@warehouse.com</div></label>
+<label class="fld "><span style="display:flex;justify-content:space-between">Password<a href="#" style="font-weight:600">Forgot password?</a></span><div class="inp">••••••••••••</div></label>
+<span class="btn b-prim" style="justify-content:center;width:100%">Sign in</span>
+<div style="font-size:12px;color:#5E6478;line-height:1.5">After 5 wrong passwords the account waits 15 minutes. You stay signed in on this device for 30 days unless you sign out or stay away for 30 minutes.</div>
+</div></div>
+</div>
+</div>
+</body>
+</html>
