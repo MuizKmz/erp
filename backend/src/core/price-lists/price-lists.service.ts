@@ -10,6 +10,7 @@ import { RecordUsageRegistry } from '../../platform/usage/record-usage.registry'
 import { CORE_ENTITY, CORE_EVENT } from '../core.constants';
 import { diffRecord } from '../shared/audit.rules';
 import { CoreRecordsService } from '../shared/core-records.service';
+import type { RecordPreview } from '../shared/record-preview';
 import { deleteRefusal } from '../usage/usage.rules';
 import type { CreatePriceListDto, UpdatePriceListDto } from './dto/price-list.dto';
 import {
@@ -104,12 +105,10 @@ export class PriceListsService {
     const sent = this.rows(dto);
     const afterPrices = [...history, ...sent];
     const after: PriceListRecord = { ...record(before), ...this.dates(dto), name: dto.name, currency: dto.currency, taxInclusive: dto.taxInclusive };
-    const beforeAudit = priceListAudit(record(before), beforePrices);
-    const afterAudit = priceListAudit(after, afterPrices);
-    const changes = diffRecord(beforeAudit.values, afterAudit.values, auditLabels(beforeAudit, afterAudit));
+    const preview = await this.preview(ctx, dto, before, beforePrices);
+    const changes = preview.changes;
     if (!changes.length) return this.query.detail(ctx, id);
-    const errors = await this.check(ctx, dto, before, sent, beforePrices);
-    if (errors.length) throw new ValidationFailedError(errors);
+    if (preview.errors.length) throw new ValidationFailedError(preview.errors);
 
     await this.prisma.$transaction(async (tx) => {
       const saved = await tx.mdmPriceList.updateMany({ where: { id, tenantId, version: dto.version }, data: { ...this.data(dto), version: { increment: 1 }, updatedBy: ctx.user.code } });
@@ -128,6 +127,22 @@ export class PriceListsService {
       });
     });
     return this.query.detail(ctx, id);
+  }
+
+  /**
+   * What saving the list would do, without saving: the changes (its fields and each price) and the field problems.
+   * Update and the import's Check of price rows use it. History rows stay as they are.
+   */
+  async preview(ctx: RequestContext, dto: UpdatePriceListDto, before: MdmPriceList, beforePrices: PriceRow[]): Promise<RecordPreview> {
+    const today = this.clock.today();
+    const sent = this.rows(dto);
+    const afterPrices = [...beforePrices.filter((p) => isHistory(p, today)), ...sent];
+    const after: PriceListRecord = { ...record(before), ...this.dates(dto), name: dto.name, currency: dto.currency, taxInclusive: dto.taxInclusive };
+    const beforeAudit = priceListAudit(record(before), beforePrices);
+    const afterAudit = priceListAudit(after, afterPrices);
+    const changes = diffRecord(beforeAudit.values, afterAudit.values, auditLabels(beforeAudit, afterAudit));
+    if (!changes.length) return { changes, permission: null, errors: [] };
+    return { changes, permission: null, errors: await this.check(ctx, dto, before, sent, beforePrices) };
   }
 
   /** Deactivate (refused while customers use the list, since Sales would find no prices for them) or activate. */

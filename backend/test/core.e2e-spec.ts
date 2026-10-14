@@ -958,4 +958,157 @@ describe('Core (end to end)', () => {
       });
     });
   });
+
+  describe('C7 · Import', () => {
+    interface ImportRow {
+      row: number;
+      status: string;
+      code: string | null;
+      display: Record<string, string>;
+      result: string;
+    }
+    interface ImportAnswer {
+      rows: ImportRow[];
+      counts: Record<string, number>;
+      summary: string;
+      notices: string[];
+      problems: { headers: string[]; rows: string[][] };
+    }
+    /** Posts a CSV the way C14 does: multipart with the file and what to import. */
+    const upload = async (step: 'check' | 'load', kind: string, csv: string, user = 'ADM', name = `${kind}.csv`) => {
+      const base = `${(await api.app.getUrl()).replace('[::1]', '127.0.0.1')}/api/v1`;
+      const form = new FormData();
+      form.append('kind', kind);
+      form.append('file', new Blob([csv], { type: 'text/csv' }), name);
+      const res = await fetch(`${base}/core/imports/${step}`, { method: 'POST', headers: { 'x-dev-user': user }, body: form });
+      return { status: res.status, body: (await res.json()) as ImportAnswer & { errors?: { message: string }[] } };
+    };
+    const results = (a: ImportAnswer) => a.rows.map((r) => [r.status, r.result]);
+
+    it('offers customers, suppliers, items and price-list prices, with their template columns', async () => {
+      const { kinds } = await api.get<{ kinds: { kind: string; label: string; columns: string[] }[] }>('core/imports/kinds', 'AR');
+      expect(kinds.map((k) => k.label)).toEqual(['Customers', 'Suppliers', 'Items', 'Price-list prices']);
+      expect(kinds[3]!.columns).toEqual(['Price list', 'Item', 'Unit', 'Price', 'From']);
+    });
+
+    it('checks customers without saving anything, then loads the ready rows, each on its own', async () => {
+      const csv = [
+        'Code,Name,Branch,Price list,Credit term,Credit limit,Phone,Colour',
+        ',Taman Indah Hotel,HQ,Standard 2026,30 days,"40,000.00",,blue',
+        'C-0045,,,,,,+60 3-5510 9999,',
+        ',Kedai Baru,KL,Standard 2026,30 days,10000,,',
+      ].join('\r\n');
+      const count = () => api.prisma.mdmCustomer.count({ where: { tenantId: TENANT_ID } });
+      const before = await count();
+      const check = await upload('check', 'customers', csv);
+      expect(check.status).toBe(201);
+      expect(results(check.body)).toEqual([
+        ['new', 'New customer'],
+        ['update', 'Update: phone'],
+        ['problem', 'Branch KL is not in Master Data'],
+      ]);
+      const next = check.body.rows[0]!.display.code;
+      expect(next).toMatch(/^New · C-\d{4}$/);
+      expect(check.body.rows[0]!.display).toMatchObject({ name: 'Taman Indah Hotel', branch: 'HQ', priceList: 'Standard 2026', creditTerm: (await api.prisma.mdmCreditTerm.findFirst({ where: { tenantId: TENANT_ID, days: 30 } }))!.name, creditLimit: '40,000.00' });
+      expect(check.body.rows[2]!.display.code).toBe('New');
+      expect(check.body.summary).toBe(
+        '2 rows are ready and 1 has a problem. Load saves the 2 ready rows, each on its own. The row with a problem is left out: download it, fix it and upload it again.',
+      );
+      expect(check.body.notices).toEqual(['Columns a customers import does not read are left out: Colour.']);
+      expect(check.body.problems).toEqual({
+        headers: ['Code', 'Name', 'Branch', 'Price list', 'Credit term', 'Credit limit', 'Phone', 'Colour', 'Problem'],
+        rows: [['', 'Kedai Baru', 'KL', 'Standard 2026', '30 days', '10000', '', '', 'Branch KL is not in Master Data']],
+      });
+      expect(await count()).toBe(before);
+      expect((await api.prisma.mdmCustomer.findFirst({ where: { tenantId: TENANT_ID, code: 'C-0045' } }))?.phone).toBe('+60 3-5510 4471');
+
+      const load = await upload('load', 'customers', csv);
+      expect(load.status).toBe(201);
+      const added = next.replace('New · ', '');
+      expect(results(load.body)).toEqual([
+        ['added', `Added ${added}`],
+        ['updated', 'Updated: phone'],
+        ['problem', 'Branch KL is not in Master Data'],
+      ]);
+      expect(load.body.summary).toBe('2 rows saved: 1 added, 1 updated. 1 row with a problem was left out: download it, fix it and upload it again.');
+      expect(await api.prisma.mdmCustomer.findFirst({ where: { tenantId: TENANT_ID, code: added } })).toMatchObject({ name: 'Taman Indah Hotel', branchCode: 'HQ', creditTermDays: 30 });
+      const delta = await api.prisma.mdmCustomer.findFirst({ where: { tenantId: TENANT_ID, code: 'C-0045' } });
+      expect(delta?.phone).toBe('+60 3-5510 9999');
+      expect(await api.prisma.sysOutbox.count({ where: { aggregateId: delta!.id, name: 'mdm.customer.updated' } })).toBe(1);
+    });
+
+    it('updates suppliers by code and names what it cannot use', async () => {
+      const csv = 'Code,TIN,Payment term,Walk-in shop\nS-0047,C26660012340,30 days,No\nS-0009,,45 days,\nS-9999,,,\n';
+      const check = await upload('check', 'suppliers', csv);
+      expect(results(check.body)).toEqual([
+        ['update', 'Update: TIN'],
+        ['problem', 'Payment term 45 days is not on the credit terms list'],
+        ['problem', 'S-9999 is not in Master Data. Leave the code empty to add a new supplier'],
+      ]);
+      expect((await upload('load', 'suppliers', csv)).body.counts).toEqual({ added: 0, updated: 1, unchanged: 0, problem: 2 });
+      expect((await api.prisma.mdmSupplier.findFirst({ where: { tenantId: TENANT_ID, code: 'S-0047' } }))?.tin).toBe('C26660012340');
+    });
+
+    it('adds and updates items by the code typed, with the same rules as the item form', async () => {
+      const csv = [
+        'Code,Name,Group,Base unit,Purchase tax,Can be sold,Sales tax,Reorder level',
+        'imp-test-01,Folding chair,seating,PCS,SST10,Yes,SST10,',
+        'CH-DIN-01,,,,,,,60',
+        'IMP-TEST-02,Gadget,Gadgets,PCS,SST10,,,',
+        'IMP-TEST-01,Again,Seating,PCS,SST10,,,',
+        ',No code,Seating,PCS,SST10,,,',
+      ].join('\n');
+      const check = await upload('check', 'items', csv);
+      expect(results(check.body)).toEqual([
+        ['new', 'New item'],
+        ['update', 'Update: reorder level'],
+        ['problem', 'Item group Gadgets is not on the item groups list'],
+        ['problem', 'Row 1 already has IMP-TEST-01'],
+        ['problem', 'Give the item code: items keep the code you type'],
+      ]);
+      expect(check.body.rows[0]!.display).toMatchObject({ code: 'New · IMP-TEST-01', group: 'Seating', purchaseTax: 'SST10', salesTax: 'SST10' });
+      expect(results((await upload('load', 'items', csv)).body).slice(0, 2)).toEqual([
+        ['added', 'Added IMP-TEST-01'],
+        ['updated', 'Updated: reorder level'],
+      ]);
+      const port = api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+      expect((await port.findItems(TENANT_ID, ['IMP-TEST-01']))[0]).toMatchObject({ name: 'Folding chair', status: 'ACTIVE' });
+      expect((await api.prisma.mdmItem.findFirst({ where: { tenantId: TENANT_ID, code: 'CH-DIN-01' } }))?.reorderLevel?.toString()).toBe('60');
+    });
+
+    it('adds dated prices that wait for their date, and keeps history as it is', async () => {
+      const csv = [
+        'Price list,Item,Unit,Price,From',
+        'STD-2026,CH-DIN-01,PCS,265.00,1/12/2026',
+        'Standard 2026,CH-DIN-01,,250,2026-01-01',
+        'RES-2026,CH-DIN-01,PCS,240,2026-01-01',
+        'STD-2026,TM-OAK-01,PCS,80,2026-12-01',
+        'STD-2026,CH-DIN-01,PCS,270,1 Dec 2026',
+        'STD-2026,CH-DIN-02,PCS,295,soon',
+      ].join('\n');
+      const check = await upload('check', 'prices', csv);
+      expect(results(check.body)).toEqual([
+        ['new', 'New price'],
+        ['unchanged', 'No change'],
+        ['problem', 'A price cannot start before today (29 Sep 2026). Earlier prices are history'],
+        ['problem', 'TM-OAK-01 cannot be sold, so it cannot have a price'],
+        ['problem', 'Row 1 already has this price'],
+        ['problem', 'From soon is not a date. Write it as 1/11/2026 or 2026-11-01'],
+      ]);
+      expect(check.body.rows[0]!.display).toEqual({ priceList: 'STD-2026', item: 'CH-DIN-01', unit: 'PCS', price: '265.00', from: '1 Dec 2026' });
+      expect((await upload('load', 'prices', csv)).body.counts).toEqual({ added: 1, updated: 0, unchanged: 1, problem: 4 });
+      const port = api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+      const price = async (onDate: string) => (await port.listPrices(TENANT_ID, { priceListCode: 'STD-2026', itemCodes: ['CH-DIN-01'], onDate })).map((p) => p.unitPrice);
+      expect(await price('2026-09-29')).toEqual(['250.0000']);
+      expect(await price('2026-12-01')).toEqual(['265.0000']);
+    });
+
+    it('refuses files it cannot read, and anyone without core.import', async () => {
+      const message = (r: { body: { errors?: { message: string }[] } }) => r.body.errors?.[0]?.message;
+      expect(message(await upload('check', 'items', 'Name,Group\nChair,Seating\n'))).toBe('The file has no Code column. Download the template to see the columns.');
+      expect(message(await upload('check', 'customers', 'Code,Name\n'))).toBe('The file has no rows under the header.');
+      expect(message(await upload('check', 'customers', 'Code,Name\nC-0012,X\n', 'ADM', 'customers.xlsx'))).toBe('Upload a CSV file (.csv). In Excel, use Save As and pick CSV UTF-8.');
+      expect((await upload('check', 'customers', 'Code,Name\nC-0012,X\n', 'LMY')).status).toBe(403);
+    });
+  });
 });

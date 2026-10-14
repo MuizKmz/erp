@@ -143,5 +143,5 @@ The item, customer and supplier forms show where the record is used. Delete is p
 | C11 | Units of measure | `CoreUoms.html` | `/core/uoms` | GET, POST /api/v1/core/uoms · GET, PATCH, DELETE /api/v1/core/uoms/:id (delete only if never used) |
 | C12 | Reference lists | `CoreReference.html` | `/core/reference` | GET /api/v1/core/reference (the four lists) · POST /api/v1/core/reference/:list · PATCH, DELETE …/:list/:id (`item-groups`, `customer-categories`, `areas`, `credit-terms`; tab in `?list=`) |
 | C13 | Warehouses and locations (locations read only) | `CoreWarehouses.html` | `/core/warehouses` | GET /api/v1/core/warehouses (with their locations, read only) · POST · GET, PATCH, DELETE /api/v1/core/warehouses/:id (DELETE only if unused and without locations); selected warehouse in `?w=` |
-| C14 | Import from CSV | `CoreImport.html` | `/core/import` | POST /api/v1/core/imports (check, saves nothing) · POST /api/v1/core/imports/:id/load (saves the rows that pass) · GET /api/v1/core/imports/:id/problems.csv |
+| C14 | Import from CSV | `CoreImport.html` | `/core/import` | GET /api/v1/core/imports/kinds (with the template columns) · POST /api/v1/core/imports/check (multipart: file, kind; saves nothing) · POST /api/v1/core/imports/load (multipart: file, kind; saves each passing row on its own) |
 

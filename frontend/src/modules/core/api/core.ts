@@ -1,6 +1,6 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
-import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ItemListItem, PriceListDetail, PriceListInput, PriceListListItem, PurchasableItemOption, ReferenceData, ReferenceListKey, SellableItemOption, TaxCodeDetail, TaxCodesData, TaxType, WarehouseDetail, WarehousesData, SupplierDetail, SupplierFormOptions, SupplierInput, SupplierListItem, SupplierOption, UomDetail, UomsData } from '../types'
+import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ImportAnswer, ImportKind, ImportKindInfo, ItemListItem, PriceListDetail, PriceListInput, PriceListListItem, PurchasableItemOption, ReferenceData, ReferenceListKey, SellableItemOption, TaxCodeDetail, TaxCodesData, TaxType, WarehouseDetail, WarehousesData, SupplierDetail, SupplierFormOptions, SupplierInput, SupplierListItem, SupplierOption, UomDetail, UomsData } from '../types'
 
 /** Core API (/api/v1/core). Each build step adds its resources here. */
 export const coreApi = {
@@ -85,4 +85,18 @@ export const coreWarehousesApi = {
   create: (input: { code: string; name: string; branchCode: string }) => api<WarehousesData>('/core/warehouses', { method: 'POST', body: input }),
   update: (id: string, input: { name: string; branchCode: string; isActive: boolean; version: number }) => api<WarehousesData>(`/core/warehouses/${id}`, { method: 'PATCH', body: input }),
   remove: (id: string, version: number) => api<WarehousesData>(`/core/warehouses/${id}`, { method: 'DELETE', query: { version } }),
+}
+
+/** C14: Check saves nothing; Load saves the rows that pass. The file goes up again with each, so nothing waits on the server. */
+function importForm(kind: ImportKind, file: File): FormData {
+  const form = new FormData()
+  form.append('kind', kind)
+  form.append('file', file)
+  return form
+}
+
+export const coreImportsApi = {
+  kinds: () => api<{ kinds: ImportKindInfo[] }>('/core/imports/kinds'),
+  check: (kind: ImportKind, file: File) => api<ImportAnswer>('/core/imports/check', { method: 'POST', body: importForm(kind, file) }),
+  load: (kind: ImportKind, file: File) => api<ImportAnswer>('/core/imports/load', { method: 'POST', body: importForm(kind, file) }),
 }

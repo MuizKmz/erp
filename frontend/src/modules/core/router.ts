@@ -13,6 +13,7 @@ const PriceListForm = () => import('./views/PriceListFormView.vue')
 const TaxCodes = () => import('./views/TaxCodesView.vue')
 const Reference = () => import('./views/ReferenceView.vue')
 const Warehouses = () => import('./views/WarehousesView.vue')
+const Import = () => import('./views/ImportView.vue')
 
 type Group = 'catalog' | 'parties' | 'pricing' | 'warehouses' | 'setup'
 
@@ -47,7 +48,7 @@ const SCREENS: ScreenDef[] = [
   { code: 'C10', path: 'tax-codes', name: 'core-tax-codes', title: 'Tax Codes', group: 'pricing', item: 'tax-codes', step: 6, mockup: 'CoreTaxCodes.html', component: TaxCodes },
   { code: 'C12', path: 'reference', name: 'core-reference', title: 'Reference Lists', group: 'setup', item: 'reference', step: 6, mockup: 'CoreReference.html', component: Reference },
   { code: 'C13', path: 'warehouses', name: 'core-warehouses', title: 'Warehouses', group: 'warehouses', item: 'warehouses', step: 6, mockup: 'CoreWarehouses.html', component: Warehouses },
-  { code: 'C14', path: 'import', name: 'core-import', title: 'Import', group: 'setup', item: 'import', step: 7, mockup: 'CoreImport.html' },
+  { code: 'C14', path: 'import', name: 'core-import', title: 'Import', group: 'setup', item: 'import', step: 7, mockup: 'CoreImport.html', component: Import },
 ]
 
 export const coreRoutes: RouteRecordRaw[] = [

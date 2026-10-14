@@ -9,6 +9,12 @@ import { CoreDashboardQuery } from './dashboard/dashboard.query';
 import { CoreItemsController } from './items/items.controller';
 import { ItemsQuery } from './items/items.query';
 import { ItemsService } from './items/items.service';
+import { CoreImportsController } from './imports/imports.controller';
+import { ImportsService } from './imports/imports.service';
+import { CustomerImporter } from './imports/importers/customer.importer';
+import { ItemImporter } from './imports/importers/item.importer';
+import { PriceImporter } from './imports/importers/price.importer';
+import { SupplierImporter } from './imports/importers/supplier.importer';
 import { CoreLookupsController } from './lookups/lookups.controller';
 import { CorePriceListsController } from './price-lists/price-lists.controller';
 import { PriceListsQuery } from './price-lists/price-lists.query';
@@ -37,8 +43,8 @@ import { WarehousesService } from './warehouses/warehouses.service';
  * through MasterDataPort. Never imports from purchase/ or sales/, and never reads their tables.
  */
 @Module({
-  controllers: [CoreDashboardController, CoreUsageController, CoreLookupsController, CoreItemsController, CoreUomsController, CoreCustomersController, CoreSuppliersController, CorePriceListsController, CoreTaxCodesController, CoreReferenceController, CoreWarehousesController],
-  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService, CustomersQuery, CustomersService, SuppliersQuery, SuppliersService, PriceListsQuery, PriceListsService, TaxCodesQuery, TaxCodesService, ReferenceQuery, ReferenceService, WarehousesQuery, WarehousesService],
+  controllers: [CoreDashboardController, CoreUsageController, CoreLookupsController, CoreItemsController, CoreUomsController, CoreCustomersController, CoreSuppliersController, CorePriceListsController, CoreTaxCodesController, CoreReferenceController, CoreWarehousesController, CoreImportsController],
+  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService, CustomersQuery, CustomersService, SuppliersQuery, SuppliersService, PriceListsQuery, PriceListsService, TaxCodesQuery, TaxCodesService, ReferenceQuery, ReferenceService, WarehousesQuery, WarehousesService, ImportsService, CustomerImporter, SupplierImporter, ItemImporter, PriceImporter],
 })
 export class CoreModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionRegistry) {}

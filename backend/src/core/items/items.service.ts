@@ -8,6 +8,7 @@ import { RecordUsageRegistry } from '../../platform/usage/record-usage.registry'
 import { CORE_ENTITY, CORE_EVENT } from '../core.constants';
 import { changeMessage, diffRecord } from '../shared/audit.rules';
 import { CoreRecordsService } from '../shared/core-records.service';
+import type { RecordPreview } from '../shared/record-preview';
 import { EINVOICE_CLASSIFICATIONS } from '../shared/einvoice-classifications';
 import { deactivateRefusal, deleteRefusal } from '../usage/usage.rules';
 import type { CreateItemDto, UpdateItemDto } from './dto/item.dto';
@@ -65,13 +66,7 @@ export class ItemsService {
 
   async create(ctx: RequestContext, dto: CreateItemDto) {
     const tenantId = ctx.tenantId;
-    const [taken, deleted, errors] = await Promise.all([
-      this.prisma.mdmItem.findUnique({ where: { tenantId_code: { tenantId, code: dto.code } }, select: { name: true } }),
-      this.prisma.sysActivity.findFirst({ where: { tenantId, entityType: CORE_ENTITY.ITEM, docNo: dto.code, action: 'deleted' }, select: { id: true } }),
-      this.check(ctx, dto, null),
-    ]);
-    if (taken) errors.unshift({ field: 'code', message: `${dto.code} is already the code of ${taken.name}.` });
-    else if (deleted) errors.unshift({ field: 'code', message: `${dto.code} belonged to an item that was deleted. Codes are never used again.` });
+    const { errors } = await this.preview(ctx, dto, null, []);
     if (errors.length) throw new ValidationFailedError(errors);
 
     const data = this.data(dto);
@@ -97,21 +92,14 @@ export class ItemsService {
     const tenantId = ctx.tenantId;
     const before = await this.load(ctx, id);
     if (before.version !== dto.version) throw new StaleVersionError();
-    const [beforeConversions, errors] = await Promise.all([
-      this.prisma.mdmUomConversion.findMany({ where: { tenantId, itemCode: before.code } }),
-      this.check(ctx, dto, before),
-    ]);
-    if (errors.length) throw new ValidationFailedError(errors);
-    if (dto.baseUom !== before.baseUom) {
-      const usage = await this.usage.check({ tenantId, kind: 'ITEM', code: before.code });
-      if (usage.documents > 0) {
-        throw new BusinessRuleError('BASE_UNIT_IN_USE', `${before.code} is used on ${usage.documents} document${usage.documents === 1 ? '' : 's'}, so its base unit cannot change.`);
-      }
-    }
+    const beforeConversions = await this.prisma.mdmUomConversion.findMany({ where: { tenantId, itemCode: before.code } });
+    const preview = await this.preview(ctx, dto, before, beforeConversions);
+    if (preview.errors.length) throw new ValidationFailedError(preview.errors);
+    if (preview.conflict) throw new BusinessRuleError('BASE_UNIT_IN_USE', preview.conflict);
 
     const data = this.data(dto);
     const after: ItemRecord = { ...record(before), ...data };
-    const changes = diffRecord(itemAudit(record(before), beforeConversions), itemAudit(after, dto.conversions), ITEM_LABELS);
+    const changes = preview.changes;
     if (!changes.length) return this.query.detail(ctx, id);
 
     await this.prisma.$transaction(async (tx) => {
@@ -203,7 +191,34 @@ export class ItemsService {
     return { deleted: true, code: item.code };
   }
 
-  private async load(ctx: RequestContext, id: string): Promise<MdmItem> {
+  /**
+   * What saving would do, without saving: the field problems (a new item's code must be free and never used before),
+   * a base unit that can no longer change, and the changes. Create, update and the import's Check use it.
+   */
+  async preview(ctx: RequestContext, dto: ItemInput & { code?: string }, before: MdmItem | null, beforeConversions: Conversion[]): Promise<RecordPreview> {
+    const tenantId = ctx.tenantId;
+    if (!before) {
+      const code = dto.code ?? '';
+      const [taken, deleted, errors] = await Promise.all([
+        this.prisma.mdmItem.findUnique({ where: { tenantId_code: { tenantId, code } }, select: { name: true } }),
+        this.prisma.sysActivity.findFirst({ where: { tenantId, entityType: CORE_ENTITY.ITEM, docNo: code, action: 'deleted' }, select: { id: true } }),
+        this.check(ctx, dto, null),
+      ]);
+      if (taken) errors.unshift({ field: 'code', message: `${code} is already the code of ${taken.name}.` });
+      else if (deleted) errors.unshift({ field: 'code', message: `${code} belonged to an item that was deleted. Codes are never used again.` });
+      return { changes: [], permission: null, errors };
+    }
+    const errors = await this.check(ctx, dto, before);
+    let conflict: string | null = null;
+    if (dto.baseUom !== before.baseUom) {
+      const usage = await this.usage.check({ tenantId, kind: 'ITEM', code: before.code });
+      if (usage.documents > 0) conflict = `${before.code} is used on ${usage.documents} document${usage.documents === 1 ? '' : 's'}, so its base unit cannot change.`;
+    }
+    const changes = diffRecord(itemAudit(record(before), beforeConversions), itemAudit({ ...record(before), ...this.data(dto) }, dto.conversions), ITEM_LABELS);
+    return { changes, permission: null, errors, conflict };
+  }
+
+  async load(ctx: RequestContext, id: string): Promise<MdmItem> {
     const item = await this.prisma.mdmItem.findFirst({ where: { id, tenantId: ctx.tenantId } });
     if (!item) throw new NotFoundError('Item');
     return item;

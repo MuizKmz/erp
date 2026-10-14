@@ -494,3 +494,26 @@ export interface WarehouseDetail {
   allowedActions: ('edit' | 'delete')[]
   refusals: { delete?: string; deactivate?: string; branch?: string }
 }
+
+export type ImportKind = 'customers' | 'suppliers' | 'items' | 'prices'
+/** After Check: new, update, unchanged or problem. After Load: added, updated, unchanged or problem. */
+export type ImportRowStatus = 'new' | 'update' | 'unchanged' | 'problem' | 'added' | 'updated'
+
+export interface ImportKindInfo {
+  kind: ImportKind
+  label: string
+  columns: string[]
+  display: { key: string; label: string; numeric?: boolean }[]
+  note: string
+}
+
+export interface ImportAnswer {
+  kind: ImportKind
+  fileName: string
+  columns: { key: string; label: string; numeric?: boolean }[]
+  rows: { row: number; status: ImportRowStatus; code: string | null; display: Record<string, string>; result: string }[]
+  notices: string[]
+  problems: { headers: string[]; rows: string[][] }
+  counts: Record<string, number>
+  summary: string
+}

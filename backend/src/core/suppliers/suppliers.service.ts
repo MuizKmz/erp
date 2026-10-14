@@ -12,6 +12,7 @@ import { CORE_DOC_TYPE, CORE_ENTITY, CORE_EVENT } from '../core.constants';
 import { CORE_PERMISSIONS as P } from '../core.permissions';
 import { changeMessage, diffRecord } from '../shared/audit.rules';
 import { CoreRecordsService } from '../shared/core-records.service';
+import type { RecordPreview } from '../shared/record-preview';
 import { deactivateRefusal, deleteRefusal } from '../usage/usage.rules';
 import type { CreateSupplierDto, UpdateSupplierDto } from './dto/supplier.dto';
 import {
@@ -70,9 +71,9 @@ export class SuppliersService {
   /** A new supplier gets the next S-#### number. Buyers may add suppliers; contract prices need core.supplier.contract. */
   async create(ctx: RequestContext, dto: CreateSupplierDto) {
     const tenantId = ctx.tenantId;
-    if (dto.contractPrices.length && !this.permissions.has(ctx.user.roles, P.SUPPLIER_CONTRACT)) throw new PermissionDeniedError(P.SUPPLIER_CONTRACT);
-    const errors = await this.check(ctx, dto, null, []);
-    if (errors.length) throw new ValidationFailedError(errors);
+    const preview = await this.preview(ctx, dto, null, []);
+    if (preview.permission) throw new PermissionDeniedError(preview.permission);
+    if (preview.errors.length) throw new ValidationFailedError(preview.errors);
     const contracts = this.contracts(dto);
     const id = await this.prisma.$transaction(async (tx) => {
       const code = await this.numbering.next(tx, tenantId, CORE_DOC_TYPE.SUPPLIER);
@@ -101,13 +102,12 @@ export class SuppliersService {
     const beforeContracts = (await this.query.contracts(tenantId, before.code)).map(contractOf);
     const contracts = this.contracts(dto);
     const after: SupplierRecord = { ...record(before), ...this.data(dto) };
-    const changes = diffRecord(supplierAudit(record(before), beforeContracts), supplierAudit(after, contracts), SUPPLIER_LABELS);
+    const preview = await this.preview(ctx, dto, before, beforeContracts);
+    const changes = preview.changes;
     if (!changes.length) return this.query.detail(ctx, id);
+    if (preview.permission) throw new PermissionDeniedError(preview.permission);
+    if (preview.errors.length) throw new ValidationFailedError(preview.errors);
     const needed = permissionsNeeded(changes.map((c) => c.field));
-    if (needed.details && !this.permissions.has(ctx.user.roles, P.SUPPLIER_EDIT)) throw new PermissionDeniedError(P.SUPPLIER_EDIT);
-    if (needed.contracts && !this.permissions.has(ctx.user.roles, P.SUPPLIER_CONTRACT)) throw new PermissionDeniedError(P.SUPPLIER_CONTRACT);
-    const errors = await this.check(ctx, dto, before, beforeContracts);
-    if (errors.length) throw new ValidationFailedError(errors);
 
     await this.prisma.$transaction(async (tx) => {
       const saved = await tx.mdmSupplier.updateMany({ where: { id, tenantId, version: dto.version }, data: { ...this.data(dto), version: { increment: 1 }, updatedBy: ctx.user.code } });
@@ -192,6 +192,23 @@ export class SuppliersService {
       });
     });
     return { deleted: true, code: s.code };
+  }
+
+  /**
+   * What saving would do, without saving: the changes, a missing permission (contract prices need
+   * core.supplier.contract, the other fields core.supplier.edit) and the field problems. Create, update and the
+   * import's Check use it.
+   */
+  async preview(ctx: RequestContext, dto: CreateSupplierDto, before: MdmSupplier | null, beforeContracts: ContractPrice[]): Promise<RecordPreview> {
+    const has = (permission: string) => this.permissions.has(ctx.user.roles, permission);
+    if (!before) {
+      return { changes: [], permission: dto.contractPrices.length && !has(P.SUPPLIER_CONTRACT) ? P.SUPPLIER_CONTRACT : null, errors: await this.check(ctx, dto, null, []) };
+    }
+    const changes = diffRecord(supplierAudit(record(before), beforeContracts), supplierAudit({ ...record(before), ...this.data(dto) }, this.contracts(dto)), SUPPLIER_LABELS);
+    if (!changes.length) return { changes, permission: null, errors: [] };
+    const needed = permissionsNeeded(changes.map((c) => c.field));
+    const permission = needed.details && !has(P.SUPPLIER_EDIT) ? P.SUPPLIER_EDIT : needed.contracts && !has(P.SUPPLIER_CONTRACT) ? P.SUPPLIER_CONTRACT : null;
+    return { changes, permission, errors: await this.check(ctx, dto, before, beforeContracts) };
   }
 
   private data(dto: CreateSupplierDto) {

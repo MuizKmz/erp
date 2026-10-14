@@ -11,6 +11,7 @@ import { CORE_DOC_TYPE, CORE_ENTITY, CORE_EVENT } from '../core.constants';
 import { CORE_PERMISSIONS as P } from '../core.permissions';
 import { changeMessage, diffRecord } from '../shared/audit.rules';
 import { CoreRecordsService } from '../shared/core-records.service';
+import type { RecordPreview } from '../shared/record-preview';
 import { deactivateRefusal, deleteRefusal } from '../usage/usage.rules';
 import type { CreateCustomerDto, UpdateCustomerDto } from './dto/customer.dto';
 import {
@@ -73,12 +74,10 @@ export class CustomersService {
   /** A new customer gets the next C-#### number. With an enquiry number, Sales links that enquiry to it (decision 7). */
   async create(ctx: RequestContext, dto: CreateCustomerDto) {
     const tenantId = ctx.tenantId;
-    const errors = await this.check(ctx, dto, null);
-    if (errors.length) throw new ValidationFailedError(errors);
+    const preview = await this.preview(ctx, dto, null);
+    if (preview.errors.length) throw new ValidationFailedError(preview.errors);
+    if (preview.permission) throw new PermissionDeniedError(preview.permission);
     const data = this.data(dto);
-    if (!this.permissions.has(ctx.user.roles, P.CUSTOMER_CREDIT) && (data.creditLimit !== null || data.overdueLimit !== null || data.creditScope !== null)) {
-      throw new PermissionDeniedError(P.CUSTOMER_CREDIT);
-    }
     const status = dto.status ?? 'ACTIVE';
     const id = await this.prisma.$transaction(async (tx) => {
       const code = await this.numbering.next(tx, tenantId, CORE_DOC_TYPE.CUSTOMER);
@@ -106,15 +105,14 @@ export class CustomersService {
     const tenantId = ctx.tenantId;
     const before = await this.query.load(ctx, id);
     if (before.version !== dto.version) throw new StaleVersionError();
+    const preview = await this.preview(ctx, dto, before);
+    const changes = preview.changes;
+    if (!changes.length) return this.query.detail(ctx, id);
+    if (preview.permission) throw new PermissionDeniedError(preview.permission);
+    if (preview.errors.length) throw new ValidationFailedError(preview.errors);
     const data = this.data(dto);
     const after: CustomerRecord = { ...record(before), ...data };
-    const changes = diffRecord(customerAudit(record(before)), customerAudit(after), CUSTOMER_LABELS);
-    if (!changes.length) return this.query.detail(ctx, id);
     const needed = permissionsNeeded(changes.map((c) => c.field));
-    if (needed.details && !this.permissions.has(ctx.user.roles, P.CUSTOMER_EDIT)) throw new PermissionDeniedError(P.CUSTOMER_EDIT);
-    if (needed.credit && !this.permissions.has(ctx.user.roles, P.CUSTOMER_CREDIT)) throw new PermissionDeniedError(P.CUSTOMER_CREDIT);
-    const errors = await this.check(ctx, dto, before);
-    if (errors.length) throw new ValidationFailedError(errors);
 
     await this.prisma.$transaction(async (tx) => {
       const saved = await tx.mdmCustomer.updateMany({ where: { id, tenantId, version: dto.version }, data: { ...data, version: { increment: 1 }, updatedBy: ctx.user.code } });
@@ -189,6 +187,24 @@ export class CustomersService {
       });
     });
     return { deleted: true, code: c.code };
+  }
+
+  /**
+   * What saving would do, without saving: the changes, a missing permission (credit fields need core.customer.credit,
+   * the others core.customer.edit) and the field problems. Create, update and the import's Check use it.
+   */
+  async preview(ctx: RequestContext, dto: CustomerInput, before: MdmCustomer | null): Promise<RecordPreview> {
+    const has = (permission: string) => this.permissions.has(ctx.user.roles, permission);
+    const data = this.data(dto);
+    if (!before) {
+      const credit = data.creditLimit !== null || data.overdueLimit !== null || data.creditScope !== null;
+      return { changes: [], permission: credit && !has(P.CUSTOMER_CREDIT) ? P.CUSTOMER_CREDIT : null, errors: await this.check(ctx, dto, null) };
+    }
+    const changes = diffRecord(customerAudit(record(before)), customerAudit({ ...record(before), ...data }), CUSTOMER_LABELS);
+    if (!changes.length) return { changes, permission: null, errors: [] };
+    const needed = permissionsNeeded(changes.map((c) => c.field));
+    const permission = needed.details && !has(P.CUSTOMER_EDIT) ? P.CUSTOMER_EDIT : needed.credit && !has(P.CUSTOMER_CREDIT) ? P.CUSTOMER_CREDIT : null;
+    return { changes, permission, errors: await this.check(ctx, dto, before) };
   }
 
   private data(dto: CustomerInput) {
