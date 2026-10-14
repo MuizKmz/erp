@@ -2,7 +2,7 @@
  * Import rules (CLAUDE.md → Phase 3 · decision 10, Core business rule 12; SRS DR-005, INT-013, BR-STA-005). Pure
  * functions: reading a CSV file, matching its columns, reading cell values, and the words C14 shows.
  */
-import type { FieldChange } from '../shared/audit.rules';
+import { inSentence, type FieldChange } from '../shared/audit.rules';
 
 /** One file at a time stays small enough to check and load while the user waits. */
 export const MAX_ROWS = 1000;
@@ -122,12 +122,10 @@ export function duplicateOf(keys: (string | null)[]): (number | null)[] {
   });
 }
 
-/** "phone", but "TIN" and "ID number" keep their capitals. */
-const lowerLabel = (label: string) => (/^[A-Z][a-z]/.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label);
 
 /** "Update: phone", "Update: phone, email and 2 more". */
 export function updateText(changes: Pick<FieldChange, 'label'>[], max = 2): string {
-  const words = changes.slice(0, max).map((c) => lowerLabel(c.label));
+  const words = changes.slice(0, max).map((c) => inSentence(c.label));
   const more = changes.length - max;
   return `Update: ${more > 0 ? `${words.join(', ')} and ${more} more` : words.length > 1 ? `${words.slice(0, -1).join(', ')} and ${words.at(-1)}` : words[0]}`;
 }

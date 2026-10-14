@@ -21,7 +21,7 @@ Decided in Phase 3 from SRS DR-002, FR-MST-049 and SDD §5.3.1:
 ## How Purchase and Sales read Master Data
 
 - Code depends on an interface (`MasterDataPort`), never on Master Data tables directly.
-- **Phase 1 (now):** an adapter reads local seed tables prefixed `mdm_` in the same MySQL database.
+- **Now:** an adapter reads the `mdm_` tables in the same MySQL database. The Core module (Phase 3) maintains them, with an audit trail and `mdm.*` events; before Phase 3 only the seed filled them.
 - **Later:** a second adapter calls the real Master Data API. Swapping adapters must not change any Purchase or Sales code.
 - Every document line stores both the reference and the snapshot: `itemId`, `itemCode`, `itemName`, `uomCode`, `taxCode`, `taxRate`, `unitPrice`.
 

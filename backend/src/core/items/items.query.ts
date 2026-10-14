@@ -98,7 +98,7 @@ export class ItemsQuery {
     const canEdit = this.permissions.has(ctx.user.roles, P.ITEM_EDIT);
     const deactivate = deactivateRefusal(item.code, usage);
     const remove = deleteRefusal('ITEM', item.code, usage, [
-      { label: 'price lists', count: priceRows.length },
+      { label: 'price lists', count: new Set(priceRows.map((p) => p.priceListCode)).size },
       { label: 'contract prices', count: contracts.length },
     ]);
     const allowedActions: ItemAction[] = [];

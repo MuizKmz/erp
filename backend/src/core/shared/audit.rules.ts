@@ -57,10 +57,13 @@ export function diffRecord(
   return changes;
 }
 
+/** A label inside a sentence: "Credit limit" → "credit limit", but "TIN" and "ID number" keep their capitals. */
+export const inSentence = (label: string) => (/^[A-Z][a-z]/.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label);
+
 /** "Changed credit limit 50,000 → 150,000 and overdue limit 5,000 → 6,000" (the first `max`, then "and 2 more"). */
 export function changeMessage(changes: FieldChange[], max = 3): string {
   if (changes.length === 0) return 'No changes';
-  const words = changes.slice(0, max).map((c) => `${c.label.toLowerCase()} ${c.from ?? '(blank)'} → ${c.to ?? '(blank)'}`);
+  const words = changes.slice(0, max).map((c) => `${inSentence(c.label)} ${c.from ?? '(blank)'} → ${c.to ?? '(blank)'}`);
   const more = changes.length - max;
   const list = words.length > 1 ? `${words.slice(0, -1).join(', ')} and ${words.at(-1)}` : words[0]!;
   return `Changed ${list}${more > 0 ? ` and ${more} more` : ''}`;

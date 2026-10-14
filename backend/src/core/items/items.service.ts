@@ -165,7 +165,7 @@ export class ItemsService {
     if (item.version !== version) throw new StaleVersionError();
     const [usage, prices, contracts, conversions] = await Promise.all([
       this.usage.check({ tenantId, kind: 'ITEM', code: item.code }),
-      this.prisma.mdmPriceListItem.count({ where: { tenantId, itemCode: item.code } }),
+      this.prisma.mdmPriceListItem.findMany({ where: { tenantId, itemCode: item.code }, select: { priceListCode: true }, distinct: ['priceListCode'] }).then((rows) => rows.length),
       this.prisma.mdmContractPrice.count({ where: { tenantId, itemCode: item.code } }),
       this.prisma.mdmUomConversion.findMany({ where: { tenantId, itemCode: item.code } }),
     ]);

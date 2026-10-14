@@ -1,6 +1,6 @@
 # Zora Pro ERP — build guide for Claude Code
 
-We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module** (done, steps 0–10). **Phase 2 = the Sales module** (section *Phase 2 · Sales module*, done, steps S0–S10). **Phase 3 = the Core module (Master Data)** (section *Phase 3 · Core module*, in progress, steps C0–C8). Purchase and Sales are working apps with a real API and database (no login yet). Read this file fully before writing code, then read the docs it points to.
+We are building a modular ERP. **Phase 1 = the module launcher and the Purchase module** (done, steps 0–10). **Phase 2 = the Sales module** (section *Phase 2 · Sales module*, done, steps S0–S10). **Phase 3 = the Core module (Master Data)** (section *Phase 3 · Core module*, done, steps C0–C8). Purchase and Sales are working apps with a real API and database (no login yet). Read this file fully before writing code, then read the docs it points to.
 
 ## Must-read docs
 
@@ -34,7 +34,7 @@ Source Code/
 ├─ docs/                      design, integration, requirements (read-only reference)
 ├─ backend/                   NestJS API on http://localhost:3000, prefix /api/v1
 │  ├─ prisma/schema.prisma    one schema, table prefixes per module
-│  ├─ prisma/seed.ts          seeds docs/design/SEED_DATA.md and SALES_SEED_DATA.md
+│  ├─ prisma/seed.ts          seeds docs/design/SEED_DATA.md, SALES_SEED_DATA.md and CORE_SEED_DATA.md
 │  ├─ test/                   end-to-end journeys: npm run test:e2e (resets the demo data)
 │  └─ src/
 │     ├─ platform/            shared building blocks, no business rules
@@ -68,13 +68,13 @@ Source Code/
 
 1. Sales and Purchase are separate modules. `purchase/` never imports from `sales/` and the reverse.
 2. A module only reads and writes its own tables. Shared data comes from `MasterDataPort`; cross-module effects go out as outbox events.
-3. Purchase never writes `mdm_` tables and never queries them directly — only through `MasterDataPort`. Phase 1 adapter reads local seed tables; later it will call the real Master Data API, and nothing in `purchase/` may need to change.
+3. Purchase never writes `mdm_` tables and never queries them directly — only through `MasterDataPort`. The adapter reads the local `mdm_` tables, which the Core module maintains since Phase 3; later it will call the real Master Data API, and nothing in `purchase/` may need to change.
 4. Stock on hand comes from a read-only stub (`inv_stock_snapshot`) until Inventory/WMS is connected. Sales-order demand comes from Purchase's own copy (`pur_sales_demand`), kept from Sales events (`EVENTS.md`).
 5. When another module is not connected, never block the user: save the event and show the amber banner (“Inventory is not connected yet…”).
 
 ## Database conventions (MySQL + Prisma)
 
-- One database `zora_erp`. Table prefixes via `@@map`: `sys_` platform, `mdm_` master data (seed only), `inv_` and `fin_` stubs, `pur_` purchase, `sal_` sales. Prisma model names: `PurPurchaseOrder` → `@@map("pur_purchase_order")`.
+- One database `zora_erp`. Table prefixes via `@@map`: `sys_` platform, `mdm_` master data (written only by Core since Phase 3, and by the seed), `inv_` and `fin_` stubs, `pur_` purchase, `sal_` sales. Prisma model names: `PurPurchaseOrder` → `@@map("pur_purchase_order")`.
 - IDs: `String @id @default(uuid()) @db.Char(36)`. Every table has `tenantId` (one tenant seeded) and an index starting with it.
 - Money `Decimal(18,2)`, unit price `Decimal(18,4)`, quantity `Decimal(18,4)`, rates `Decimal(7,4)`. **Never use JS floats for money or quantity.** Calculate with `Prisma.Decimal` on the server; send as strings in JSON.
 - Rounding: line amount = round(qty × price, 2); line tax = round(amount × rate, 2); header totals = sums of lines.
@@ -400,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C0 to C7 are done; C7 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: items and units (C02, C03, C11). C3: customers (C04, C05) with credit fields under their own permission and the prospect link with Sales. C4: suppliers (C06, C07) with contract prices under their own permission; buyers edit suppliers. C5: price lists (C08, C09) with dated prices; Sales reads them through the port with the same answers. C6: tax codes with types and rate history (C10), reference lists (C12), warehouses with read-only locations (C13). C7: import from CSV (C14) for customers, suppliers, items and price-list prices, through the screens' own services. Next: C8.
+**Status:** C0 to C8 are done; Phase 3 is waiting for the user's final review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: items and units (C02, C03, C11). C3: customers (C04, C05) with credit fields under their own permission and the prospect link with Sales. C4: suppliers (C06, C07) with contract prices under their own permission; buyers edit suppliers. C5: price lists (C08, C09) with dated prices; Sales reads them through the port with the same answers. C6: tax codes with types and rate history (C10), reference lists (C12), warehouses with read-only locations (C13). C7: import from CSV (C14) for customers, suppliers, items and price-list prices, through the screens' own services. C8: the Core handbook's journeys A–I as end-to-end tests (`test/core-journeys.e2e-spec.ts`), the Core handbook, and a final review of the module boundaries.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 

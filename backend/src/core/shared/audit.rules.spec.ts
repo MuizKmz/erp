@@ -1,9 +1,14 @@
 import { Prisma } from '@prisma/client';
-import { changeMessage, dayText, diffRecord, display } from './audit.rules';
+import { changeMessage, dayText, diffRecord, display, inSentence } from './audit.rules';
 
 const LABELS = { name: 'Name', creditLimit: 'Credit limit', overdueLimit: 'Overdue limit', isSellable: 'Sellable', validFrom: 'Valid from' };
 
 describe('Core audit rules', () => {
+  it('keeps the capitals of TIN and ID number inside a sentence', () => {
+    expect([inSentence('Credit limit'), inSentence('TIN'), inSentence('ID number'), inSentence('e-Invoice email')]).toEqual(['credit limit', 'TIN', 'ID number', 'e-Invoice email']);
+    expect(changeMessage([{ field: 'tin', label: 'TIN', from: null, to: 'C24680135790' }])).toBe('Changed TIN (blank) → C24680135790');
+  });
+
   it('writes dates as 1 Jan 2026, September as Sep whatever the locale', () => {
     expect(dayText('2026-01-01')).toBe('1 Jan 2026');
     expect(dayText('2026-09-29')).toBe('29 Sep 2026');
@@ -38,8 +43,8 @@ describe('Core audit rules', () => {
       { field: 'overdueLimit', label: 'Overdue limit', from: '5000', to: '6000' },
     ];
     expect(changeMessage(changes)).toBe('Changed credit limit 50000 → 150000 and overdue limit 5000 → 6000');
-    const many = ['A', 'B', 'C', 'D', 'E'].map((l) => ({ field: l, label: l, from: null, to: 'x' }));
-    expect(changeMessage(many)).toBe('Changed a (blank) → x, b (blank) → x and c (blank) → x and 2 more');
+    const many = ['Name', 'Phone', 'Email', 'Area', 'Category'].map((l) => ({ field: l, label: l, from: null, to: 'x' }));
+    expect(changeMessage(many)).toBe('Changed name (blank) → x, phone (blank) → x and email (blank) → x and 2 more');
     expect(changeMessage([])).toBe('No changes');
   });
 });

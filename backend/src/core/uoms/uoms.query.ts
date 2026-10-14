@@ -10,7 +10,7 @@ import { conversionText } from '../items/items.rules';
 import { deleteRefusal } from '../usage/usage.rules';
 import { deactivateUnitError } from './uoms.rules';
 
-/** How Core records use a unit: items (base, purchase or sales unit), conversions and price-list rows. */
+/** How Core records use a unit: items (base, purchase or sales unit), conversions and the price lists that price in it. */
 export interface UnitCoreUse {
   /** Active items that use the unit anywhere, codes sorted. */
   activeItems: string[];
@@ -89,7 +89,7 @@ export class UomsQuery {
     const [items, conversions, prices] = await Promise.all([
       this.prisma.mdmItem.findMany({ where: { tenantId, OR: [{ baseUom: code }, { purchaseUom: code }, { salesUom: code }] }, select: { code: true, status: true, baseUom: true } }),
       this.prisma.mdmUomConversion.findMany({ where: { tenantId, OR: [{ fromUom: code }, { toUom: code }] }, select: { itemCode: true } }),
-      this.prisma.mdmPriceListItem.count({ where: { tenantId, uomCode: code } }),
+      this.prisma.mdmPriceListItem.findMany({ where: { tenantId, uomCode: code }, select: { priceListCode: true }, distinct: ['priceListCode'] }).then((rows) => rows.length),
     ]);
     const converted = conversions.map((c) => c.itemCode);
     const activeConverted = converted.length
