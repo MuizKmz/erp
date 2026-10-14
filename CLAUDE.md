@@ -400,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C0, C1 and C2 are done; C2 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: the item list and form (C02, C03) and units (C11). Next: C3.
+**Status:** C0 to C3 are done; C3 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: items and units (C02, C03, C11). C3: customers (C04, C05) with credit fields under their own permission and the prospect link with Sales. Next: C4.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 
@@ -561,7 +561,7 @@ What the contract and SRS need that the `mdm_` tables lack today:
 | `mdm.uom.updated`, `mdm.warehouse.updated` | Unit or warehouse saved |
 | `mdm.<record>.deleted` | A record that nothing used was deleted (rule 3) |
 
-Payloads carry the code and the full snapshot after the change, plus the list of changed fields. Purchase and Sales read through the port and need no cache, so these events are mainly for WMS, MES and Finance later. **Sales listens to `mdm.customer.created`** to link an enquiry's prospect (decision 7).
+Payloads carry the code and the full snapshot after the change, plus the list of changed fields. Purchase and Sales read through the port and need no cache, so these events are mainly for WMS, MES and Finance later. **Sales listens to `mdm.customer.created`** (listener `sales.prospect-link`) to link an enquiry's prospect (decision 7): the enquiry gets the new customer and can be quoted.
 
 ## Screens (C-codes, mockups made in C0)
 

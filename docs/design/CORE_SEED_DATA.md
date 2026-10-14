@@ -259,3 +259,7 @@ Not covered by the SRS or SDD. The user approved these defaults in C0.
 | 13 | C03 | Which LHDN classification codes can an item pick? | The 45 codes of the MyInvois SDK's *Classification Codes*, kept in one file (`core/shared/einvoice-classifications.ts`). Check them against the current SDK before go-live. |
 | 14 | C03 | A sell-only item has no purchase tax, but the column cannot be empty. | It keeps its sales tax code there. Purchase never uses an item that cannot be bought. |
 | 15 | C02 | How many items to a page? | 14, as in the mockup (*Page 1 of 3*). |
+| 16 | C05 | How does a prospect get into Master Data? | *New customer* has **Save customer** (active, Sales can quote it) and **Save as prospect** (kept out of quotations until someone clicks *Make customer*). |
+| 17 | C05 | The mockup's *Credit checked* says “As Credit Control says (group-wide)”. | Core cannot read Sales' Credit Control setting, so it says “As Credit Control says”. The customer can also be set to group-wide or per branch, whatever Credit Control says. |
+| 18 | C05 | The price list sits in the credit card in the mockup. Is it a credit field? | No: changing it needs `core.customer.edit`. The credit fields are the credit term, the two limits and *Credit checked* (decision 2). |
+| 19 | C05 | What if *Came from enquiry* names an enquiry Sales does not have, or one that already has a customer? | The customer is still saved. Sales links nothing, and says so in that enquiry's activity when it exists. |

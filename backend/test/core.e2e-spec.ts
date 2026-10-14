@@ -310,4 +310,126 @@ describe('Core (end to end)', () => {
       expect(down).toMatchObject({ status: 409, body: { message: 'M is in use, so its decimals cannot go down (from 2 to 0). They can go up.' } });
     });
   });
+
+  describe('C3 · Customers', () => {
+    interface Customer {
+      id: string;
+      code: string;
+      name: string;
+      status: string;
+      version: number;
+      creditLimit: string | null;
+      eInvoiceGap: string | null;
+      agentName: string | null;
+      branchName: string;
+      priceListName: string;
+      cameFromEnquiry: string | null;
+      allowedActions: string[];
+      refusals: Record<string, string>;
+      usage: Usage;
+      activity: { message: string }[];
+      [key: string]: unknown;
+    }
+    const FIELDS = [
+      'name', 'category', 'area', 'branchCode', 'defaultAgentCode', 'billingAddress', 'deliveryAddress', 'contactName', 'email', 'phone', 'tin',
+      'idType', 'idNumber', 'salesTaxNo', 'serviceTaxNo', 'einvoiceEmail', 'taxMode', 'creditTermDays', 'creditLimit', 'overdueLimit', 'creditScope', 'priceListCode',
+    ];
+    const fieldsOf = (c: Customer) => Object.fromEntries(FIELDS.map((f) => [f, c[f]]));
+    const newCustomer = {
+      name: 'Taman Indah Hotel', category: 'Hospitality', area: 'Central', branchCode: 'HQ', defaultAgentCode: 'AR', contactName: 'En. Rahman', phone: '+60 3-1234 5678',
+      tin: 'C25550012340', idType: 'BRN', idNumber: '202401012345', taxMode: 'EXCLUSIVE', creditTermDays: 30, creditLimit: '40000.00', overdueLimit: '5000.00', priceListCode: 'STD-2026',
+    };
+    const c0012 = async (user = 'ADM') => {
+      const id = (await api.prisma.mdmCustomer.findFirst({ where: { tenantId: TENANT_ID, code: 'C-0012' } }))!.id;
+      return api.get<Customer>(`core/customers/${id}`, user);
+    };
+
+    it('lists the 7 customers with their filters and tabs', async () => {
+      const page = await api.get<{ total: number; statusCounts: Record<string, number> }>('core/customers', 'FO');
+      expect(page.total).toBe(7);
+      expect(page.statusCounts).toMatchObject({ all: 7, active: 7, prospect: 0, blocked: 0 });
+      const codes = async (query: string) => (await api.get<{ items: { code: string }[] }>(`core/customers?${query}`)).items.map((c) => c.code);
+      expect(await codes('branch=PNG')).toEqual(['C-0031', 'C-0056']);
+      expect(await codes('category=Hospitality')).toEqual(['C-0012', 'C-0102']);
+      expect(await codes('agent=FO')).toEqual(['C-0045', 'C-0056', 'C-0078']);
+      expect(await codes('q=C2088')).toEqual(['C-0012']);
+    });
+
+    it('shows C-0012 with its names, the e-Invoice gap, and why it can be neither blocked nor deleted', async () => {
+      const c = await c0012();
+      expect(c).toMatchObject({ agentName: 'Aina Rahman', branchName: 'HQ Shah Alam', priceListName: 'Standard 2026', eInvoiceGap: 'No ID number yet. e-Invoices need it with the TIN.' });
+      expect(c.usage.documents).toBe(23);
+      expect(c.allowedActions).toEqual(['edit', 'editCredit']);
+      expect(c.refusals.block).toBe('C-0012 is on 5 open documents (SO-0001, SO-0003, QT-0006 …). Finish or cancel them first.');
+      expect(c.refusals.delete).toBe('C-0012 is used on 23 documents, so it cannot be deleted. Block it instead.');
+      expect((await c0012('RI')).allowedActions).toEqual(['editCredit']);
+      expect((await c0012('FO')).allowedActions).toEqual([]);
+      expect(await api.call('POST', `core/customers/${c.id}/block`, 'ADM', { version: c.version })).toMatchObject({ status: 409, body: { code: 'IN_USE' } });
+    });
+
+    it('lets the Finance Manager change credit but nothing else, and a sales agent neither', async () => {
+      const c = await c0012('RI');
+      const res = await api.call('PATCH', `core/customers/${c.id}`, 'RI', { ...fieldsOf(c), creditLimit: '160000.00', version: c.version });
+      expect(res.status).toBe(200);
+      const saved = res.body as Customer;
+      expect(saved.creditLimit).toBe('160000.00');
+      expect(saved.activity.map((a) => a.message)).toContain('Changed credit limit 150000.00 → 160000.00');
+      const phone = await api.call('PATCH', `core/customers/${c.id}`, 'RI', { ...fieldsOf(saved), phone: '+60 3-0000 0000', version: saved.version });
+      expect(phone).toMatchObject({ status: 403, body: { message: 'Your role cannot do this. Permission needed: core.customer.edit.' } });
+      const agent = await api.call('PATCH', `core/customers/${c.id}`, 'FO', { ...fieldsOf(saved), creditLimit: '999999.00', version: saved.version });
+      expect(agent).toMatchObject({ status: 403, body: { message: 'Your role cannot do this. Permission needed: core.customer.credit.' } });
+    });
+
+    it('turns an enquiry prospect into customer C-0103, and Sales links the enquiry to it', async () => {
+      const enquiry = await api.call('POST', 'sales/enquiries', 'AR', {
+        isProspect: true, prospectName: 'Taman Indah Hotel', branchCode: 'HQ', contactName: 'En. Rahman', phone: '+60 3-1234 5678',
+        enquiryTypeCode: 'HOSPITALITY', sourceCode: 'PHONE', agentCode: 'AR', details: { Rooms: '40' }, items: [],
+      });
+      expect(enquiry.status).toBe(201);
+      const eq = enquiry.body as { id: string; docNo: string };
+
+      const res = await api.call('POST', 'core/customers', 'ADM', { ...newCustomer, cameFromEnquiry: eq.docNo.toLowerCase() });
+      expect(res.status).toBe(201);
+      const created = res.body as Customer;
+      expect(created).toMatchObject({ code: 'C-0103', status: 'ACTIVE', cameFromEnquiry: eq.docNo, eInvoiceGap: null });
+      expect(created.activity.map((a) => a.message)).toEqual([`Customer C-0103 created from enquiry ${eq.docNo}`]);
+      const event = await api.prisma.sysOutbox.findFirst({ where: { aggregateId: created.id, name: 'mdm.customer.created' } });
+      expect(event?.payload).toMatchObject({ code: 'C-0103', enquiryNo: eq.docNo, snapshot: { name: 'Taman Indah Hotel', creditLimit: '40000.00' } });
+
+      const linked = await api.until('the enquiry to get customer C-0103', async () => {
+        const e = await api.get<{ customerCode: string | null; activity: { message: string }[] }>(`sales/enquiries/${eq.id}`, 'AR');
+        return e.customerCode === 'C-0103' ? e : null;
+      });
+      expect(linked.activity.map((a) => a.message)).toContain('Taman Indah Hotel was added to Master Data as C-0103 · Taman Indah Hotel. Quotations can now be made.');
+    });
+
+    it('refuses what the rules do not allow, naming the field', async () => {
+      const bad = async (patch: Record<string, unknown>) => ((await api.call('POST', 'core/customers', 'ADM', { ...newCustomer, ...patch })).body as { errors: { field: string; message: string }[] }).errors;
+      expect(await bad({ cameFromEnquiry: 'EQ-L-0302' })).toContainEqual({ field: 'cameFromEnquiry', message: 'Type the enquiry number as Sales shows it, like EQ-2609-0010.' });
+      expect(await bad({ category: 'Nope' })).toContainEqual({ field: 'category', message: 'Pick the category from the list.' });
+      expect(await bad({ defaultAgentCode: 'LMY' })).toContainEqual({ field: 'defaultAgentCode', message: 'Pick an active sales agent.' });
+      expect(await bad({ creditTermDays: 45 })).toContainEqual({ field: 'creditTermDays', message: 'Pick the credit term from the list.' });
+      expect(await bad({ email: 'not-an-email' })).toContainEqual({ field: 'email', message: 'Type a valid email address.' });
+      expect((await api.call('POST', 'core/customers', 'LMY', newCustomer)).status).toBe(403);
+    });
+
+    it('makes a prospect a customer, blocks and deletes it; its number is never used again', async () => {
+      const res = await api.call('POST', 'core/customers', 'ADM', { ...newCustomer, name: 'Kedai Baru', status: 'PROSPECT' });
+      let c = res.body as Customer;
+      expect(c).toMatchObject({ code: 'C-0104', status: 'PROSPECT' });
+      expect(c.allowedActions).toEqual(['edit', 'editCredit', 'activate', 'block', 'delete']);
+      const act = async (action: string) => {
+        const r = await api.call('POST', `core/customers/${c.id}/${action}`, 'ADM', { version: c.version });
+        expect(r.status).toBe(201);
+        c = r.body as Customer;
+        return c.status;
+      };
+      expect(await act('activate')).toBe('ACTIVE');
+      expect(c.activity.map((a) => a.message)).toContain('Prospect C-0104 made a customer');
+      expect(await act('block')).toBe('BLOCKED');
+      expect(await api.call('DELETE', `core/customers/${c.id}?version=${c.version}`, 'ADM')).toMatchObject({ status: 200, body: { deleted: true, code: 'C-0104' } });
+      const next = await api.call('POST', 'core/customers', 'ADM', { ...newCustomer, name: 'Kedai Baru 2' });
+      expect((next.body as Customer).code).toBe('C-0105');
+    });
+  });
 });

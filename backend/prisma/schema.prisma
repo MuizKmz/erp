@@ -1484,6 +1484,7 @@ model MdmCustomer {
   priceListCode    String            @db.VarChar(20)
   taxMode          String            @default("EXCLUSIVE") @db.VarChar(10)
   isCash           Boolean           @default(false) // the walk-in customer for cash sales
+  cameFromEnquiry  String?           @db.VarChar(30) // EQ-2609-0010: the enquiry a new customer came from (decision 7)
   status           MdmCustomerStatus @default(ACTIVE)
   createdAt        DateTime          @default(now()) @db.DateTime(3)
   updatedAt        DateTime          @updatedAt @db.DateTime(3)

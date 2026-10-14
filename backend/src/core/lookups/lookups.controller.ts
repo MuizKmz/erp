@@ -5,6 +5,7 @@ import { CurrentContext, RequirePermission } from '../../platform/context/contex
 import type { RequestContext } from '../../platform/context/request-context';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { CORE_PERMISSIONS as P } from '../core.permissions';
+import { ID_TYPE_LABEL, ID_TYPES } from '../customers/customers.rules';
 import { EINVOICE_CLASSIFICATIONS } from '../shared/einvoice-classifications';
 
 /** What Core forms pick from — /api/v1/core/lookups. Only active entries; tax codes with the rate valid today. */
@@ -31,6 +32,30 @@ export class CoreLookupsController {
       uoms,
       taxCodes: latestValidByKey(taxes, (t) => t.code, today).map((t) => ({ code: t.code, name: t.name, type: t.type, rate: t.rate.toFixed(4) })),
       classifications: EINVOICE_CLASSIFICATIONS,
+    };
+  }
+
+  /** C04 filters and the C05 customer form. Sales agents are the active users with the SALES_AGENT role. */
+  @Get('customer-form')
+  @RequirePermission(P.VIEW)
+  async customerForm(@CurrentContext() ctx: RequestContext) {
+    const tenantId = ctx.tenantId;
+    const [categories, areas, terms, branches, users, priceLists] = await Promise.all([
+      this.prisma.mdmCustomerCategory.findMany({ where: { tenantId, isActive: true }, orderBy: { name: 'asc' }, select: { name: true } }),
+      this.prisma.mdmArea.findMany({ where: { tenantId, isActive: true }, orderBy: { name: 'asc' }, select: { name: true } }),
+      this.prisma.mdmCreditTerm.findMany({ where: { tenantId, isActive: true }, orderBy: { days: 'asc' }, select: { days: true, name: true } }),
+      this.prisma.mdmBranch.findMany({ where: { tenantId, isActive: true }, orderBy: { code: 'asc' }, select: { code: true, name: true } }),
+      this.prisma.mdmUser.findMany({ where: { tenantId, isActive: true }, orderBy: { name: 'asc' }, select: { code: true, name: true, roles: true } }),
+      this.prisma.mdmPriceList.findMany({ where: { tenantId, isActive: true }, orderBy: { code: 'asc' }, select: { code: true, name: true } }),
+    ]);
+    return {
+      categories: categories.map((c) => c.name),
+      areas: areas.map((a) => a.name),
+      creditTerms: terms,
+      branches,
+      agents: users.filter((u) => Array.isArray(u.roles) && (u.roles as string[]).includes('SALES_AGENT')).map((u) => ({ code: u.code, name: u.name })),
+      priceLists,
+      idTypes: ID_TYPES.map((value) => ({ value, label: ID_TYPE_LABEL[value] })),
     };
   }
 

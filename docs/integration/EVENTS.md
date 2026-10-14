@@ -80,6 +80,7 @@ Screens read the event status to say "Inventory is not connected yet" or "Accoun
 | `purchase.buy_to_order.handled` | Purchase | Puts the PO number on each buy-to-order order line, or the reason there is none, and writes it in the order's activity |
 | `purchase.goods.received` | Purchase | Adds the received quantity to the order lines on that PO (`purchaseReceivedQty`); received but not delivered goods count as ready on the delivery waiting list |
 | `purchase.order.balance_cancelled` | Purchase | Adds the cancelled quantity to the order lines on that PO (`purchaseCancelledQty`), counting only what the order is short |
+| `mdm.customer.created` | Core | When the payload names an enquiry (`enquiryNo`) that has no customer yet, links it to the new customer so it can be quoted, and writes that in the enquiry's activity (Phase 3 decision 7) |
 
 Sales never bumps the order's version for these: they are Purchase's facts, not edits.
 
@@ -90,7 +91,7 @@ Purchase and Sales read master data through `MasterDataPort` and keep no copy, s
 | Event | When | Main payload | Who listens |
 |---|---|---|---|
 | `mdm.item.created` / `mdm.item.updated` | Item saved, including status changes | code, item, changedFields | WMS, MES — later |
-| `mdm.customer.created` / `mdm.customer.updated` | Customer saved | code, customer, changedFields; `created` may carry enquiryNo | **Sales** (`created` with enquiryNo: links the enquiry's prospect, from step C3); WMS (outbound), Finance — later |
+| `mdm.customer.created` / `mdm.customer.updated` | Customer saved | code, customer, changedFields; `created` may carry enquiryNo | **Sales** (`created` with enquiryNo: links the enquiry's prospect); WMS (outbound), Finance — later |
 | `mdm.supplier.created` / `mdm.supplier.updated` | Supplier saved, including its contract prices | code, supplier, changedFields | WMS (inbound), Finance — later |
 | `mdm.price_list.updated` | Price list or its prices saved | code, price list, changedFields | — |
 | `mdm.tax_code.updated` | Tax rate added or changed | code, rates, changedFields | Finance — later |
@@ -110,6 +111,7 @@ Stored in `sys_event_handled.handler`. The seed marks its own history as handled
 | `sales.buy-to-order-po` | `purchase.buy_to_order.handled` |
 | `sales.buy-to-order-received` | `purchase.goods.received` |
 | `sales.buy-to-order-cancelled` | `purchase.order.balance_cancelled` |
+| `sales.prospect-link` | `mdm.customer.created` |
 
 ## Rules for the dispatcher
 

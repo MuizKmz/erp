@@ -4,6 +4,8 @@ const Placeholder = () => import('./views/PlaceholderView.vue')
 const ItemList = () => import('./views/ItemListView.vue')
 const ItemForm = () => import('./views/ItemFormView.vue')
 const Uoms = () => import('./views/UomsView.vue')
+const CustomerList = () => import('./views/CustomerListView.vue')
+const CustomerForm = () => import('./views/CustomerFormView.vue')
 
 type Group = 'catalog' | 'parties' | 'pricing' | 'warehouses' | 'setup'
 
@@ -29,8 +31,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'C02', path: 'items', name: 'core-items', title: 'Items', group: 'catalog', item: 'items', step: 2, mockup: 'CoreItemList.html', component: ItemList },
   { code: 'C03', path: 'items/:id', name: 'core-item', title: 'Item', group: 'catalog', item: 'items', step: 2, mockup: 'CoreItemForm.html', parent: doc('Items', '/core/items'), component: ItemForm },
   { code: 'C11', path: 'uoms', name: 'core-uoms', title: 'Units of Measure', group: 'catalog', item: 'uoms', step: 2, mockup: 'CoreUoms.html', component: Uoms },
-  { code: 'C04', path: 'customers', name: 'core-customers', title: 'Customers', group: 'parties', item: 'customers', step: 3, mockup: 'CoreCustomerList.html' },
-  { code: 'C05', path: 'customers/:id', name: 'core-customer', title: 'Customer', group: 'parties', item: 'customers', step: 3, mockup: 'CoreCustomerForm.html', parent: doc('Customers', '/core/customers') },
+  { code: 'C04', path: 'customers', name: 'core-customers', title: 'Customers', group: 'parties', item: 'customers', step: 3, mockup: 'CoreCustomerList.html', component: CustomerList },
+  { code: 'C05', path: 'customers/:id', name: 'core-customer', title: 'Customer', group: 'parties', item: 'customers', step: 3, mockup: 'CoreCustomerForm.html', parent: doc('Customers', '/core/customers'), component: CustomerForm },
   { code: 'C06', path: 'suppliers', name: 'core-suppliers', title: 'Suppliers', group: 'parties', item: 'suppliers', step: 4, mockup: 'CoreSupplierList.html' },
   { code: 'C07', path: 'suppliers/:id', name: 'core-supplier', title: 'Supplier', group: 'parties', item: 'suppliers', step: 4, mockup: 'CoreSupplierForm.html', parent: doc('Suppliers', '/core/suppliers') },
   { code: 'C08', path: 'price-lists', name: 'core-price-lists', title: 'Price Lists', group: 'pricing', item: 'price-lists', step: 5, mockup: 'CorePriceLists.html' },

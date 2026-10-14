@@ -45,6 +45,7 @@ import { QuotationsQuery } from './quotations/quotations.query';
 import { QuotationsService } from './quotations/quotations.service';
 import { SALES_ROLE_GRANTS } from './sales.permissions';
 import { SalesUsageProvider } from './usage/sales-usage.provider';
+import { SalesProspectLinkListener } from './enquiries/prospect-link.listener';
 import { CreditService } from './shared/credit.service';
 import { SalesDocumentLines } from './shared/document-lines.service';
 import { SalesLinkedDocsService } from './shared/linked-docs.service';
@@ -93,6 +94,8 @@ import { SalesMailService } from './shared/sales-mail.service';
     SalesReportsQuery,
     // Tells Core where an item, customer, unit, tax code, price list or warehouse is used. Read only.
     SalesUsageProvider,
+    // Links an enquiry's prospect to the customer Core creates from it (mdm.customer.created).
+    SalesProspectLinkListener,
   ],
 })
 export class SalesModule implements OnModuleInit {

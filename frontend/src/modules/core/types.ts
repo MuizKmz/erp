@@ -181,3 +181,80 @@ export interface UomDetail {
   allowedActions: ('edit' | 'delete')[]
   refusals: { delete?: string; deactivate?: string }
 }
+
+// ── Customers (C04, C05) ──
+
+export type CustomerStatus = 'ACTIVE' | 'PROSPECT' | 'BLOCKED'
+export type CustomerAction = 'edit' | 'editCredit' | 'block' | 'activate' | 'delete'
+export type IdType = 'BRN' | 'NRIC' | 'PASSPORT' | 'ARMY'
+
+export interface CustomerListItem {
+  id: string
+  code: string
+  name: string
+  category: string | null
+  area: string | null
+  branchCode: string
+  agentName: string | null
+  priceListName: string
+  creditTerm: string
+  creditLimit: string | null
+  overdueLimit: string | null
+  tin: string | null
+  status: CustomerStatus
+  statusLabel: string
+}
+
+/** What the customer form saves. */
+export interface CustomerInput {
+  name: string
+  category: string | null
+  area: string | null
+  branchCode: string
+  defaultAgentCode: string | null
+  billingAddress: string | null
+  deliveryAddress: string | null
+  contactName: string | null
+  email: string | null
+  phone: string | null
+  tin: string | null
+  idType: IdType | null
+  idNumber: string | null
+  salesTaxNo: string | null
+  serviceTaxNo: string | null
+  einvoiceEmail: string | null
+  taxMode: 'EXCLUSIVE' | 'INCLUSIVE'
+  creditTermDays: number
+  creditLimit: string | null
+  overdueLimit: string | null
+  creditScope: 'GROUP' | 'BRANCH' | null
+  priceListCode: string
+}
+
+export interface CustomerDetail extends CustomerInput {
+  id: string
+  code: string
+  isCash: boolean
+  cameFromEnquiry: string | null
+  status: CustomerStatus
+  statusLabel: string
+  version: number
+  branchName: string
+  agentName: string | null
+  priceListName: string
+  eInvoiceGap: string | null
+  usage: RecordUsage
+  activity: CoreActivity[]
+  allowedActions: CustomerAction[]
+  refusals: Partial<Record<CustomerAction, string>>
+}
+
+export interface CustomerFormOptions {
+  categories: string[]
+  areas: string[]
+  creditTerms: { days: number; name: string }[]
+  branches: { code: string; name: string }[]
+  agents: { code: string; name: string }[]
+  priceLists: { code: string; name: string }[]
+  idTypes: { value: IdType; label: string }[]
+}

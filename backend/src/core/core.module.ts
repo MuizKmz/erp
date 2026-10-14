@@ -1,6 +1,9 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
 import { PermissionRegistry } from '../platform/context/permission.registry';
 import { CORE_ROLE_GRANTS } from './core.permissions';
+import { CoreCustomersController } from './customers/customers.controller';
+import { CustomersQuery } from './customers/customers.query';
+import { CustomersService } from './customers/customers.service';
 import { CoreDashboardController } from './dashboard/dashboard.controller';
 import { CoreDashboardQuery } from './dashboard/dashboard.query';
 import { CoreItemsController } from './items/items.controller';
@@ -19,8 +22,8 @@ import { CoreUsageQuery } from './usage/usage.query';
  * through MasterDataPort. Never imports from purchase/ or sales/, and never reads their tables.
  */
 @Module({
-  controllers: [CoreDashboardController, CoreUsageController, CoreLookupsController, CoreItemsController, CoreUomsController],
-  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService],
+  controllers: [CoreDashboardController, CoreUsageController, CoreLookupsController, CoreItemsController, CoreUomsController, CoreCustomersController],
+  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService, CustomersQuery, CustomersService],
 })
 export class CoreModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionRegistry) {}
