@@ -12,6 +12,7 @@ Purchase and Sales keep reading this data through `MasterDataPort`, so nothing h
   - Rosnah Ismail (Finance Manager) also changes customer credit.
   - Lim Mei Ying (buyer) and Ahmad Zaki (Purchasing Manager) also change suppliers. Only Ahmad Zaki and Admin change contract prices (choice 7).
   - Everyone else views. Sales agents never change master data.
+- **Reseed:** `npx prisma db seed` (and every e2e run) puts each seeded record back exactly as listed here, and removes the records added in Core.
 
 ## Core home (C01)
 
@@ -263,3 +264,9 @@ Not covered by the SRS or SDD. The user approved these defaults in C0.
 | 17 | C05 | The mockup's *Credit checked* says “As Credit Control says (group-wide)”. | Core cannot read Sales' Credit Control setting, so it says “As Credit Control says”. The customer can also be set to group-wide or per branch, whatever Credit Control says. |
 | 18 | C05 | The price list sits in the credit card in the mockup. Is it a credit field? | No: changing it needs `core.customer.edit`. The credit fields are the credit term, the two limits and *Credit checked* (decision 2). |
 | 19 | C05 | What if *Came from enquiry* names an enquiry Sales does not have, or one that already has a customer? | The customer is still saved. Sales links nothing, and says so in that enquiry's activity when it exists. |
+| 20 | C07 | Which currencies can a supplier have? | Only MYR. Foreign-currency suppliers come with foreign-currency price lists (*Not in Phase 3*). |
+| 21 | C07 | Where does the payment term come from? | The credit terms list (C12), the same list customers use: Cash or 30 days today. A new term is added there first. |
+| 22 | C07 | What happens to contract prices when an unused supplier is deleted? | They go with it. They belong to the supplier, and no document can point to one. |
+| 23 | C07 | A buyer adds a new supplier. Can they enter its contract prices? | No: the supplier is saved without them, and the Purchasing Manager or Master Data Admin adds them afterwards (choice 7). |
+| 24 | C07 | What makes a contract price valid? | A price above 0, an end date not before the start, and no two periods for the same item that overlap. The item must be active and purchasable when the price is added. A price already saved stays if the item is later blocked. |
+| 25 | C07 | The mockup shows saved contract prices as a table. How are they changed? | The table stays. The pencil on a row opens its price and dates; *Add contract price* adds a row with an item picker. Nothing is saved until **Save changes**. |

@@ -6,7 +6,7 @@
  * CH-DIN-01 and TB-DIN-06 costs are set so QT-0012 shows the mockup's 28.6% margin.
  */
 import { MdmItemType, Prisma } from '@prisma/client';
-import { day, kl, type SeedCtx } from './util';
+import { AS_SEEDED, day, kl, type SeedCtx } from './util';
 
 export const PRICE_LISTS = [
   { code: 'STD-2026', name: 'Standard 2026' },
@@ -78,12 +78,12 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
 
   await prisma.mdmUom.upsert({
     where: { tenantId_code: { tenantId, code: 'TRIP' } },
-    update: { name: 'Trip', decimals: 0 },
+    update: { name: 'Trip', decimals: 0, isActive: true, ...AS_SEEDED },
     create: { tenantId, code: 'TRIP', name: 'Trip', decimals: 0 },
   });
 
   for (const pl of PRICE_LISTS) {
-    const data = { name: pl.name, currency: 'MYR', taxInclusive: false, validFrom: day('2026-01-01'), validTo: day('2026-12-31'), isActive: true };
+    const data = { name: pl.name, currency: 'MYR', taxInclusive: false, validFrom: day('2026-01-01'), validTo: day('2026-12-31'), isActive: true, ...AS_SEEDED };
     await prisma.mdmPriceList.upsert({
       where: { tenantId_code: { tenantId, code: pl.code } },
       update: data,
@@ -92,12 +92,15 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
   }
 
   for (const i of SALE_ITEMS) {
-    const extra = { standardCost: new Prisma.Decimal(i.cost), barcode: i.barcode ?? null, salesTaxCode: i.tax, isSellable: i.sellable ?? true, einvoiceClassification: null };
+    const extra = { standardCost: new Prisma.Decimal(i.cost), barcode: i.barcode ?? null, salesTaxCode: i.tax, isSellable: i.sellable ?? true, einvoiceClassification: null, ...AS_SEEDED };
     const row = i.exists
       ? await prisma.mdmItem.update({ where: { tenantId_code: { tenantId, code: i.code } }, data: extra })
       : await prisma.mdmItem.upsert({
           where: { tenantId_code: { tenantId, code: i.code } },
-          update: { name: i.name, itemGroup: i.group, type: i.type ?? 'STOCK', baseUom: i.uom, purchaseTaxCode: i.tax, ...extra },
+          update: {
+            name: i.name, itemGroup: i.group, type: i.type ?? 'STOCK', baseUom: i.uom, purchaseUom: null, salesUom: null, isPurchasable: false, isBuyToOrder: false,
+            purchaseTaxCode: i.tax, preferredSupplierCode: null, reorderLevel: null, packSize: new Prisma.Decimal(1), status: 'ACTIVE', ...extra,
+          },
           create: {
             tenantId, code: i.code, name: i.name, itemGroup: i.group, type: i.type ?? 'STOCK', baseUom: i.uom,
             isPurchasable: false, purchaseTaxCode: i.tax, status: 'ACTIVE', ...extra,
@@ -124,6 +127,7 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
       priceListCode: c.priceList, taxMode: 'EXCLUSIVE', isCash: false, status: 'ACTIVE' as const,
       // e-Invoice identity (CORE_SEED_DATA.md choice 3): ID type BRN, no ID number known yet.
       idType: 'BRN' as const, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null,
+      cameFromEnquiry: null, ...AS_SEEDED,
     };
     const row = await prisma.mdmCustomer.upsert({ where: { tenantId_code: { tenantId, code: c.code } }, update: data, create: { tenantId, code: c.code, ...data } });
     ctx.customers.set(row.code, row);
@@ -132,7 +136,7 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
     name: 'Cash customer (walk-in)', tin: null, billingAddress: null, deliveryAddress: null, contactName: null, email: null, phone: null,
     category: 'Walk-in', area: null, branchCode: 'HQ', defaultAgentCode: null, creditTermDays: 0, creditLimit: null, overdueLimit: null,
     creditScope: null, priceListCode: 'STD-2026', taxMode: 'INCLUSIVE', isCash: true, status: 'ACTIVE' as const,
-    idType: null, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null,
+    idType: null, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null, cameFromEnquiry: null, ...AS_SEEDED,
   };
   const cashRow = await prisma.mdmCustomer.upsert({ where: { tenantId_code: { tenantId, code: 'C-CASH' } }, update: cash, create: { tenantId, code: 'C-CASH', ...cash } });
   ctx.customers.set(cashRow.code, cashRow);

@@ -6,6 +6,8 @@ const ItemForm = () => import('./views/ItemFormView.vue')
 const Uoms = () => import('./views/UomsView.vue')
 const CustomerList = () => import('./views/CustomerListView.vue')
 const CustomerForm = () => import('./views/CustomerFormView.vue')
+const SupplierList = () => import('./views/SupplierListView.vue')
+const SupplierForm = () => import('./views/SupplierFormView.vue')
 
 type Group = 'catalog' | 'parties' | 'pricing' | 'warehouses' | 'setup'
 
@@ -33,8 +35,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'C11', path: 'uoms', name: 'core-uoms', title: 'Units of Measure', group: 'catalog', item: 'uoms', step: 2, mockup: 'CoreUoms.html', component: Uoms },
   { code: 'C04', path: 'customers', name: 'core-customers', title: 'Customers', group: 'parties', item: 'customers', step: 3, mockup: 'CoreCustomerList.html', component: CustomerList },
   { code: 'C05', path: 'customers/:id', name: 'core-customer', title: 'Customer', group: 'parties', item: 'customers', step: 3, mockup: 'CoreCustomerForm.html', parent: doc('Customers', '/core/customers'), component: CustomerForm },
-  { code: 'C06', path: 'suppliers', name: 'core-suppliers', title: 'Suppliers', group: 'parties', item: 'suppliers', step: 4, mockup: 'CoreSupplierList.html' },
-  { code: 'C07', path: 'suppliers/:id', name: 'core-supplier', title: 'Supplier', group: 'parties', item: 'suppliers', step: 4, mockup: 'CoreSupplierForm.html', parent: doc('Suppliers', '/core/suppliers') },
+  { code: 'C06', path: 'suppliers', name: 'core-suppliers', title: 'Suppliers', group: 'parties', item: 'suppliers', step: 4, mockup: 'CoreSupplierList.html', component: SupplierList },
+  { code: 'C07', path: 'suppliers/:id', name: 'core-supplier', title: 'Supplier', group: 'parties', item: 'suppliers', step: 4, mockup: 'CoreSupplierForm.html', parent: doc('Suppliers', '/core/suppliers'), component: SupplierForm },
   { code: 'C08', path: 'price-lists', name: 'core-price-lists', title: 'Price Lists', group: 'pricing', item: 'price-lists', step: 5, mockup: 'CorePriceLists.html' },
   { code: 'C09', path: 'price-lists/:id', name: 'core-price-list', title: 'Price list', group: 'pricing', item: 'price-lists', step: 5, mockup: 'CorePriceListForm.html', parent: doc('Price Lists', '/core/price-lists') },
   { code: 'C10', path: 'tax-codes', name: 'core-tax-codes', title: 'Tax Codes', group: 'pricing', item: 'tax-codes', step: 6, mockup: 'CoreTaxCodes.html' },

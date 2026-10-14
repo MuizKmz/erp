@@ -1,6 +1,6 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
-import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ItemListItem, SupplierOption, UomDetail, UomsData } from '../types'
+import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ItemListItem, PurchasableItemOption, SupplierDetail, SupplierFormOptions, SupplierInput, SupplierListItem, SupplierOption, UomDetail, UomsData } from '../types'
 
 /** Core API (/api/v1/core). Each build step adds its resources here. */
 export const coreApi = {
@@ -11,6 +11,8 @@ export const coreLookupsApi = {
   itemForm: () => api<ItemFormOptions>('/core/lookups/item-form'),
   suppliers: (q: string) => api<{ items: SupplierOption[] }>('/core/lookups/suppliers', { query: { q } }),
   customerForm: () => api<CustomerFormOptions>('/core/lookups/customer-form'),
+  supplierForm: () => api<SupplierFormOptions>('/core/lookups/supplier-form'),
+  purchasableItems: (q: string) => api<{ items: PurchasableItemOption[] }>('/core/lookups/purchasable-items', { query: { q } }),
 }
 
 export const coreItemsApi = {
@@ -37,4 +39,14 @@ export const coreCustomersApi = {
   update: (id: string, input: CustomerInput & { version: number }) => api<CustomerDetail>(`/core/customers/${id}`, { method: 'PATCH', body: input }),
   setStatus: (id: string, action: 'block' | 'activate', version: number) => api<CustomerDetail>(`/core/customers/${id}/${action}`, { method: 'POST', body: { version } }),
   remove: (id: string, version: number) => api<{ deleted: boolean; code: string }>(`/core/customers/${id}`, { method: 'DELETE', query: { version } }),
+}
+
+export const coreSuppliersApi = {
+  list: (query: ListQuery) => api<ListResponse<SupplierListItem>>('/core/suppliers', { query }),
+  supplies: () => api<{ items: string[] }>('/core/suppliers/supplies'),
+  get: (id: string) => api<SupplierDetail>(`/core/suppliers/${id}`),
+  create: (input: SupplierInput) => api<SupplierDetail>('/core/suppliers', { method: 'POST', body: input }),
+  update: (id: string, input: SupplierInput & { version: number }) => api<SupplierDetail>(`/core/suppliers/${id}`, { method: 'PATCH', body: input }),
+  setStatus: (id: string, action: 'block' | 'activate', version: number) => api<SupplierDetail>(`/core/suppliers/${id}/${action}`, { method: 'POST', body: { version } }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; code: string }>(`/core/suppliers/${id}`, { method: 'DELETE', query: { version } }),
 }

@@ -35,6 +35,7 @@ export const CORE_EVENT = {
   CUSTOMER_DELETED: 'mdm.customer.deleted',
   SUPPLIER_CREATED: 'mdm.supplier.created',
   SUPPLIER_UPDATED: 'mdm.supplier.updated',
+  SUPPLIER_DELETED: 'mdm.supplier.deleted',
   PRICE_LIST_UPDATED: 'mdm.price_list.updated',
   TAX_CODE_UPDATED: 'mdm.tax_code.updated',
   UOM_UPDATED: 'mdm.uom.updated',

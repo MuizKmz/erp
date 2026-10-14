@@ -7,7 +7,7 @@
  * the 9 extra items for things the mockups buy that were not in the item list, and sales-order totals.
  */
 import { MdmItemType, Prisma } from '@prisma/client';
-import { day, kl, type SeedCtx } from './util';
+import { AS_SEEDED, day, kl, type SeedCtx } from './util';
 
 const BRANCHES = [
   { code: 'HQ', name: 'HQ Shah Alam' },
@@ -141,7 +141,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
   for (const w of WAREHOUSES) {
     const row = await prisma.mdmWarehouse.upsert({
       where: { tenantId_code: { tenantId, code: w.code } },
-      update: { name: w.name, branchCode: w.branchCode, isActive: true },
+      update: { name: w.name, branchCode: w.branchCode, isActive: true, ...AS_SEEDED },
       create: { tenantId, ...w },
     });
     ctx.warehouses.set(row.code, row);
@@ -150,7 +150,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
   for (const l of LOCATIONS) {
     await prisma.mdmLocation.upsert({
       where: { tenantId_code: { tenantId, code: l.code } },
-      update: { name: l.name, warehouseCode: l.warehouseCode, isActive: true },
+      update: { name: l.name, warehouseCode: l.warehouseCode, isActive: true, ...AS_SEEDED },
       create: { tenantId, ...l },
     });
   }
@@ -158,7 +158,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
   for (const u of UOMS) {
     await prisma.mdmUom.upsert({
       where: { tenantId_code: { tenantId, code: u.code } },
-      update: { name: u.name, decimals: u.decimals },
+      update: { name: u.name, decimals: u.decimals, isActive: true, ...AS_SEEDED },
       create: { tenantId, ...u },
     });
   }
@@ -167,7 +167,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
   await prisma.mdmUomConversion.create({ data: { tenantId, itemCode: 'FB-OAK-01', fromUom: 'ROLL', toUom: 'M', factor: new Prisma.Decimal(50) } });
 
   for (const t of TAX_CODES) {
-    const data = { name: t.name, type: t.type, rate: new Prisma.Decimal(t.rate), country: 'MY', validTo: null, isActive: true };
+    const data = { name: t.name, type: t.type, rate: new Prisma.Decimal(t.rate), country: 'MY', validTo: null, isActive: true, ...AS_SEEDED };
     const row = await prisma.mdmTaxCode.upsert({
       where: { tenantId_code_validFrom: { tenantId, code: t.code, validFrom: day(t.validFrom) } },
       update: data,
@@ -182,6 +182,9 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
       shortName: s.shortName,
       category: s.category,
       email: s.email ?? null,
+      contactName: null,
+      phone: null,
+      address: null,
       sstNo: s.sst ? `SST-${s.code.replace('S-', '')}` : null,
       // e-Invoice identity (CORE_SEED_DATA.md choice 3): ID type BRN, no TIN or ID number known yet.
       idType: 'BRN' as const,
@@ -193,6 +196,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
       currency: 'MYR',
       isWalkIn: s.walkIn ?? false,
       status: 'ACTIVE' as const,
+      ...AS_SEEDED,
     };
     const row = await prisma.mdmSupplier.upsert({
       where: { tenantId_code: { tenantId, code: s.code } },
@@ -209,6 +213,7 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
       type: i.type,
       baseUom: i.uom,
       purchaseUom: null,
+      salesUom: null,
       isPurchasable: true,
       isSellable: i.sellable ?? false,
       isBuyToOrder: i.buyToOrder ?? false,
@@ -218,7 +223,10 @@ export async function seedMasterData(ctx: SeedCtx): Promise<void> {
       reorderLevel: i.reorder === undefined ? null : new Prisma.Decimal(i.reorder),
       packSize: new Prisma.Decimal(i.pack ?? 1),
       einvoiceClassification: null, // no LHDN codes known yet (CORE_SEED_DATA.md choice 2)
+      barcode: null, // the Sales items get theirs, and a standard cost, in sales-master.ts
+      standardCost: null,
       status: 'ACTIVE' as const,
+      ...AS_SEEDED,
     };
     const row = await prisma.mdmItem.upsert({
       where: { tenantId_code: { tenantId, code: i.code } },

@@ -258,3 +258,78 @@ export interface CustomerFormOptions {
   priceLists: { code: string; name: string }[]
   idTypes: { value: IdType; label: string }[]
 }
+
+// ── Suppliers (C06, C07) ──
+
+export type SupplierStatus = 'ACTIVE' | 'BLOCKED'
+export type SupplierAction = 'edit' | 'editContracts' | 'block' | 'activate' | 'delete'
+
+export interface SupplierListItem {
+  id: string
+  code: string
+  name: string
+  shortName: string | null
+  category: string | null
+  isWalkIn: boolean
+  tin: string | null
+  sstNo: string | null
+  paymentTerm: string
+  email: string | null
+  status: SupplierStatus
+  statusLabel: string
+}
+
+export interface ContractPriceInput {
+  itemCode: string
+  /** "2100.0000" */
+  unitPrice: string
+  validFrom: string
+  validTo: string | null
+}
+
+/** What the supplier form saves. */
+export interface SupplierInput {
+  name: string
+  shortName: string | null
+  category: string | null
+  isWalkIn: boolean
+  contactName: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  tin: string | null
+  idType: IdType | null
+  regNo: string | null
+  sstNo: string | null
+  serviceTaxNo: string | null
+  einvoiceEmail: string | null
+  paymentTermDays: number
+  currency: string
+  contractPrices: ContractPriceInput[]
+}
+
+export interface SupplierDetail extends Omit<SupplierInput, 'contractPrices'> {
+  id: string
+  code: string
+  status: SupplierStatus
+  statusLabel: string
+  version: number
+  contractPrices: (ContractPriceInput & { itemId: string | null; itemName: string; uomCode: string | null; isCurrent: boolean })[]
+  eInvoiceGap: string | null
+  usage: RecordUsage
+  activity: CoreActivity[]
+  allowedActions: SupplierAction[]
+  refusals: Partial<Record<SupplierAction, string>>
+}
+
+export interface SupplierFormOptions {
+  paymentTerms: { days: number; name: string }[]
+  currencies: string[]
+  idTypes: { value: IdType; label: string }[]
+}
+
+export interface PurchasableItemOption {
+  code: string
+  name: string
+  baseUom: string
+}

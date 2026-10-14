@@ -50,6 +50,20 @@ export async function verifyCoreSeed(ctx: SeedCtx): Promise<Check[]> {
   ]);
   expect('ID type BRN (customers · suppliers)', '6 · 10', `${brnCustomers} · ${brnSuppliers}`);
 
+  // What Core or an e2e journey changed on a seeded record goes back on every reseed.
+  const changed = { tenantId, OR: [{ version: { not: 1 } }, { updatedBy: { not: null } }] };
+  const leftovers = await Promise.all([
+    prisma.mdmItem.count({ where: changed }),
+    prisma.mdmCustomer.count({ where: changed }),
+    prisma.mdmSupplier.count({ where: changed }),
+    prisma.mdmUom.count({ where: changed }),
+    prisma.mdmTaxCode.count({ where: changed }),
+    prisma.mdmPriceList.count({ where: changed }),
+    prisma.mdmWarehouse.count({ where: changed }),
+    prisma.mdmLocation.count({ where: changed }),
+  ]);
+  expect('Master data as seeded (rows changed since the seed)', '0', String(leftovers.reduce((a, b) => a + b, 0)));
+
   // C01 Needs attention, from the screen's own query.
   const clock = { todayDate: () => day(TODAY) } as ClockService;
   const home = await new CoreDashboardQuery(prisma as PrismaService, clock).summary({ tenantId } as RequestContext);

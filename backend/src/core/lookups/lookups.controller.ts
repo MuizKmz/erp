@@ -7,6 +7,7 @@ import { PrismaService } from '../../platform/prisma/prisma.service';
 import { CORE_PERMISSIONS as P } from '../core.permissions';
 import { ID_TYPE_LABEL, ID_TYPES } from '../customers/customers.rules';
 import { EINVOICE_CLASSIFICATIONS } from '../shared/einvoice-classifications';
+import { CURRENCIES } from '../suppliers/suppliers.rules';
 
 /** What Core forms pick from — /api/v1/core/lookups. Only active entries; tax codes with the rate valid today. */
 @Controller('core/lookups')
@@ -57,6 +58,28 @@ export class CoreLookupsController {
       priceLists,
       idTypes: ID_TYPES.map((value) => ({ value, label: ID_TYPE_LABEL[value] })),
     };
+  }
+
+  /** The C07 supplier form: payment terms (the credit terms list), currencies and ID types. */
+  @Get('supplier-form')
+  @RequirePermission(P.VIEW)
+  async supplierForm(@CurrentContext() ctx: RequestContext) {
+    const terms = await this.prisma.mdmCreditTerm.findMany({ where: { tenantId: ctx.tenantId, isActive: true }, orderBy: { days: 'asc' }, select: { days: true, name: true } });
+    return { paymentTerms: terms, currencies: [...CURRENCIES], idTypes: ID_TYPES.map((value) => ({ value, label: ID_TYPE_LABEL[value] })) };
+  }
+
+  /** Active items that can be bought, matching code or name, for the contract-price picker. */
+  @Get('purchasable-items')
+  @RequirePermission(P.VIEW)
+  async purchasableItems(@CurrentContext() ctx: RequestContext, @Query('q') q?: string) {
+    const text = q?.trim();
+    const rows = await this.prisma.mdmItem.findMany({
+      where: { tenantId: ctx.tenantId, status: 'ACTIVE', isPurchasable: true, ...(text && { OR: [{ code: { contains: text } }, { name: { contains: text } }] }) },
+      orderBy: { code: 'asc' },
+      take: 20,
+      select: { code: true, name: true, baseUom: true },
+    });
+    return { items: rows };
   }
 
   /** Active suppliers matching code or name, for the preferred-supplier picker. */

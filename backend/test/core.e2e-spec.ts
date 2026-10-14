@@ -432,4 +432,109 @@ describe('Core (end to end)', () => {
       expect((next.body as Customer).code).toBe('C-0105');
     });
   });
+
+  describe('C4 · Suppliers', () => {
+    interface Supplier {
+      id: string;
+      code: string;
+      status: string;
+      version: number;
+      eInvoiceGap: string | null;
+      contractPrices: { itemCode: string; unitPrice: string; validFrom: string; validTo: string | null; isCurrent: boolean }[];
+      allowedActions: string[];
+      refusals: Record<string, string>;
+      usage: Usage;
+      activity: { message: string }[];
+      [key: string]: unknown;
+    }
+    const FIELDS = ['name', 'shortName', 'category', 'isWalkIn', 'contactName', 'email', 'phone', 'address', 'tin', 'idType', 'regNo', 'sstNo', 'serviceTaxNo', 'einvoiceEmail', 'paymentTermDays', 'currency'];
+    const fieldsOf = (s: Supplier) => ({
+      ...Object.fromEntries(FIELDS.map((f) => [f, s[f]])),
+      contractPrices: s.contractPrices.map(({ itemCode, unitPrice, validFrom, validTo }) => ({ itemCode, unitPrice, validFrom, validTo })),
+    });
+    const newSupplier = {
+      name: 'Kayu Jati Enterprise', shortName: 'Kayu Jati', category: 'Timber', isWalkIn: false, email: 'sales@kayujati.my', tin: 'C26660012340', idType: 'BRN', regNo: '202301054321',
+      paymentTermDays: 30, currency: 'MYR', contractPrices: [] as unknown[],
+    };
+    const s0047 = async (user = 'ADM') => {
+      const id = (await api.prisma.mdmSupplier.findFirst({ where: { tenantId: TENANT_ID, code: 'S-0047' } }))!.id;
+      return api.get<Supplier>(`core/suppliers/${id}`, user);
+    };
+
+    it('lists the 10 suppliers with their filters and tabs', async () => {
+      const page = await api.get<{ total: number; statusCounts: Record<string, number> }>('core/suppliers', 'FO');
+      expect(page.total).toBe(10);
+      expect(page.statusCounts).toMatchObject({ all: 10, active: 10, blocked: 0 });
+      const codes = async (query: string) => (await api.get<{ items: { code: string }[] }>(`core/suppliers?${query}`)).items.map((s) => s.code);
+      expect(await codes('walkIn=hidden')).toHaveLength(8);
+      expect(await codes('walkIn=only')).toEqual(['S-0070', 'S-0071']);
+      expect(await codes('supplies=Fabric')).toEqual(['S-0021']);
+      expect(await codes('q=Kilang')).toEqual(['S-0021', 'S-0061']);
+    });
+
+    it('shows S-0047 with its contract price, and why it can be neither blocked nor deleted', async () => {
+      const s = await s0047();
+      expect(s.contractPrices).toEqual([{ itemId: expect.any(String), itemCode: 'SF-CUS-03', itemName: 'Custom 3-seater sofa, grey linen', uomCode: 'PCS', unitPrice: '2100.0000', validFrom: '2026-01-01', validTo: '2026-12-31', isCurrent: true }]);
+      expect(s.eInvoiceGap).toBe('No TIN or ID number yet. e-Invoices with this supplier need both.');
+      expect(s.allowedActions).toEqual(['edit', 'editContracts']);
+      expect(s.refusals.block).toBe('S-0047 is on 3 open documents (PO-0003, RFQ-0003, RFQ-0004). Finish or cancel them first.');
+      expect(s.refusals.delete).toBe('S-0047 is used on 6 documents and in items as preferred supplier (4), so it cannot be deleted. Block it instead.');
+      expect((await s0047('LMY')).allowedActions).toEqual(['edit']);
+      expect((await s0047('AZ')).allowedActions).toEqual(['edit', 'editContracts']);
+      expect((await s0047('FO')).allowedActions).toEqual([]);
+    });
+
+    it('lets a buyer change the supplier but not its contract prices; the Purchasing Manager changes those and Purchase sees them', async () => {
+      const s = await s0047('LMY');
+      const phone = await api.call('PATCH', `core/suppliers/${s.id}`, 'LMY', { ...fieldsOf(s), phone: '+60 9-123 4567', version: s.version });
+      expect(phone.status).toBe(200);
+      const saved = phone.body as Supplier;
+      expect(saved.activity.map((a) => a.message)).toContain('Changed phone (blank) → +60 9-123 4567');
+
+      const cheaper = { ...fieldsOf(saved), contractPrices: [{ itemCode: 'SF-CUS-03', unitPrice: '2050.0000', validFrom: '2026-01-01', validTo: '2026-12-31' }], version: saved.version };
+      expect(await api.call('PATCH', `core/suppliers/${s.id}`, 'LMY', cheaper)).toMatchObject({ status: 403, body: { message: 'Your role cannot do this. Permission needed: core.supplier.contract.' } });
+      const byManager = await api.call('PATCH', `core/suppliers/${s.id}`, 'AZ', cheaper);
+      expect(byManager.status).toBe(200);
+      expect((byManager.body as Supplier).activity.map((a) => a.message)).toContain(
+        'Changed contract prices SF-CUS-03 at 2100.0000, 1 Jan 2026 – 31 Dec 2026 → SF-CUS-03 at 2050.0000, 1 Jan 2026 – 31 Dec 2026',
+      );
+      const port = api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+      expect((await port.listContractPrices(TENANT_ID, { itemCodes: ['SF-CUS-03'], onDate: '2026-09-29' }))[0]?.unitPrice).toBe('2050.0000');
+      expect((await api.call('PATCH', `core/suppliers/${s.id}`, 'FO', { ...fieldsOf(saved), phone: '1', version: saved.version + 1 })).status).toBe(403);
+    });
+
+    it('refuses what the rules do not allow, naming the field', async () => {
+      const bad = async (patch: Record<string, unknown>) => ((await api.call('POST', 'core/suppliers', 'ADM', { ...newSupplier, ...patch })).body as { errors: { field: string; message: string }[] }).errors;
+      expect(await bad({ paymentTermDays: 45 })).toContainEqual({ field: 'paymentTermDays', message: 'Pick the payment term from the list.' });
+      expect(await bad({ currency: 'USD' })).toContainEqual({ field: 'currency', message: 'Only MYR for now: buying in another currency comes later.' });
+      expect(await bad({ contractPrices: [{ itemCode: 'CH-DIN-02', unitPrice: '150', validFrom: '2026-10-01', validTo: null }] })).toContainEqual({
+        field: 'contractPrices[0]',
+        message: 'CH-DIN-02 cannot be bought, so it cannot have a contract price.',
+      });
+      const overlap = [
+        { itemCode: 'TM-OAK-01', unitPrice: '80', validFrom: '2026-10-01', validTo: null },
+        { itemCode: 'TM-OAK-01', unitPrice: '78', validFrom: '2027-01-01', validTo: null },
+      ];
+      expect(await bad({ contractPrices: overlap })).toContainEqual({ field: 'contractPrices[1]', message: 'Two contract prices for TM-OAK-01 overlap. Let one end before the other starts.' });
+      expect((await api.call('POST', 'core/suppliers', 'LMY', { ...newSupplier, contractPrices: [overlap[0]] })).status).toBe(403);
+    });
+
+    it('lets a buyer add a supplier; it is blocked, activated and deleted, and its number is never used again', async () => {
+      const res = await api.call('POST', 'core/suppliers', 'LMY', newSupplier);
+      expect(res.status).toBe(201);
+      let s = res.body as Supplier;
+      expect(s).toMatchObject({ code: 'S-0072', status: 'ACTIVE', eInvoiceGap: null });
+      expect(s.allowedActions).toEqual(['edit', 'block', 'delete']);
+      const act = async (action: string) => {
+        const r = await api.call('POST', `core/suppliers/${s.id}/${action}`, 'LMY', { version: s.version });
+        expect(r.status).toBe(201);
+        s = r.body as Supplier;
+        return s.status;
+      };
+      expect(await act('block')).toBe('BLOCKED');
+      expect(await act('activate')).toBe('ACTIVE');
+      expect(await api.call('DELETE', `core/suppliers/${s.id}?version=${s.version}`, 'LMY')).toMatchObject({ status: 200, body: { deleted: true, code: 'S-0072' } });
+      expect(((await api.call('POST', 'core/suppliers', 'LMY', newSupplier)).body as Supplier).code).toBe('S-0073');
+    });
+  });
 });

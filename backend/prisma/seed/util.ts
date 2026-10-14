@@ -20,6 +20,9 @@ export interface SeedCtx {
 }
 
 /** A calendar date (DATE column): day('2026-09-29'). */
+/** A reseed puts a seeded master-data row back as it was, whatever Core or an e2e journey changed on it. */
+export const AS_SEEDED = { version: 1, updatedBy: null } as const;
+
 export function day(iso: string): Date {
   return new Date(`${iso}T00:00:00.000Z`);
 }
