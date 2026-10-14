@@ -232,7 +232,7 @@ const STATE_CHIP = { waiting: { label: 'Waiting', group: 'pending' }, ended: { l
   </section>
 
   <!-- The code -->
-  <Dialog v-model:visible="codeOpen" modal append-to="self" :header="detail ? `Tax code ${detail.code}` : ''" :style="{ width: '600px' }">
+  <Dialog v-model:visible="codeOpen" modal :header="detail ? `Tax code ${detail.code}` : ''" :style="{ width: '600px' }">
     <div v-if="detail" class="flex flex-col gap-3.5">
       <div class="grid grid-cols-2 gap-x-[18px] gap-y-3.5">
         <div class="flex min-w-0 flex-col gap-1.5 text-xs font-medium text-erp-muted">
@@ -286,7 +286,7 @@ const STATE_CHIP = { waiting: { label: 'Waiting', group: 'pending' }, ended: { l
   </Dialog>
 
   <!-- New rate -->
-  <Dialog v-model:visible="rateOpen" modal append-to="self" :header="rateFor ? `New rate for ${rateFor.code}` : ''" :style="{ width: '460px' }">
+  <Dialog v-model:visible="rateOpen" modal :header="rateFor ? `New rate for ${rateFor.code}` : ''" :style="{ width: '460px' }">
     <div v-if="rateFor" class="flex flex-col gap-3.5">
       <p class="m-0 text-[13px] text-erp-muted">Now {{ rateFor.periods.at(-1)!.rate }} from {{ formatDate(rateFor.periods.at(-1)!.validFrom) }} ({{ rateFor.periods.at(-1)!.name }}).</p>
       <div class="grid grid-cols-2 gap-x-[18px] gap-y-3.5">
@@ -318,7 +318,7 @@ const STATE_CHIP = { waiting: { label: 'Waiting', group: 'pending' }, ended: { l
   </Dialog>
 
   <!-- Add tax code -->
-  <Dialog v-model:visible="addOpen" modal append-to="self" header="Add tax code" :style="{ width: '460px' }">
+  <Dialog v-model:visible="addOpen" modal header="Add tax code" :style="{ width: '460px' }">
     <div class="grid grid-cols-2 gap-x-[18px] gap-y-3.5">
       <FormField label="Code" for="add-code" :error="errors.code">
         <input id="add-code" v-model="addForm.code" class="erp-input uppercase placeholder:normal-case" maxlength="20" placeholder="SST5" />

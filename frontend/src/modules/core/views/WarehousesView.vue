@@ -139,7 +139,7 @@ function remove() {
     </section>
   </div>
 
-  <Dialog v-model:visible="open" modal append-to="self" :header="editing ? `Warehouse ${editing.code}` : 'Add warehouse'" :style="{ width: '460px' }">
+  <Dialog v-model:visible="open" modal :header="editing ? `Warehouse ${editing.code}` : 'Add warehouse'" :style="{ width: '460px' }">
     <div class="flex flex-col gap-3.5">
       <div class="flex min-w-0 flex-col gap-1.5 text-xs font-medium text-erp-muted">
         <span class="flex justify-between gap-2">

@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Bell, House, LayoutGrid, LogOut } from '@lucide/vue'
 import { useApprovalsCount } from '@/composables/useApprovalsCount'
+import { useModuleTheme } from '@/composables/useModuleTheme'
 import { useCrumb } from '@/composables/usePageCrumb'
 import { useSession } from '@/composables/useSession'
 import { moduleDef } from '@/modules/registry'
@@ -21,6 +22,7 @@ const router = useRouter()
 const { today, now } = useSession()
 
 const module = computed(() => moduleDef(route.meta.module))
+useModuleTheme(() => module.value.key)
 const group = computed(() => module.value.menu.find((g) => g.key === route.meta.menuGroup) ?? module.value.menu[0]!)
 const { count: approvals } = useApprovalsCount(() => module.value)
 const pageCrumb = useCrumb()

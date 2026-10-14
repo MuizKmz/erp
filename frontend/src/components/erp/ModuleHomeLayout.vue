@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Bell, LogOut } from '@lucide/vue'
 import { useApprovalsCount } from '@/composables/useApprovalsCount'
+import { useModuleTheme } from '@/composables/useModuleTheme'
 import { useSession } from '@/composables/useSession'
 import { moduleDef } from '@/modules/registry'
 import { formatLongDate } from '@/utils/format'
@@ -12,6 +13,7 @@ import DevUserSwitcher from './DevUserSwitcher.vue'
 const route = useRoute()
 const { state, today } = useSession()
 const module = computed(() => moduleDef(route.meta.module))
+useModuleTheme(() => module.value.key)
 const { count: approvals } = useApprovalsCount(() => module.value)
 const year = computed(() => (today.value ? today.value.slice(0, 4) : ''))
 </script>
