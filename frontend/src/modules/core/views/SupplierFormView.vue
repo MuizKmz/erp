@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DatePicker from 'primevue/datepicker'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { Lock, Pencil, Plus, X } from '@lucide/vue'
@@ -79,6 +80,9 @@ const detailsEditable = computed(() => (isNew.value ? session.can('core.supplier
 const contractsEditable = computed(() => (isNew.value ? session.can('core.supplier.contract') : can('editContracts')))
 const anyEditable = computed(() => detailsEditable.value || contractsEditable.value)
 const text = (v: string | null) => v ?? ''
+const pad = (n: number) => String(n).padStart(2, '0')
+const isoToDate = (iso: string) => (iso ? new Date(`${iso}T00:00:00`) : null)
+const dateToIso = (value: unknown) => (value instanceof Date ? `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}` : '')
 const priceText = (v: string) => String(Number(v))
 
 function fill(s: SupplierDetail | null) {
@@ -377,8 +381,22 @@ const blockWaits = 'Block comes back once these are finished or cancelled.'
                   </template>
                   <td v-else colspan="2"><MasterDataPicker v-model="c.item" :search="searchItems" placeholder="Type an item code or name" :input-id="`contract-${n}`" /></td>
                   <td><input v-model="c.unitPrice" class="erp-input text-right" inputmode="decimal" placeholder="2100.00" :aria-label="`Contract price ${n + 1}: unit price`" /></td>
-                  <td><input v-model="c.validFrom" class="erp-input" type="date" :aria-label="`Contract price ${n + 1}: valid from`" /></td>
-                  <td><input v-model="c.validTo" class="erp-input" type="date" :aria-label="`Contract price ${n + 1}: valid to`" /></td>
+                  <td>
+                    <DatePicker :model-value="isoToDate(c.validFrom)" date-format="d M yy" fluid class="erp-date" :input-id="`contract-from-${n}`" @update:model-value="c.validFrom = dateToIso($event)" />
+                  </td>
+                  <td>
+                    <DatePicker
+                      :model-value="isoToDate(c.validTo)"
+                      date-format="d M yy"
+                      placeholder="No end"
+                      show-button-bar
+                      fluid
+                      class="erp-date"
+                      :input-id="`contract-to-${n}`"
+                      @update:model-value="c.validTo = dateToIso($event)"
+                      @clear-click="c.validTo = ''"
+                    />
+                  </td>
                   <td class="text-right">
                     <button type="button" class="cursor-pointer border-0 bg-transparent p-1 text-erp-muted hover:text-note-error-text" :aria-label="`Remove contract price ${n + 1}`" @click="form.contractPrices.splice(n, 1)"><X :size="15" /></button>
                   </td>

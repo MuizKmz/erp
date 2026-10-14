@@ -6,6 +6,7 @@ import type { RequestContext } from '../../platform/context/request-context';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { CORE_PERMISSIONS as P } from '../core.permissions';
 import { ID_TYPE_LABEL, ID_TYPES } from '../customers/customers.rules';
+import { itemUnits } from '../price-lists/price-lists.rules';
 import { EINVOICE_CLASSIFICATIONS } from '../shared/einvoice-classifications';
 import { CURRENCIES } from '../suppliers/suppliers.rules';
 
@@ -80,6 +81,22 @@ export class CoreLookupsController {
       select: { code: true, name: true, baseUom: true },
     });
     return { items: rows };
+  }
+
+  /** Active items Sales can sell, matching code or name, with the units they can be priced in (C09 price picker). */
+  @Get('sellable-items')
+  @RequirePermission(P.VIEW)
+  async sellableItems(@CurrentContext() ctx: RequestContext, @Query('q') q?: string) {
+    const tenantId = ctx.tenantId;
+    const text = q?.trim();
+    const rows = await this.prisma.mdmItem.findMany({
+      where: { tenantId, status: 'ACTIVE', isSellable: true, ...(text && { OR: [{ code: { contains: text } }, { name: { contains: text } }] }) },
+      orderBy: { code: 'asc' },
+      take: 20,
+      select: { code: true, name: true, baseUom: true },
+    });
+    const conversions = await this.prisma.mdmUomConversion.findMany({ where: { tenantId, itemCode: { in: rows.map((r) => r.code) } }, select: { itemCode: true, fromUom: true, toUom: true } });
+    return { items: rows.map((r) => ({ ...r, units: itemUnits(r.baseUom, conversions.filter((c) => c.itemCode === r.code)) })) };
   }
 
   /** Active suppliers matching code or name, for the preferred-supplier picker. */

@@ -4,9 +4,11 @@
  * numbers the Core home (C01) shows, computed by the same query the screen uses.
  */
 import { CoreDashboardQuery } from '../../src/core/dashboard/dashboard.query';
+import { PriceListsQuery } from '../../src/core/price-lists/price-lists.query';
 import { latestValidByKey } from '../../src/master-data/master-data.rules';
 import type { ClockService } from '../../src/platform/clock/clock.service';
 import type { RequestContext } from '../../src/platform/context/request-context';
+import type { ListQueryDto } from '../../src/platform/http/list-query.dto';
 import { formatDocNo } from '../../src/platform/numbering/numbering.rules';
 import type { PrismaService } from '../../src/platform/prisma/prisma.service';
 import { day, type SeedCtx } from './util';
@@ -72,6 +74,12 @@ export async function verifyCoreSeed(ctx: SeedCtx): Promise<Check[]> {
     '39 items · 8 suppliers · 6 customers · 3 purchasable items · Item groups “Service” and “Services”',
     home.attention.map((a) => (a.key.startsWith('look-alike') ? `${a.lead} ${a.text.replace(' look like the same group.', '')}` : a.lead)).join(' · '),
   );
+  // C08, from the screen's own query: prices per list and the customers on it.
+  const lists = await new PriceListsQuery(prisma as PrismaService, undefined as never, undefined as never, undefined as never, clock).list({ tenantId } as RequestContext, {
+    page: 1,
+    pageSize: 20,
+  } as ListQueryDto);
+  expect('Price lists (prices · used by)', 'RES-2026 6 · 1 customer, STD-2026 17 · 6 customers', lists.items.map((l) => `${l.code} ${l.prices} · ${l.usedBy}`).join(', '));
   expect('Core home cards (items · customers · suppliers · tax codes)', '39 · 7 · 10 · 3', ['items', 'customers', 'suppliers', 'tax-codes'].map((k) => home.cards.find((c) => c.key === k)?.total).join(' · '));
   return checks;
 }

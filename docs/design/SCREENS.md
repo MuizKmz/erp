@@ -137,8 +137,8 @@ The item, customer and supplier forms show where the record is used. Delete is p
 | C05 | Customer | `CoreCustomerForm.html` | `/core/customers/:id` | GET, POST, PATCH /api/v1/core/customers/:id (credit fields need core.customer.credit; GET includes where it is used) · POST …/block, …/activate · DELETE /api/v1/core/customers/:id (only if never used) |
 | C06 | Supplier list | `CoreSupplierList.html` | `/core/suppliers` | GET /api/v1/core/suppliers · GET /api/v1/core/suppliers/supplies (the *Supplies* filter) |
 | C07 | Supplier with contract prices | `CoreSupplierForm.html` | `/core/suppliers/:id` | GET, POST, PATCH /api/v1/core/suppliers/:id (contract prices need core.supplier.contract; GET includes where it is used) · POST …/block, …/activate · DELETE /api/v1/core/suppliers/:id (only if never used) |
-| C08 | Price lists | `CorePriceLists.html` | `/core/price-lists` | GET /api/v1/core/price-lists |
-| C09 | Price list with its prices | `CorePriceListForm.html` | `/core/price-lists/:id` | GET, POST, PATCH /api/v1/core/price-lists/:id |
+| C08 | Price lists | `CorePriceLists.html` | `/core/price-lists` | GET /api/v1/core/price-lists (prices, used by) |
+| C09 | Price list with its prices | `CorePriceListForm.html` | `/core/price-lists/:id` | GET, POST, PATCH /api/v1/core/price-lists/:id (PATCH sends the prices from today on; earlier prices are history) · POST …/deactivate, …/activate · DELETE /api/v1/core/price-lists/:id (only if no customer or Sales document uses it) · GET /api/v1/core/lookups/sellable-items?q= (items with their units) |
 | C10 | Tax codes | `CoreTaxCodes.html` | `/core/tax-codes` | GET, POST /api/v1/core/tax-codes · POST …/:code/rates |
 | C11 | Units of measure | `CoreUoms.html` | `/core/uoms` | GET, POST /api/v1/core/uoms · GET, PATCH, DELETE /api/v1/core/uoms/:id (delete only if never used) |
 | C12 | Reference lists | `CoreReference.html` | `/core/reference` | GET, POST, PATCH /api/v1/core/reference/:list |

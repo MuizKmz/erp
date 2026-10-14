@@ -10,6 +10,14 @@ export interface FieldChange {
   to: string | null;
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "1 Jan 2026" from 2026-01-01, the way the Core screens show dates (fixed English months, whatever the locale). */
+export function dayText(iso: string): string {
+  const [year, month, date] = iso.slice(0, 10).split('-').map(Number);
+  return `${date} ${MONTHS[month! - 1]} ${year}`;
+}
+
 /** A value as people read it: decimals as stored text, dates as 2026-09-29, booleans Yes/No, blanks as null. */
 export function display(value: unknown): string | null {
   if (value === null || value === undefined) return null;

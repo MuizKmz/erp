@@ -4,6 +4,7 @@
  */
 import { dec, type DecimalInput } from '../../platform/http/decimal';
 import type { FieldError } from '../../platform/http/errors';
+import { dayText as day } from '../shared/audit.rules';
 
 export const SUPPLIER_STATUSES = ['ACTIVE', 'BLOCKED'] as const;
 export type SupplierStatus = (typeof SUPPLIER_STATUSES)[number];
@@ -71,12 +72,6 @@ export interface ContractPrice {
   validFrom: string;
   /** YYYY-MM-DD, or null for no end */
   validTo: string | null;
-}
-
-/** "1 Jan 2026" */
-function day(iso: string): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  return `${d.getUTCDate()} ${d.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' })} ${d.getUTCFullYear()}`;
 }
 
 /** "SF-CUS-03 at 2100.0000, 1 Jan 2026 – 31 Dec 2026" */

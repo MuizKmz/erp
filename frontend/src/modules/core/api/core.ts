@@ -1,6 +1,6 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
-import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ItemListItem, PurchasableItemOption, SupplierDetail, SupplierFormOptions, SupplierInput, SupplierListItem, SupplierOption, UomDetail, UomsData } from '../types'
+import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ItemListItem, PriceListDetail, PriceListInput, PriceListListItem, PurchasableItemOption, SellableItemOption, SupplierDetail, SupplierFormOptions, SupplierInput, SupplierListItem, SupplierOption, UomDetail, UomsData } from '../types'
 
 /** Core API (/api/v1/core). Each build step adds its resources here. */
 export const coreApi = {
@@ -13,6 +13,7 @@ export const coreLookupsApi = {
   customerForm: () => api<CustomerFormOptions>('/core/lookups/customer-form'),
   supplierForm: () => api<SupplierFormOptions>('/core/lookups/supplier-form'),
   purchasableItems: (q: string) => api<{ items: PurchasableItemOption[] }>('/core/lookups/purchasable-items', { query: { q } }),
+  sellableItems: (q: string) => api<{ items: SellableItemOption[] }>('/core/lookups/sellable-items', { query: { q } }),
 }
 
 export const coreItemsApi = {
@@ -49,4 +50,13 @@ export const coreSuppliersApi = {
   update: (id: string, input: SupplierInput & { version: number }) => api<SupplierDetail>(`/core/suppliers/${id}`, { method: 'PATCH', body: input }),
   setStatus: (id: string, action: 'block' | 'activate', version: number) => api<SupplierDetail>(`/core/suppliers/${id}/${action}`, { method: 'POST', body: { version } }),
   remove: (id: string, version: number) => api<{ deleted: boolean; code: string }>(`/core/suppliers/${id}`, { method: 'DELETE', query: { version } }),
+}
+
+export const corePriceListsApi = {
+  list: (query: ListQuery) => api<ListResponse<PriceListListItem>>('/core/price-lists', { query }),
+  get: (id: string) => api<PriceListDetail>(`/core/price-lists/${id}`),
+  create: (input: PriceListInput & { code: string; isActive: boolean }) => api<PriceListDetail>('/core/price-lists', { method: 'POST', body: input }),
+  update: (id: string, input: PriceListInput & { version: number }) => api<PriceListDetail>(`/core/price-lists/${id}`, { method: 'PATCH', body: input }),
+  setStatus: (id: string, action: 'deactivate' | 'activate', version: number) => api<PriceListDetail>(`/core/price-lists/${id}/${action}`, { method: 'POST', body: { version } }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; code: string }>(`/core/price-lists/${id}`, { method: 'DELETE', query: { version } }),
 }

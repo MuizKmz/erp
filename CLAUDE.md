@@ -400,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C0 to C4 are done; C4 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: items and units (C02, C03, C11). C3: customers (C04, C05) with credit fields under their own permission and the prospect link with Sales. C4: suppliers (C06, C07) with contract prices under their own permission; buyers edit suppliers. Next: C5.
+**Status:** C0 to C5 are done; C5 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: items and units (C02, C03, C11). C3: customers (C04, C05) with credit fields under their own permission and the prospect link with Sales. C4: suppliers (C06, C07) with contract prices under their own permission; buyers edit suppliers. C5: price lists (C08, C09) with dated prices; Sales reads them through the port with the same answers. Next: C6.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 

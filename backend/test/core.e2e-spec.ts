@@ -537,4 +537,173 @@ describe('Core (end to end)', () => {
       expect(((await api.call('POST', 'core/suppliers', 'LMY', newSupplier)).body as Supplier).code).toBe('S-0073');
     });
   });
+
+  describe('C5 · Price lists', () => {
+    interface PriceRow {
+      itemCode: string;
+      itemName: string;
+      uomCode: string;
+      unitPrice: string;
+      validFrom: string;
+      state: string;
+      locked: boolean;
+    }
+    interface PriceList {
+      id: string;
+      code: string;
+      name: string;
+      currency: string;
+      taxInclusive: boolean;
+      validFrom: string;
+      validTo: string | null;
+      isActive: boolean;
+      status: string;
+      version: number;
+      priceCount: number;
+      prices: PriceRow[];
+      customers: { code: string; name: string }[];
+      documents: number;
+      allowedActions: string[];
+      refusals: Record<string, string>;
+      activity: { message: string }[];
+    }
+    type Errors = { errors: { field: string; message: string }[] };
+    type NewRow = { itemCode: string; uomCode: string; unitPrice: string; validFrom: string };
+    const std = async (user = 'ADM') => {
+      const id = (await api.prisma.mdmPriceList.findFirst({ where: { tenantId: TENANT_ID, code: 'STD-2026' } }))!.id;
+      return api.get<PriceList>(`core/price-lists/${id}`, user);
+    };
+    /** What the form sends back: the list's fields and its prices from today on (history stays on the server). */
+    const bodyOf = (l: PriceList, prices: NewRow[] = l.prices.filter((p) => !p.locked)) => ({
+      name: l.name,
+      currency: l.currency,
+      taxInclusive: l.taxInclusive,
+      validFrom: l.validFrom,
+      validTo: l.validTo,
+      prices: prices.map(({ itemCode, uomCode, unitPrice, validFrom }) => ({ itemCode, uomCode, unitPrice, validFrom })),
+      version: l.version,
+    });
+    const row = (p: Partial<NewRow> = {}): NewRow => ({ itemCode: 'CH-DIN-01', uomCode: 'PCS', unitPrice: '260', validFrom: '2026-11-01', ...p });
+    const newList = { code: 'PROMO-2027', name: 'Promotion 2027', currency: 'MYR', taxInclusive: false, validFrom: '2026-11-01', validTo: null, isActive: true, prices: [] as NewRow[] };
+
+    /** Seeded: 6 customers on STD-2026. The C3 journey above adds its new customers to it too. */
+    const stdCustomers = () => api.prisma.mdmCustomer.count({ where: { tenantId: TENANT_ID, priceListCode: 'STD-2026' } });
+
+    it('lists the two price lists as C08 shows them', async () => {
+      const page = await api.get<{ total: number; items: Record<string, unknown>[] }>('core/price-lists', 'AR');
+      const n = await stdCustomers();
+      expect(page.total).toBe(2);
+      expect(page.items.map((l) => [l.code, l.name, l.currency, l.prices, l.taxText, l.validFrom, l.validTo, l.usedBy, l.statusLabel])).toEqual([
+        ['RES-2026', 'Reseller 2026', 'MYR', 6, 'Exclude tax', '2026-01-01', '2026-12-31', '1 customer', 'Active'],
+        ['STD-2026', 'Standard 2026', 'MYR', 17, 'Exclude tax', '2026-01-01', '2026-12-31', `${n} customers`, 'Active'],
+      ]);
+    });
+
+    it('shows STD-2026 with its 17 prices as history, its customers, and why it can be neither deactivated nor deleted', async () => {
+      const l = await std();
+      expect(l.priceCount).toBe(17);
+      expect(l.prices[0]).toEqual({
+        itemId: expect.any(String),
+        itemCode: 'BD-KNG-01',
+        itemName: 'King bed frame, teak',
+        uomCode: 'PCS',
+        unitPrice: '1400.0000',
+        validFrom: '2026-01-01',
+        state: 'current',
+        locked: true,
+      });
+      expect(l.prices.every((p) => p.locked && p.state === 'current')).toBe(true);
+      const n = await stdCustomers();
+      expect(l.customers).toHaveLength(n);
+      expect(l.customers.map((c) => c.code)).toEqual(expect.arrayContaining(['C-0012', 'C-0045', 'C-0056', 'C-0078', 'C-0102', 'C-CASH']));
+      expect(l.documents).toBe(24);
+      expect(l.allowedActions).toEqual(['edit']);
+      expect(l.refusals).toEqual({
+        deactivate: `STD-2026 is the price list of ${n} customers (C-0012, C-0045, C-0056 …). Move them to another price list first.`,
+        delete: `STD-2026 is used on 24 documents and in customers (${n}), so it cannot be deleted. Deactivate it instead.`,
+      });
+      expect((await std('LMY')).allowedActions).toEqual([]);
+      expect((await api.call('POST', `core/price-lists/${l.id}/deactivate`, 'ADM', { version: l.version })).status).toBe(409);
+    });
+
+    it('adds a price that waits for its date; Sales keeps today’s price until then', async () => {
+      const port = api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+      const price = async (onDate: string) => (await port.listPrices(TENANT_ID, { priceListCode: 'STD-2026', itemCodes: ['CH-DIN-01'], onDate })).map((p) => p.unitPrice);
+      const l = await std();
+      const res = await api.call('PATCH', `core/price-lists/${l.id}`, 'ADM', bodyOf(l, [row()]));
+      expect(res.status).toBe(200);
+      const saved = res.body as PriceList;
+      expect(saved.priceCount).toBe(17);
+      expect(saved.prices.filter((p) => p.itemCode === 'CH-DIN-01').map((p) => [p.unitPrice, p.validFrom, p.state, p.locked])).toEqual([
+        ['250.0000', '2026-01-01', 'current', true],
+        ['260.0000', '2026-11-01', 'waiting', false],
+      ]);
+      expect(saved.activity[0]?.message).toBe('Prices: added CH-DIN-01 PCS from 1 Nov 2026 at 260.00');
+      expect(await price('2026-09-29')).toEqual(['250.0000']);
+      expect(await price('2026-11-01')).toEqual(['260.0000']);
+      const event = await api.prisma.sysOutbox.findFirst({ where: { aggregateId: l.id, name: 'mdm.price_list.updated' }, orderBy: { seq: 'desc' } });
+      expect(event?.payload).toMatchObject({ code: 'STD-2026', changedFields: ['price:CH-DIN-01|PCS|2026-11-01'] });
+
+      // Sending no rows never touches history: removing the waiting price leaves the 17 seeded ones.
+      const back = await api.call('PATCH', `core/price-lists/${l.id}`, 'ADM', bodyOf(saved, []));
+      expect((back.body as PriceList).prices).toHaveLength(17);
+      expect((back.body as PriceList).activity[0]?.message).toBe('Prices: removed CH-DIN-01 PCS from 1 Nov 2026 (260.00)');
+    });
+
+    it('refuses what the rules do not allow, naming the field', async () => {
+      const l = await std();
+      const errors = async (patch: Record<string, unknown>, user = 'ADM') => {
+        const r = await api.call('PATCH', `core/price-lists/${l.id}`, user, { ...bodyOf(l), ...patch });
+        return r.status === 400 ? (r.body as Errors).errors : r.status;
+      };
+      expect(await errors({ prices: [row({ validFrom: '2026-09-01' })] })).toEqual([{ field: 'prices[0]', message: 'A price cannot start before today (29 Sep 2026). Earlier prices are history.' }]);
+      expect(await errors({ prices: [row({ unitPrice: '0' })] })).toEqual([{ field: 'prices[0]', message: 'A price must be more than 0.' }]);
+      expect(await errors({ prices: [row({ uomCode: 'BOX' })] })).toEqual([{ field: 'prices[0]', message: 'BOX is not a unit of CH-DIN-01. Pick PCS.' }]);
+      expect(await errors({ prices: [row({ itemCode: 'TM-OAK-01' })] })).toEqual([{ field: 'prices[0]', message: 'TM-OAK-01 cannot be sold, so it cannot have a price.' }]);
+      expect(await errors({ prices: [row(), row({ unitPrice: '255' })] })).toEqual([
+        { field: 'prices[1]', message: 'CH-DIN-01 already has a price in PCS from 1 Nov 2026. Change that row instead.' },
+      ]);
+      expect(await errors({ prices: [row({ validFrom: '2027-01-04' })] })).toEqual([{ field: 'prices[0]', message: 'The list ends on 31 Dec 2026, so a price cannot start after that.' }]);
+      expect(await errors({ validFrom: '2026-02-01' })).toEqual([{ field: 'validFrom', message: 'A price starts on 1 Jan 2026, so the list cannot start later.' }]);
+      expect(await errors({ taxInclusive: true })).toEqual([
+        { field: 'taxInclusive', message: 'Prices on this list have started, so whether they include tax cannot change. Start a new price list instead.' },
+      ]);
+      expect(await errors({ name: 'Standard' }, 'LMY')).toBe(403);
+      expect(await errors({ name: 'Standard', version: l.version + 1 })).toBe(409);
+    });
+
+    it('creates a price list that is deactivated, activated and deleted, and its code is never used again', async () => {
+      const res = await api.call('POST', 'core/price-lists', 'ADM', { ...newList, code: 'promo-2027', prices: [row({ unitPrice: '229.90' })] });
+      expect(res.status).toBe(201);
+      let l = res.body as PriceList;
+      expect(l).toMatchObject({ code: 'PROMO-2027', status: 'ACTIVE', priceCount: 1, customers: [], documents: 0 });
+      expect(l.allowedActions).toEqual(['edit', 'deactivate', 'delete']);
+      const port = api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+      const act = async (action: string) => {
+        const r = await api.call('POST', `core/price-lists/${l.id}/${action}`, 'ADM', { version: l.version });
+        expect(r.status).toBe(201);
+        l = r.body as PriceList;
+        return (await port.listPriceLists(TENANT_ID)).map((p) => p.code);
+      };
+      expect(await act('deactivate')).toEqual(['RES-2026', 'STD-2026']);
+      expect(await act('activate')).toEqual(['PROMO-2027', 'RES-2026', 'STD-2026']);
+      expect(await api.call('DELETE', `core/price-lists/${l.id}?version=${l.version}`, 'ADM')).toMatchObject({ status: 200, body: { deleted: true, code: 'PROMO-2027' } });
+      expect(await api.prisma.mdmPriceListItem.count({ where: { tenantId: TENANT_ID, priceListCode: 'PROMO-2027' } })).toBe(0);
+      expect(((await api.call('POST', 'core/price-lists', 'ADM', newList)).body as Errors).errors).toEqual([
+        { field: 'code', message: 'PROMO-2027 belonged to a price list that was deleted. Codes are never used again.' },
+      ]);
+      expect(((await api.call('POST', 'core/price-lists', 'ADM', { ...newList, code: 'STD-2026' })).body as Errors).errors).toEqual([
+        { field: 'code', message: 'STD-2026 is already the code of Standard 2026.' },
+      ]);
+    });
+
+    it('offers sellable items with the units they can be priced in', async () => {
+      const found = await api.get<{ items: { code: string; units: string[] }[] }>('core/lookups/sellable-items?q=CH-DIN', 'ADM');
+      expect(found.items.map((i) => [i.code, i.units])).toEqual([
+        ['CH-DIN-01', ['PCS']],
+        ['CH-DIN-02', ['PCS']],
+        ['CH-DIN-09', ['PCS']],
+      ]);
+    });
+  });
 });

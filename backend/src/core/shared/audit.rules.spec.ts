@@ -1,9 +1,14 @@
 import { Prisma } from '@prisma/client';
-import { changeMessage, diffRecord, display } from './audit.rules';
+import { changeMessage, dayText, diffRecord, display } from './audit.rules';
 
 const LABELS = { name: 'Name', creditLimit: 'Credit limit', overdueLimit: 'Overdue limit', isSellable: 'Sellable', validFrom: 'Valid from' };
 
 describe('Core audit rules', () => {
+  it('writes dates as 1 Jan 2026, September as Sep whatever the locale', () => {
+    expect(dayText('2026-01-01')).toBe('1 Jan 2026');
+    expect(dayText('2026-09-29')).toBe('29 Sep 2026');
+  });
+
   it('reads values the way people do', () => {
     expect(display(new Prisma.Decimal('150000.00'))).toBe('150000');
     expect(display(new Date('2026-09-29T00:00:00Z'))).toBe('2026-09-29');

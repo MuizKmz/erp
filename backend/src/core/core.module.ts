@@ -10,6 +10,9 @@ import { CoreItemsController } from './items/items.controller';
 import { ItemsQuery } from './items/items.query';
 import { ItemsService } from './items/items.service';
 import { CoreLookupsController } from './lookups/lookups.controller';
+import { CorePriceListsController } from './price-lists/price-lists.controller';
+import { PriceListsQuery } from './price-lists/price-lists.query';
+import { PriceListsService } from './price-lists/price-lists.service';
 import { CoreRecordsService } from './shared/core-records.service';
 import { CoreSuppliersController } from './suppliers/suppliers.controller';
 import { SuppliersQuery } from './suppliers/suppliers.query';
@@ -25,8 +28,8 @@ import { CoreUsageQuery } from './usage/usage.query';
  * through MasterDataPort. Never imports from purchase/ or sales/, and never reads their tables.
  */
 @Module({
-  controllers: [CoreDashboardController, CoreUsageController, CoreLookupsController, CoreItemsController, CoreUomsController, CoreCustomersController, CoreSuppliersController],
-  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService, CustomersQuery, CustomersService, SuppliersQuery, SuppliersService],
+  controllers: [CoreDashboardController, CoreUsageController, CoreLookupsController, CoreItemsController, CoreUomsController, CoreCustomersController, CoreSuppliersController, CorePriceListsController],
+  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService, CustomersQuery, CustomersService, SuppliersQuery, SuppliersService, PriceListsQuery, PriceListsService],
 })
 export class CoreModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionRegistry) {}

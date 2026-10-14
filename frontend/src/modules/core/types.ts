@@ -333,3 +333,63 @@ export interface PurchasableItemOption {
   name: string
   baseUom: string
 }
+
+export type PriceListStatus = 'ACTIVE' | 'INACTIVE'
+export type PriceListAction = 'edit' | 'deactivate' | 'activate' | 'delete'
+/** current: the price today; waiting: starts later; earlier: history, replaced by a newer price. */
+export type PriceState = 'current' | 'waiting' | 'earlier'
+
+interface PriceListFields {
+  name: string
+  currency: string
+  taxInclusive: boolean
+  validFrom: string
+  validTo: string | null
+}
+
+export interface PriceListListItem extends PriceListFields {
+  id: string
+  code: string
+  isActive: boolean
+  status: PriceListStatus
+  statusLabel: string
+  prices: number
+  taxText: string
+  customers: number
+  usedBy: string
+}
+
+export interface PriceInput {
+  itemCode: string
+  uomCode: string
+  unitPrice: string
+  validFrom: string
+}
+
+/** What the C09 form saves: the list's fields and its prices from today on (earlier prices are history and stay). */
+export interface PriceListInput extends PriceListFields {
+  prices: PriceInput[]
+}
+
+export interface PriceListDetail extends PriceListFields {
+  id: string
+  code: string
+  isActive: boolean
+  status: PriceListStatus
+  statusLabel: string
+  version: number
+  priceCount: number
+  prices: (PriceInput & { itemId: string | null; itemName: string; state: PriceState; locked: boolean })[]
+  customers: { id: string; code: string; name: string }[]
+  documents: number
+  activity: CoreActivity[]
+  allowedActions: PriceListAction[]
+  refusals: Partial<Record<PriceListAction, string>>
+}
+
+export interface SellableItemOption {
+  code: string
+  name: string
+  baseUom: string
+  units: string[]
+}
