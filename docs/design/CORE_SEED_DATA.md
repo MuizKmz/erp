@@ -255,3 +255,7 @@ Not covered by the SRS or SDD. The user approved these defaults in C0.
 | 9 | C09 | Quantity breaks on prices (SRS FR-MST-030). | Later, together with the Sales change that applies them. Sales does not use them today, so a break entered in Core would do nothing. |
 | 10 | C10 | *Exemption permitted* on tax codes (SRS FR-MST-055). | Comes with tax exemptions, which are not in Phase 3. |
 | 11 | C05 | Who sets credit limits; the SRS does not say. | The Finance Manager and the Master Data Admin (`core.customer.credit`). |
+| 12 | C03 | Who sees an item's standard cost in Core? It gives the estimated margin, which Sales shows only to the Sales Manager. | Only those who edit items. Everyone else sees the item without it. |
+| 13 | C03 | Which LHDN classification codes can an item pick? | The 45 codes of the MyInvois SDK's *Classification Codes*, kept in one file (`core/shared/einvoice-classifications.ts`). Check them against the current SDK before go-live. |
+| 14 | C03 | A sell-only item has no purchase tax, but the column cannot be empty. | It keeps its sales tax code there. Purchase never uses an item that cannot be bought. |
+| 15 | C02 | How many items to a page? | 14, as in the mockup (*Page 1 of 3*). |

@@ -29,6 +29,7 @@ export const CORE_ROLE = {
 export const CORE_EVENT = {
   ITEM_CREATED: 'mdm.item.created',
   ITEM_UPDATED: 'mdm.item.updated',
+  ITEM_DELETED: 'mdm.item.deleted',
   CUSTOMER_CREATED: 'mdm.customer.created',
   CUSTOMER_UPDATED: 'mdm.customer.updated',
   SUPPLIER_CREATED: 'mdm.supplier.created',
@@ -36,5 +37,6 @@ export const CORE_EVENT = {
   PRICE_LIST_UPDATED: 'mdm.price_list.updated',
   TAX_CODE_UPDATED: 'mdm.tax_code.updated',
   UOM_UPDATED: 'mdm.uom.updated',
+  UOM_DELETED: 'mdm.uom.deleted',
   WAREHOUSE_UPDATED: 'mdm.warehouse.updated',
 } as const;

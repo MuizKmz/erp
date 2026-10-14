@@ -126,7 +126,7 @@ Theme: indigo. Sidebar groups: **Items & Units**, **Customers & Suppliers**, **P
 
 The Core mockups were made in step C0, after the app's layout redesign, so they show the current shell (icon rail, group panel, floating top bar). Lists and forms follow the Purchase and Sales patterns. They were revised after checking the SRS and SDD: `CORE_SEED_DATA.md` → *Decided by the SRS and SDD* lists each rule with its reference.
 
-The item, customer and supplier forms show where the record is used. Delete is possible only while nothing uses it. Block and Discontinue wait while an open Purchase or Sales document uses it. Core gets this from a read-only check that Purchase and Sales provide. The same answer is at `GET /api/v1/core/usage/:kind/:code` (`item`, `customer`, `supplier`, `uom`, `tax-code`, `price-list`, `warehouse`), e.g. `/core/usage/item/CH-DIN-01`.
+The item, customer and supplier forms show where the record is used. Delete is possible only while nothing uses it. Block and Discontinue wait while an open Purchase or Sales document uses it. Core gets this from a read-only check that Purchase and Sales provide. Forms pick from `GET /api/v1/core/lookups/item-form` (item groups, units, tax codes, LHDN classification codes) and `GET /api/v1/core/lookups/suppliers?q=`. The same usage answer is at `GET /api/v1/core/usage/:kind/:code` (`item`, `customer`, `supplier`, `uom`, `tax-code`, `price-list`, `warehouse`), e.g. `/core/usage/item/CH-DIN-01`.
 
 | Code | Screen | Mockup | Route | Main API |
 |---|---|---|---|---|
@@ -140,7 +140,7 @@ The item, customer and supplier forms show where the record is used. Delete is p
 | C08 | Price lists | `CorePriceLists.html` | `/core/price-lists` | GET /api/v1/core/price-lists |
 | C09 | Price list with its prices | `CorePriceListForm.html` | `/core/price-lists/:id` | GET, POST, PATCH /api/v1/core/price-lists/:id |
 | C10 | Tax codes | `CoreTaxCodes.html` | `/core/tax-codes` | GET, POST /api/v1/core/tax-codes · POST …/:code/rates |
-| C11 | Units of measure | `CoreUoms.html` | `/core/uoms` | GET, POST, PATCH /api/v1/core/uoms |
+| C11 | Units of measure | `CoreUoms.html` | `/core/uoms` | GET, POST /api/v1/core/uoms · GET, PATCH, DELETE /api/v1/core/uoms/:id (delete only if never used) |
 | C12 | Reference lists | `CoreReference.html` | `/core/reference` | GET, POST, PATCH /api/v1/core/reference/:list |
 | C13 | Warehouses and locations (locations read only) | `CoreWarehouses.html` | `/core/warehouses` | GET, POST, PATCH /api/v1/core/warehouses · GET /api/v1/core/warehouses/:code/locations |
 | C14 | Import from CSV | `CoreImport.html` | `/core/import` | POST /api/v1/core/imports (check, saves nothing) · POST /api/v1/core/imports/:id/load (saves the rows that pass) · GET /api/v1/core/imports/:id/problems.csv |

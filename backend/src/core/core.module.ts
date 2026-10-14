@@ -3,7 +3,14 @@ import { PermissionRegistry } from '../platform/context/permission.registry';
 import { CORE_ROLE_GRANTS } from './core.permissions';
 import { CoreDashboardController } from './dashboard/dashboard.controller';
 import { CoreDashboardQuery } from './dashboard/dashboard.query';
+import { CoreItemsController } from './items/items.controller';
+import { ItemsQuery } from './items/items.query';
+import { ItemsService } from './items/items.service';
+import { CoreLookupsController } from './lookups/lookups.controller';
 import { CoreRecordsService } from './shared/core-records.service';
+import { CoreUomsController } from './uoms/uoms.controller';
+import { UomsQuery } from './uoms/uoms.query';
+import { UomsService } from './uoms/uoms.service';
 import { CoreUsageController } from './usage/usage.controller';
 import { CoreUsageQuery } from './usage/usage.query';
 
@@ -12,8 +19,8 @@ import { CoreUsageQuery } from './usage/usage.query';
  * through MasterDataPort. Never imports from purchase/ or sales/, and never reads their tables.
  */
 @Module({
-  controllers: [CoreDashboardController, CoreUsageController],
-  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery],
+  controllers: [CoreDashboardController, CoreUsageController, CoreLookupsController, CoreItemsController, CoreUomsController],
+  providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService],
 })
 export class CoreModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionRegistry) {}

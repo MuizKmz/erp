@@ -400,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C0 and C1 are done; C1 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, the permissions and role, customer and supplier numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home with *Needs attention*. Next: C2.
+**Status:** C0, C1 and C2 are done; C2 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: the item list and form (C02, C03) and units (C11). Next: C3.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 
@@ -511,7 +511,7 @@ What the contract and SRS need that the `mdm_` tables lack today:
 
 ## Core business rules (enforce on the server, test in `*.rules.spec.ts`)
 
-1. **Codes:** unique per tenant, never reused, never changed after saving.
+1. **Codes:** unique per tenant, never reused (not even a deleted record's code), never changed after saving.
 2. **Statuses:**
    - Item `ACTIVE` / `BLOCKED` / `DISCONTINUED`.
    - Customer `ACTIVE` / `BLOCKED` / `PROSPECT`.
@@ -528,9 +528,13 @@ What the contract and SRS need that the `mdm_` tables lack today:
    - Customer: name, branch, price list, credit term.
    - Supplier: name, payment term, currency.
 6. **Units:**
-   - A conversion factor is greater than 0.
-   - A factor below 1 against the base unit is refused where it would give a fractional base quantity beyond the unit's decimals (SRS FR-MST-017).
+   - A conversion reads "1 from = factor to", and one side is the item's base unit. The factor is greater than 0.
+   - A factor below 1 against the base unit is refused where it would give a fractional base quantity beyond the base unit's decimals (SRS FR-MST-017): with PCS (0 decimals), "1 BOX = 2.5 PCS" is refused.
+   - The purchase and sales units are the base unit or a unit with a conversion.
+   - An item's base unit cannot change once a document uses it.
+   - A unit's decimals can go up any time, and down only while nothing uses the unit. A unit cannot be made inactive while an active item uses it.
    - Changing a factor never changes documents.
+   - An item's barcode is unique.
 7. **Tax** (SRS BR-TAX-006, FR-MST-055): every code has a type; rates are effective-dated, with no overlapping periods for the same code; documents keep the rate they used.
 8. **Price lists** (SRS BR-PRC-003, BR-PRC-004): one price per item, unit and date. A future price waits for its date, and the price on any past date can be shown. Quantity breaks come later (*Not in Phase 3*).
 9. **Customer credit:**

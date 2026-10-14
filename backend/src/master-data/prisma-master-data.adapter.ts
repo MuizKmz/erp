@@ -278,7 +278,7 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
     // Dated prices (SRS BR-PRC-003/004): per item and unit, the newest row that has started by the date.
     const rows = await this.prisma.mdmPriceListItem.findMany({
       where: { tenantId, priceListCode: list.code, validFrom: { lte: on }, ...(filter.itemCodes && { itemCode: { in: filter.itemCodes } }) },
-      orderBy: { validFrom: 'asc' },
+      orderBy: [{ validFrom: 'asc' }, { itemCode: 'asc' }, { uomCode: 'asc' }],
     });
     return latestValidByKey(rows, (r) => `${r.itemCode}|${r.uomCode}`, on).map((r) => ({
       priceListCode: r.priceListCode,

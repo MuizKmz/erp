@@ -145,4 +145,169 @@ describe('Core (end to end)', () => {
       }
     });
   });
+
+  describe('C2 · Items and units', () => {
+    interface Item {
+      id: string;
+      code: string;
+      name: string;
+      status: string;
+      version: number;
+      standardCost: string | null;
+      canSeeCost: boolean;
+      allowedActions: string[];
+      refusals: Record<string, string>;
+      usage: Usage;
+      prices: { priceListName: string; uomCode: string; unitPrice: string }[];
+      activity: { message: string }[];
+      conversions: { fromUom: string; toUom: string; factor: string }[];
+    }
+    const newItem = {
+      code: 'ch-tst-01',
+      name: 'Test stool',
+      itemGroup: 'Seating',
+      type: 'STOCK',
+      baseUom: 'PCS',
+      barcode: null,
+      einvoiceClassification: '022',
+      isPurchasable: true,
+      isBuyToOrder: false,
+      purchaseUom: null,
+      purchaseTaxCode: 'SST10',
+      preferredSupplierCode: 'S-0047',
+      reorderLevel: '10',
+      packSize: '1',
+      isSellable: true,
+      salesUom: 'BOX',
+      salesTaxCode: 'SST10',
+      standardCost: '55.00',
+      conversions: [{ fromUom: 'BOX', toUom: 'PCS', factor: '4' }],
+    };
+    const FIELDS = Object.keys(newItem).filter((k) => k !== 'code');
+    /** The fields a save sends, taken from a detail response. */
+    const fieldsOf = (item: Item) => {
+      const source = item as unknown as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const key of FIELDS) out[key] = source[key];
+      out.conversions = item.conversions.map(({ fromUom, toUom, factor }) => ({ fromUom, toUom, factor }));
+      return out;
+    };
+    let created: Item;
+
+    it('lists the 39 items with their filters and tabs, 14 to a page', async () => {
+      const page = await api.get<{ items: { code: string }[]; total: number; statusCounts: Record<string, number> }>('core/items?pageSize=14', 'FO');
+      expect(page.total).toBe(39);
+      expect(page.items).toHaveLength(14);
+      expect(page.statusCounts).toMatchObject({ all: 39, active: 39, blocked: 0, discontinued: 0 });
+      const total = async (query: string) => (await api.get<{ total: number }>(`core/items?${query}`)).total;
+      expect(await total('group=Seating')).toBe(6);
+      expect(await total('use=buy')).toBe(24);
+      expect(await total('use=sell')).toBe(17);
+      expect(await total('q=CH-DIN')).toBe(3);
+    });
+
+    it('shows CH-DIN-01 with its prices and why it can be neither blocked nor deleted', async () => {
+      const id = (await api.prisma.mdmItem.findFirst({ where: { tenantId: TENANT_ID, code: 'CH-DIN-01' } }))!.id;
+      const item = await api.get<Item>(`core/items/${id}`);
+      expect(item.prices.map((p) => `${p.priceListName} ${p.unitPrice} ${p.uomCode}`)).toEqual(['Reseller 2026 235.00 PCS', 'Standard 2026 250.00 PCS']);
+      expect(item.usage.documents).toBe(19);
+      expect(item.allowedActions).toEqual(['edit']);
+      expect(item.refusals.block).toBe('CH-DIN-01 is on 7 open documents (SO-0001, SO-0002, SO-0005 …). Finish or cancel them first.');
+      expect(item.refusals.delete).toBe('CH-DIN-01 is used on 19 documents and in price lists (2), so it cannot be deleted. Discontinue it instead.');
+      expect(item.standardCost).toBe('170.0000');
+      const asAgent = await api.get<Item>(`core/items/${id}`, 'FO');
+      expect(asAgent).toMatchObject({ allowedActions: [], canSeeCost: false, standardCost: null });
+
+      expect(await api.call('POST', `core/items/${id}/block`, 'ADM', { version: item.version })).toMatchObject({ status: 409, body: { code: 'IN_USE' } });
+      const rebased = await api.call('PATCH', `core/items/${id}`, 'ADM', { ...fieldsOf(item), baseUom: 'BOX', version: item.version });
+      expect(rebased).toMatchObject({ status: 409, body: { message: 'CH-DIN-01 is used on 19 documents, so its base unit cannot change.' } });
+    });
+
+    it('creates an item that Purchase and Sales can use at once, with its activity and event', async () => {
+      const res = await api.call('POST', 'core/items', 'ADM', newItem);
+      expect(res.status).toBe(201);
+      created = res.body as Item;
+      expect(created).toMatchObject({ code: 'CH-TST-01', status: 'ACTIVE', usage: { documents: 0, open: [] } });
+      expect(created.allowedActions).toEqual(['edit', 'block', 'discontinue', 'delete']);
+      expect(created.activity.map((a) => a.message)).toEqual(['Item CH-TST-01 created']);
+      const event = await api.prisma.sysOutbox.findFirst({ where: { aggregateId: created.id, name: 'mdm.item.created' } });
+      expect(event?.payload).toMatchObject({ code: 'CH-TST-01', snapshot: { salesUom: 'BOX', conversions: [{ fromUom: 'BOX', toUom: 'PCS', factor: '4' }] } });
+
+      const port = api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+      expect((await port.findItems(TENANT_ID, ['CH-TST-01']))[0]).toMatchObject({ salesUomCode: 'BOX', preferredSupplierCode: 'S-0047', status: 'ACTIVE' });
+      expect((await port.searchPurchasableItems(TENANT_ID, { q: 'CH-TST' })).map((i) => i.code)).toEqual(['CH-TST-01']);
+      const home = await api.get<{ cards: { key: string; total: number }[] }>('core/dashboard');
+      expect(home.cards.find((c) => c.key === 'items')?.total).toBe(40);
+    });
+
+    it('refuses what the rules do not allow, naming the field', async () => {
+      const bad = async (patch: Record<string, unknown>) =>
+        ((await api.call('POST', 'core/items', 'ADM', { ...newItem, code: 'CH-TST-02', ...patch })).body as { errors: { field: string; message: string }[] }).errors;
+      expect(await bad({ code: 'CH-DIN-01' })).toContainEqual({ field: 'code', message: 'CH-DIN-01 is already the code of Dining chair, solid oak.' });
+      expect(await bad({ conversions: [{ fromUom: 'BOX', toUom: 'PCS', factor: '2.5' }] })).toContainEqual({ field: 'conversions[0]', message: '1 BOX would be 2.5 PCS, but PCS allows no decimals.' });
+      expect(await bad({ salesUom: 'TIN' })).toContainEqual({ field: 'salesUom', message: 'Sales unit TIN needs a conversion to the base unit (PCS).' });
+      expect(await bad({ itemGroup: 'Nope' })).toContainEqual({ field: 'itemGroup', message: 'Pick the item group from the list.' });
+      expect(await bad({ barcode: '9551234000011' })).toContainEqual({ field: 'barcode', message: 'Barcode 9551234000011 is already on CH-DIN-01.' });
+      expect((await api.call('POST', 'core/items', 'LMY', { ...newItem, code: 'CH-TST-03' })).status).toBe(403);
+    });
+
+    it('saves a change with its before and after values, and refuses a stale save', async () => {
+      const res = await api.call('PATCH', `core/items/${created.id}`, 'ADM', { ...fieldsOf(created), name: 'Test bar stool', version: created.version });
+      expect(res.status).toBe(200);
+      const saved = res.body as Item;
+      expect(saved.version).toBe(created.version + 1);
+      expect(saved.activity.map((a) => a.message)).toContain('Changed name Test stool → Test bar stool');
+      const stale = await api.call('PATCH', `core/items/${created.id}`, 'ADM', { ...fieldsOf(created), name: 'Again', version: created.version });
+      expect(stale).toMatchObject({ status: 409, body: { code: 'STALE_VERSION' } });
+      created = saved;
+    });
+
+    it('blocks, activates and discontinues an unused item, then deletes it; its code is never used again', async () => {
+      const act = async (action: string) => {
+        const res = await api.call('POST', `core/items/${created.id}/${action}`, 'ADM', { version: created.version });
+        expect(res.status).toBe(201);
+        created = res.body as Item;
+        return created.status;
+      };
+      expect(await act('block')).toBe('BLOCKED');
+      expect(await act('activate')).toBe('ACTIVE');
+      expect(await act('discontinue')).toBe('DISCONTINUED');
+      const port = api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+      expect(await port.searchPurchasableItems(TENANT_ID, { q: 'CH-TST' })).toEqual([]);
+
+      const gone = await api.call('DELETE', `core/items/${created.id}?version=${created.version}`, 'ADM');
+      expect(gone).toMatchObject({ status: 200, body: { deleted: true, code: 'CH-TST-01' } });
+      expect(await api.prisma.sysOutbox.count({ where: { aggregateId: created.id, name: 'mdm.item.deleted' } })).toBe(1);
+      const again = await api.call('POST', 'core/items', 'ADM', newItem);
+      expect(again.body).toMatchObject({ errors: [{ field: 'code', message: 'CH-TST-01 belonged to an item that was deleted. Codes are never used again.' }] });
+    });
+
+    it('lists units and conversions, adds and deletes an unused unit, and protects units in use', async () => {
+      interface Units {
+        units: { id: string; code: string; decimals: number; version: number; baseOf: number }[];
+        conversions: { itemCode: string; text: string }[];
+      }
+      const list = await api.get<Units>('core/uoms', 'FO');
+      expect(list.units).toHaveLength(9);
+      expect(list.conversions).toEqual([expect.objectContaining({ itemCode: 'FB-OAK-01', text: '1 ROLL = 50 M' })]);
+      const pcs = list.units.find((u) => u.code === 'PCS')!;
+      const m = list.units.find((u) => u.code === 'M')!;
+
+      const added = await api.call('POST', 'core/uoms', 'ADM', { code: 'ctn', name: 'Carton', decimals: 0 });
+      expect(added.status).toBe(201);
+      const ctn = (added.body as Units).units.find((u) => u.code === 'CTN')!;
+      const raised = await api.call('PATCH', `core/uoms/${ctn.id}`, 'ADM', { name: 'Carton', decimals: 2, isActive: true, version: ctn.version });
+      expect((raised.body as Units).units.find((u) => u.code === 'CTN')?.decimals).toBe(2);
+      expect((await api.call('DELETE', `core/uoms/${ctn.id}?version=${ctn.version + 1}`, 'ADM')).status).toBe(200);
+
+      const pcsDetail = await api.get<{ refusals: Record<string, string>; usage: Usage }>(`core/uoms/${pcs.id}`);
+      expect(pcsDetail.usage.documents).toBeGreaterThan(0);
+      expect(pcsDetail.refusals.delete).toMatch(/^PCS is used on \d+ documents/);
+      expect(await api.call('DELETE', `core/uoms/${pcs.id}?version=${pcs.version}`, 'ADM')).toMatchObject({ status: 409, body: { code: 'IN_USE' } });
+      const off = await api.call('PATCH', `core/uoms/${pcs.id}`, 'ADM', { name: 'Piece', decimals: 0, isActive: false, version: pcs.version });
+      expect(off).toMatchObject({ status: 409, body: { code: 'UNIT_IN_USE' } });
+      const down = await api.call('PATCH', `core/uoms/${m.id}`, 'ADM', { name: 'Metre', decimals: 0, isActive: true, version: m.version });
+      expect(down).toMatchObject({ status: 409, body: { message: 'M is in use, so its decimals cannot go down (from 2 to 0). They can go up.' } });
+    });
+  });
 });
