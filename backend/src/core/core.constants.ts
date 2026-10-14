@@ -7,6 +7,8 @@ export const CORE_ENTITY = {
   PRICE_LIST: 'MDM_PRICE_LIST',
   TAX_CODE: 'MDM_TAX_CODE',
   WAREHOUSE: 'MDM_WAREHOUSE',
+  /** An item group, customer category, area or credit term (C12). */
+  REFERENCE: 'MDM_REFERENCE',
 } as const;
 
 export type CoreEntityType = (typeof CORE_ENTITY)[keyof typeof CORE_ENTITY];
@@ -39,7 +41,11 @@ export const CORE_EVENT = {
   PRICE_LIST_UPDATED: 'mdm.price_list.updated',
   PRICE_LIST_DELETED: 'mdm.price_list.deleted',
   TAX_CODE_UPDATED: 'mdm.tax_code.updated',
+  TAX_CODE_DELETED: 'mdm.tax_code.deleted',
   UOM_UPDATED: 'mdm.uom.updated',
   UOM_DELETED: 'mdm.uom.deleted',
   WAREHOUSE_UPDATED: 'mdm.warehouse.updated',
+  WAREHOUSE_DELETED: 'mdm.warehouse.deleted',
+  REFERENCE_UPDATED: 'mdm.reference.updated',
+  REFERENCE_DELETED: 'mdm.reference.deleted',
 } as const;

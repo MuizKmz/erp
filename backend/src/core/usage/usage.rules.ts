@@ -37,7 +37,7 @@ const INSTEAD: Record<UsageKind, string> = {
   CUSTOMER: 'Block it instead.',
   SUPPLIER: 'Block it instead.',
   UOM: 'Make it inactive instead.',
-  TAX_CODE: 'End its rate instead.',
+  TAX_CODE: 'Make it inactive instead.',
   PRICE_LIST: 'Deactivate it instead.',
   WAREHOUSE: 'Make it inactive instead.',
 };

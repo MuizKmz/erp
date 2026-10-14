@@ -393,3 +393,104 @@ export interface SellableItemOption {
   baseUom: string
   units: string[]
 }
+
+export type TaxType = 'SALES_TAX' | 'SERVICE_TAX' | 'EXEMPT'
+export type TaxCodeAction = 'edit' | 'newRate' | 'delete'
+/** current: valid today; waiting: starts later; ended: closed by a newer rate. */
+export type TaxPeriodState = 'current' | 'waiting' | 'ended'
+
+export interface TaxCodeRow {
+  code: string
+  name: string
+  type: TaxType
+  typeLabel: string
+  rate: string
+  country: string
+  validFrom: string
+  validTo: string | null
+  state: TaxPeriodState
+  next: { rate: string; validFrom: string } | null
+  buying: number
+  selling: number
+  isActive: boolean
+}
+
+export interface TaxCodesData {
+  codes: TaxCodeRow[]
+  canEdit: boolean
+}
+
+export interface TaxPeriod {
+  id: string
+  name: string
+  rate: string
+  validFrom: string
+  validTo: string | null
+  state: TaxPeriodState
+  removable: boolean
+}
+
+export interface TaxCodeDetail {
+  code: string
+  name: string
+  type: TaxType
+  typeLabel: string
+  country: string
+  isActive: boolean
+  version: number
+  periods: TaxPeriod[]
+  buying: number
+  selling: number
+  documents: number
+  activity: CoreActivity[]
+  allowedActions: TaxCodeAction[]
+  refusals: { delete?: string; deactivate?: string }
+}
+
+export type ReferenceListKey = 'item-groups' | 'customer-categories' | 'areas' | 'credit-terms'
+
+export interface ReferenceEntry {
+  id: string
+  name: string
+  days?: number
+  isActive: boolean
+  version: number
+  usedBy: string
+  refusals: { rename?: string; days?: string; delete?: string }
+}
+
+export interface ReferenceData {
+  lists: Record<ReferenceListKey, ReferenceEntry[]>
+  lookAlike: string | null
+  canEdit: boolean
+}
+
+export interface WarehouseRow {
+  id: string
+  code: string
+  name: string
+  branchCode: string
+  branch: string
+  isActive: boolean
+  version: number
+  locations: { code: string; name: string; isActive: boolean }[]
+}
+
+export interface WarehousesData {
+  warehouses: WarehouseRow[]
+  branches: { code: string; name: string }[]
+  canEdit: boolean
+}
+
+export interface WarehouseDetail {
+  id: string
+  code: string
+  name: string
+  branchCode: string
+  isActive: boolean
+  version: number
+  usage: RecordUsage
+  activity: CoreActivity[]
+  allowedActions: ('edit' | 'delete')[]
+  refusals: { delete?: string; deactivate?: string; branch?: string }
+}

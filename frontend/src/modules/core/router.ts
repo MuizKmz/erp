@@ -10,6 +10,9 @@ const SupplierList = () => import('./views/SupplierListView.vue')
 const SupplierForm = () => import('./views/SupplierFormView.vue')
 const PriceLists = () => import('./views/PriceListsView.vue')
 const PriceListForm = () => import('./views/PriceListFormView.vue')
+const TaxCodes = () => import('./views/TaxCodesView.vue')
+const Reference = () => import('./views/ReferenceView.vue')
+const Warehouses = () => import('./views/WarehousesView.vue')
 
 type Group = 'catalog' | 'parties' | 'pricing' | 'warehouses' | 'setup'
 
@@ -41,9 +44,9 @@ const SCREENS: ScreenDef[] = [
   { code: 'C07', path: 'suppliers/:id', name: 'core-supplier', title: 'Supplier', group: 'parties', item: 'suppliers', step: 4, mockup: 'CoreSupplierForm.html', parent: doc('Suppliers', '/core/suppliers'), component: SupplierForm },
   { code: 'C08', path: 'price-lists', name: 'core-price-lists', title: 'Price Lists', group: 'pricing', item: 'price-lists', step: 5, mockup: 'CorePriceLists.html', component: PriceLists },
   { code: 'C09', path: 'price-lists/:id', name: 'core-price-list', title: 'Price list', group: 'pricing', item: 'price-lists', step: 5, mockup: 'CorePriceListForm.html', parent: doc('Price Lists', '/core/price-lists'), component: PriceListForm },
-  { code: 'C10', path: 'tax-codes', name: 'core-tax-codes', title: 'Tax Codes', group: 'pricing', item: 'tax-codes', step: 6, mockup: 'CoreTaxCodes.html' },
-  { code: 'C12', path: 'reference', name: 'core-reference', title: 'Reference Lists', group: 'setup', item: 'reference', step: 6, mockup: 'CoreReference.html' },
-  { code: 'C13', path: 'warehouses', name: 'core-warehouses', title: 'Warehouses', group: 'warehouses', item: 'warehouses', step: 6, mockup: 'CoreWarehouses.html' },
+  { code: 'C10', path: 'tax-codes', name: 'core-tax-codes', title: 'Tax Codes', group: 'pricing', item: 'tax-codes', step: 6, mockup: 'CoreTaxCodes.html', component: TaxCodes },
+  { code: 'C12', path: 'reference', name: 'core-reference', title: 'Reference Lists', group: 'setup', item: 'reference', step: 6, mockup: 'CoreReference.html', component: Reference },
+  { code: 'C13', path: 'warehouses', name: 'core-warehouses', title: 'Warehouses', group: 'warehouses', item: 'warehouses', step: 6, mockup: 'CoreWarehouses.html', component: Warehouses },
   { code: 'C14', path: 'import', name: 'core-import', title: 'Import', group: 'setup', item: 'import', step: 7, mockup: 'CoreImport.html' },
 ]
 

@@ -127,7 +127,7 @@ function remove() {
       <span class="text-xs text-erp-muted">Conversions belong to an item: edit them on the item. Changing a factor never changes documents already made.</span>
     </section>
 
-    <Dialog v-model:visible="open" modal :header="editing ? `Unit ${editing.code}` : 'Add unit'" :style="{ width: '440px' }">
+    <Dialog v-model:visible="open" modal append-to="self" :header="editing ? `Unit ${editing.code}` : 'Add unit'" :style="{ width: '440px' }">
       <div class="flex flex-col gap-3.5">
         <div class="flex min-w-0 flex-col gap-1.5 text-xs font-medium text-erp-muted">
           <span class="flex justify-between gap-2">

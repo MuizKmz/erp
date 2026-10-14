@@ -400,7 +400,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 
 # Phase 3 · Core module (Master Data)
 
-**Status:** C0 to C5 are done; C5 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: items and units (C02, C03, C11). C3: customers (C04, C05) with credit fields under their own permission and the prospect link with Sales. C4: suppliers (C06, C07) with contract prices under their own permission; buyers edit suppliers. C5: price lists (C08, C09) with dated prices; Sales reads them through the port with the same answers. Next: C6.
+**Status:** C0 to C6 are done; C6 is waiting for the user's review. C0: the Core mockups (C01–C14), `CORE_SEED_DATA.md` and the Core section in `SCREENS.md`, checked against the SRS and SDD. C1: Core module, permissions and role, numbering, audit and event helpers, the data changes below, the record-usage check, the Core shell and the C01 home. C2: items and units (C02, C03, C11). C3: customers (C04, C05) with credit fields under their own permission and the prospect link with Sales. C4: suppliers (C06, C07) with contract prices under their own permission; buyers edit suppliers. C5: price lists (C08, C09) with dated prices; Sales reads them through the port with the same answers. C6: tax codes with types and rate history (C10), reference lists (C12), warehouses with read-only locations (C13). Next: C7.
 
 Everything above still applies to Core: stack, database and API conventions, no login, the working agreement and the definition of done. This section adds what is different. **Purchase and Sales are finished; Core must not change their behaviour.** If a Core step seems to need a Purchase or Sales change, ask first.
 
@@ -559,6 +559,7 @@ What the contract and SRS need that the `mdm_` tables lack today:
 | `mdm.price_list.updated` | Price list or its prices saved |
 | `mdm.tax_code.updated` | Tax rate added or changed |
 | `mdm.uom.updated`, `mdm.warehouse.updated` | Unit or warehouse saved |
+| `mdm.reference.updated` | Item group, customer category, area or credit term saved (module boundaries rule 5) |
 | `mdm.<record>.deleted` | A record that nothing used was deleted (rule 3) |
 
 Payloads carry the code and the full snapshot after the change, plus the list of changed fields. Purchase and Sales read through the port and need no cache, so these events are mainly for WMS, MES and Finance later. **Sales listens to `mdm.customer.created`** (listener `sales.prospect-link`) to link an enquiry's prospect (decision 7): the enquiry gets the new customer and can be quoted.

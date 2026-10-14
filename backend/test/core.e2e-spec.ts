@@ -706,4 +706,256 @@ describe('Core (end to end)', () => {
       ]);
     });
   });
+
+  describe('C6 · Tax codes, reference lists, warehouses', () => {
+    type Errors = { errors: { field: string; message: string }[] };
+    const errorsOf = (r: { status: number; body: unknown }) => (r.status === 400 ? (r.body as Errors).errors : r.status);
+
+    describe('tax codes (C10)', () => {
+      interface TaxPeriod {
+        id: string;
+        name: string;
+        rate: string;
+        validFrom: string;
+        validTo: string | null;
+        state: string;
+        removable: boolean;
+      }
+      interface TaxCode {
+        code: string;
+        name: string;
+        type: string;
+        isActive: boolean;
+        version: number;
+        periods: TaxPeriod[];
+        documents: number;
+        allowedActions: string[];
+        refusals: Record<string, string>;
+        activity: { message: string }[];
+      }
+      const tax = (code: string, user = 'ADM') => api.get<TaxCode>(`core/tax-codes/${code}`, user);
+      const port = () => api.app.get<MasterDataPort>(MASTER_DATA_PORT);
+
+      it('lists the three codes as C10 shows them', async () => {
+        const page = await api.get<{ codes: Record<string, unknown>[]; canEdit: boolean }>('core/tax-codes', 'AR');
+        expect(page.canEdit).toBe(false);
+        expect(page.codes.map((c) => [c.code, c.name, c.typeLabel, c.rate, c.country, c.validFrom, c.validTo, `${c.buying as number} buying · ${c.selling as number} selling`, c.isActive])).toEqual([
+          ['EXEMPT', 'Exempt', 'Exempt', '0%', 'MY', '2018-09-01', null, '6 buying · 0 selling', true],
+          ['SST10', 'SST 10%', 'Sales tax', '10%', 'MY', '2018-09-01', null, '31 buying · 17 selling', true],
+          ['SVC8', 'Service tax 8%', 'Service tax', '8%', 'MY', '2024-03-01', null, '2 buying · 1 selling', true],
+        ]);
+      });
+
+      it('adds a rate that waits for its date, closing the old one the day before, and removes it again', async () => {
+        const before = await tax('SST10');
+        expect(before.refusals).toEqual({
+          delete: 'SST10 is used on 90 documents and in items (31), so it cannot be deleted. Make it inactive instead.',
+          deactivate: 'SST10 is the tax of 31 active items (BD-KNG-01, CB-SHO-01, CH-BAR-01 …). Give them another tax code first.',
+        });
+        const res = await api.call('POST', 'core/tax-codes/SST10/rates', 'ADM', { rate: '8', validFrom: '2027-01-01', name: 'SST 8%', version: before.version });
+        expect(res.status).toBe(201);
+        const after = res.body as TaxCode;
+        expect(after.periods.map((p) => [p.rate, p.validFrom, p.validTo, p.state, p.removable])).toEqual([
+          ['10%', '2018-09-01', '2026-12-31', 'current', false],
+          ['8%', '2027-01-01', null, 'waiting', true],
+        ]);
+        expect(after.name).toBe('SST 8%');
+        expect(after.activity[0]?.message).toBe('New rate for SST10: 8% from 1 Jan 2027');
+        // Purchase and Sales still get today's rate and name.
+        expect((await port().listTaxCodes(TENANT_ID)).find((t) => t.code === 'SST10')).toEqual({ code: 'SST10', name: 'SST 10%', rate: '0.1000' });
+        const listed = (await api.get<{ codes: { code: string; rate: string; validTo: string | null; next: unknown }[] }>('core/tax-codes')).codes.find((c) => c.code === 'SST10');
+        expect(listed).toMatchObject({ rate: '10%', validTo: '2026-12-31', next: { rate: '8%', validFrom: '2027-01-01' } });
+        const event = await api.prisma.sysOutbox.findFirst({ where: { aggregateId: before.periods[0]!.id, name: 'mdm.tax_code.updated' }, orderBy: { seq: 'desc' } });
+        expect(event?.payload).toMatchObject({ code: 'SST10', changedFields: ['name', 'rates'] });
+
+        const waiting = after.periods[1]!;
+        const removed = await api.call('DELETE', `core/tax-codes/SST10/rates/${waiting.id}?version=${after.version}`, 'ADM');
+        expect(removed.status).toBe(200);
+        expect((removed.body as TaxCode).periods.map((p) => [p.rate, p.validTo])).toEqual([['10%', null]]);
+        expect((removed.body as TaxCode).name).toBe('SST 10%');
+      });
+
+      it('refuses what the rules do not allow', async () => {
+        const sst = await tax('SST10');
+        const rate = (body: Record<string, unknown>, code = 'SST10', user = 'ADM') => api.call('POST', `core/tax-codes/${code}/rates`, user, { rate: '8', validFrom: '2027-01-01', name: 'SST 8%', version: sst.version, ...body });
+        expect(errorsOf(await rate({ validFrom: '2026-09-01' }))).toEqual([{ field: 'validFrom', message: 'A new rate cannot start before today (29 Sep 2026). Earlier rates are history.' }]);
+        expect(errorsOf(await rate({ rate: '120' }))).toEqual([{ field: 'rate', message: 'A rate is between 0% and 100%.' }]);
+        const exempt = await tax('EXEMPT');
+        expect(errorsOf(await rate({ rate: '5', version: exempt.version }, 'EXEMPT'))).toEqual([{ field: 'rate', message: 'An exempt code has a 0% rate.' }]);
+        expect(errorsOf(await rate({}, 'SST10', 'LMY'))).toBe(403);
+        expect(errorsOf(await rate({ version: sst.version + 1 }))).toBe(409);
+
+        const patch = (code: string, t: TaxCode, body: Record<string, unknown>) => api.call('PATCH', `core/tax-codes/${code}`, 'ADM', { name: t.name, type: t.type, isActive: t.isActive, version: t.version, ...body });
+        expect(errorsOf(await patch('SST10', sst, { type: 'SERVICE_TAX' }))).toEqual([
+          { field: 'type', message: 'SST10 is used on 90 documents, so its type cannot change. Add a new tax code instead.' },
+        ]);
+        const svc = await tax('SVC8');
+        expect(await patch('SVC8', svc, { isActive: false })).toMatchObject({ status: 409, body: { message: 'SVC8 is the tax of 2 active items (SV-DEL-01, SV-INS-01). Give them another tax code first.' } });
+        expect((await api.call('DELETE', `core/tax-codes/${sst.code}/rates/${sst.periods[0]!.id}?version=${sst.version}`, 'ADM')).body).toMatchObject({
+          message: 'This is the code’s only rate. Delete the code instead.',
+        });
+      });
+
+      it('adds a code that is renamed, made inactive, activated and deleted, and its code is never used again', async () => {
+        const res = await api.call('POST', 'core/tax-codes', 'ADM', { code: 'zero', name: 'Zero rated', type: 'EXEMPT', rate: '0', validFrom: '2026-10-01' });
+        expect(res.status).toBe(201);
+        let t = res.body as TaxCode;
+        expect(t).toMatchObject({ code: 'ZERO', type: 'EXEMPT', documents: 0, allowedActions: ['edit', 'newRate', 'delete'] });
+        const patch = async (body: Record<string, unknown>) => {
+          const r = await api.call('PATCH', 'core/tax-codes/ZERO', 'ADM', { name: t.name, type: t.type, isActive: t.isActive, version: t.version, ...body });
+          expect(r.status).toBe(200);
+          t = r.body as TaxCode;
+        };
+        await patch({ name: 'Zero-rated supply' });
+        expect(t.activity[0]?.message).toBe('Tax code ZERO: changed name Zero rated → Zero-rated supply');
+        await patch({ isActive: false });
+        expect(t.isActive).toBe(false);
+        await patch({ isActive: true });
+        expect(await api.call('DELETE', `core/tax-codes/ZERO?version=${t.version}`, 'ADM')).toMatchObject({ status: 200, body: { deleted: true, code: 'ZERO' } });
+        expect(errorsOf(await api.call('POST', 'core/tax-codes', 'ADM', { code: 'ZERO', name: 'Zero', type: 'EXEMPT', rate: '0', validFrom: '2026-10-01' }))).toEqual([
+          { field: 'code', message: 'ZERO belonged to a tax code that was deleted. Codes are never used again.' },
+        ]);
+        expect(errorsOf(await api.call('POST', 'core/tax-codes', 'ADM', { code: 'SST10', name: 'Again', type: 'SALES_TAX', rate: '10', validFrom: '2026-10-01' }))).toEqual([
+          { field: 'code', message: 'SST10 is already the code of SST 10%.' },
+        ]);
+      });
+    });
+
+    describe('reference lists (C12)', () => {
+      interface Entry {
+        id: string;
+        name: string;
+        days?: number;
+        isActive: boolean;
+        version: number;
+        usedBy: string;
+        refusals: Record<string, string>;
+      }
+      type Lists = { lists: Record<string, Entry[]>; lookAlike: string | null; canEdit: boolean };
+      const lists = (user = 'ADM') => api.get<Lists>('core/reference', user);
+      const entry = async (list: string, name: string) => (await lists()).lists[list]!.find((e) => e.name === name)!;
+      const patch = (list: string, e: Entry, body: Record<string, unknown>, user = 'ADM') =>
+        api.call('PATCH', `core/reference/${list}/${e.id}`, user, { name: e.name, days: e.days, isActive: e.isActive, version: e.version, ...body });
+
+      it('shows the four lists with who uses each entry, and the look-alike groups', async () => {
+        const all = await lists('AR');
+        expect(all.canEdit).toBe(false);
+        expect(Object.fromEntries(Object.entries(all.lists).map(([k, v]) => [k, v.length]))).toEqual({ 'item-groups': 19, 'customer-categories': 6, areas: 2, 'credit-terms': 2 });
+        expect(all.lists['item-groups']!.slice(0, 4).map((e) => [e.name, e.usedBy])).toEqual([
+          ['Beds', '1 item'],
+          ['Cabinets', '1 item'],
+          ['Electrical', '1 item'],
+          ['Fabric', '2 items'],
+        ]);
+        expect(all.lists['credit-terms']!.map((e) => [e.name, e.days])).toEqual([
+          ['Cash', 0],
+          ['30 days', 30],
+        ]);
+        expect(all.lookAlike).toBe('“Service” and “Services” look like the same group. Moving SV-DEL-01 to “Service” would leave one: change the group on the item, then make “Services” inactive.');
+      });
+
+      it('keeps a name in use, makes it inactive so new records cannot pick it, and adds, renames and deletes an unused one', async () => {
+        const sofas = await entry('item-groups', 'Sofas');
+        expect(errorsOf(await patch('item-groups', sofas, { name: 'Sofa' }))).toEqual([
+          { field: 'name', message: '“Sofas” is used by 2 items, so its name cannot change. Add the new name, move them to it, then make “Sofas” inactive.' },
+        ]);
+        expect(await api.call('DELETE', `core/reference/item-groups/${sofas.id}?version=${sofas.version}`, 'ADM')).toMatchObject({
+          status: 409,
+          body: { message: '“Sofas” is used by 2 items, so it cannot be deleted. Make it inactive instead.' },
+        });
+        expect((await patch('item-groups', sofas, { isActive: false })).status).toBe(200);
+        expect((await api.get<{ itemGroups: string[] }>('core/lookups/item-form')).itemGroups).not.toContain('Sofas');
+        expect((await patch('item-groups', await entry('item-groups', 'Sofas'), { isActive: true })).status).toBe(200);
+
+        expect((await api.call('POST', 'core/reference/item-groups', 'ADM', { name: 'Outdoor' })).status).toBe(201);
+        const outdoor = await entry('item-groups', 'Outdoor');
+        expect(outdoor).toMatchObject({ usedBy: 'Not used', refusals: {} });
+        expect((await patch('item-groups', outdoor, { name: 'Outdoor furniture' })).status).toBe(200);
+        const renamed = await entry('item-groups', 'Outdoor furniture');
+        expect(await api.call('DELETE', `core/reference/item-groups/${renamed.id}?version=${renamed.version}`, 'ADM')).toMatchObject({ status: 200 });
+        expect(errorsOf(await api.call('POST', 'core/reference/item-groups', 'ADM', { name: 'beds' }))).toEqual([{ field: 'name', message: '“Beds” is already on the list.' }]);
+        expect(errorsOf(await api.call('POST', 'core/reference/areas', 'LMY', { name: 'Southern' }))).toBe(403);
+      });
+
+      it('adds a credit term that customers and suppliers can pick; days in use never change', async () => {
+        expect((await api.call('POST', 'core/reference/credit-terms', 'ADM', { name: '60 days', days: 60 })).status).toBe(201);
+        expect((await api.get<{ creditTerms: { days: number }[] }>('core/lookups/customer-form')).creditTerms.map((t) => t.days)).toEqual([0, 30, 60]);
+        expect((await api.get<{ paymentTerms: { days: number }[] }>('core/lookups/supplier-form')).paymentTerms.map((t) => t.days)).toEqual([0, 30, 60]);
+        expect(errorsOf(await api.call('POST', 'core/reference/credit-terms', 'ADM', { name: 'Net 60', days: 60 }))).toEqual([{ field: 'days', message: '60 days already gives 60 days.' }]);
+        expect(errorsOf(await api.call('POST', 'core/reference/credit-terms', 'ADM', { name: 'Net 45' }))).toEqual([{ field: 'days', message: 'Give the days to pay, 0 for cash.' }]);
+        const thirty = await entry('credit-terms', '30 days');
+        expect((errorsOf(await patch('credit-terms', thirty, { days: 45 })) as Errors['errors'])[0]).toMatchObject({ field: 'days', message: expect.stringMatching(/^30 days is used by \d+ customers · \d+ suppliers, so its days cannot change\./) });
+        expect((await patch('credit-terms', thirty, { name: 'Net 30' })).status).toBe(200);
+      });
+    });
+
+    describe('warehouses (C13)', () => {
+      interface WarehouseRow {
+        id: string;
+        code: string;
+        name: string;
+        branchCode: string;
+        branch: string;
+        isActive: boolean;
+        version: number;
+        locations: { code: string; name: string; isActive: boolean }[];
+      }
+      type Warehouses = { warehouses: WarehouseRow[]; branches: { code: string; name: string }[]; canEdit: boolean };
+      const list = (user = 'ADM') => api.get<Warehouses>('core/warehouses', user);
+      const row = async (code: string) => (await list()).warehouses.find((w) => w.code === code)!;
+      const patch = (w: WarehouseRow, body: Record<string, unknown>, user = 'ADM') =>
+        api.call('PATCH', `core/warehouses/${w.id}`, user, { name: w.name, branchCode: w.branchCode, isActive: w.isActive, version: w.version, ...body });
+
+      it('lists the three warehouses with their locations, read only', async () => {
+        const all = await list('AR');
+        expect(all.canEdit).toBe(false);
+        expect(all.warehouses.map((w) => [w.code, w.name, w.branch, w.locations.length, w.isActive])).toEqual([
+          ['HQ-DMG', 'HQ Shah Alam · damaged goods', 'HQ · HQ Shah Alam', 1, true],
+          ['HQ-MAIN', 'HQ Shah Alam · main', 'HQ · HQ Shah Alam', 5, true],
+          ['PNG-MAIN', 'Penang · main', 'PNG · Penang Branch', 2, true],
+        ]);
+        expect(all.warehouses[1]!.locations.map((l) => [l.code, l.name])).toEqual([
+          ['HQ-MAIN/B-01', 'Rack B-01'],
+          ['HQ-MAIN/B-02', 'Rack B-02'],
+          ['HQ-MAIN/B-03', 'Rack B-03'],
+          ['HQ-MAIN/B-04', 'Rack B-04'],
+          ['HQ-MAIN/B-05', 'Rack B-05'],
+        ]);
+      });
+
+      it('keeps HQ-MAIN’s branch and status while documents use it', async () => {
+        const hq = await row('HQ-MAIN');
+        const detail = await api.get<{ allowedActions: string[]; refusals: Record<string, string> }>(`core/warehouses/${hq.id}`);
+        expect(detail.allowedActions).toEqual(['edit']);
+        expect(detail.refusals).toMatchObject({
+          delete: 'HQ-MAIN is used on 73 documents and in locations (5), so it cannot be deleted. Make it inactive instead.',
+          deactivate: 'HQ-MAIN is on 18 open documents (PO-0001, PO-0003, PO-0005 …). Finish or cancel them first.',
+        });
+        expect(errorsOf(await patch(hq, { branchCode: 'PNG' }))).toEqual([
+          { field: 'branchCode', message: 'HQ-MAIN is used on 73 documents, so its branch cannot change. Add a new warehouse for the other branch instead.' },
+        ]);
+        expect((await patch(hq, { isActive: false })).status).toBe(409);
+        expect((await patch(hq, { name: 'HQ Shah Alam · main store' }, 'LMY')).status).toBe(403);
+      });
+
+      it('adds a warehouse with no locations, changes its branch while unused, makes it inactive and deletes it', async () => {
+        expect((await api.call('POST', 'core/warehouses', 'ADM', { code: 'kl-main', name: 'Kuala Lumpur · main', branchCode: 'HQ' })).status).toBe(201);
+        let kl = await row('KL-MAIN');
+        expect(kl).toMatchObject({ branch: 'HQ · HQ Shah Alam', locations: [], isActive: true });
+        expect((await patch(kl, { branchCode: 'PNG' })).status).toBe(200);
+        kl = await row('KL-MAIN');
+        expect((await patch(kl, { isActive: false })).status).toBe(200);
+        kl = await row('KL-MAIN');
+        expect((await api.app.get<MasterDataPort>(MASTER_DATA_PORT).listWarehouses(TENANT_ID, 'PNG')).map((w) => [w.code, w.isActive])).toEqual([
+          ['KL-MAIN', false],
+          ['PNG-MAIN', true],
+        ]);
+        expect(await api.call('DELETE', `core/warehouses/${kl.id}?version=${kl.version}`, 'ADM')).toMatchObject({ status: 200 });
+        expect(errorsOf(await api.call('POST', 'core/warehouses', 'ADM', { code: 'KL-MAIN', name: 'Again', branchCode: 'HQ' }))).toEqual([
+          { field: 'code', message: 'KL-MAIN belonged to a warehouse that was deleted. Codes are never used again.' },
+        ]);
+        expect(errorsOf(await api.call('POST', 'core/warehouses', 'ADM', { code: 'JB-MAIN', name: 'Johor', branchCode: 'JB' }))).toEqual([{ field: 'branchCode', message: 'Pick the branch from the list.' }]);
+      });
+    });
+  });
 });

@@ -5,6 +5,9 @@
  */
 import { CoreDashboardQuery } from '../../src/core/dashboard/dashboard.query';
 import { PriceListsQuery } from '../../src/core/price-lists/price-lists.query';
+import { ReferenceQuery } from '../../src/core/reference/reference.query';
+import { TaxCodesQuery } from '../../src/core/tax-codes/tax-codes.query';
+import { WarehousesQuery } from '../../src/core/warehouses/warehouses.query';
 import { latestValidByKey } from '../../src/master-data/master-data.rules';
 import type { ClockService } from '../../src/platform/clock/clock.service';
 import type { RequestContext } from '../../src/platform/context/request-context';
@@ -67,7 +70,7 @@ export async function verifyCoreSeed(ctx: SeedCtx): Promise<Check[]> {
   expect('Master data as seeded (rows changed since the seed)', '0', String(leftovers.reduce((a, b) => a + b, 0)));
 
   // C01 Needs attention, from the screen's own query.
-  const clock = { todayDate: () => day(TODAY) } as ClockService;
+  const clock = { todayDate: () => day(TODAY), today: () => TODAY } as ClockService;
   const home = await new CoreDashboardQuery(prisma as PrismaService, clock).summary({ tenantId } as RequestContext);
   expect(
     'Needs attention on the Core home',
@@ -80,6 +83,19 @@ export async function verifyCoreSeed(ctx: SeedCtx): Promise<Check[]> {
     pageSize: 20,
   } as ListQueryDto);
   expect('Price lists (prices · used by)', 'RES-2026 6 · 1 customer, STD-2026 17 · 6 customers', lists.items.map((l) => `${l.code} ${l.prices} · ${l.usedBy}`).join(', '));
+  // C10, C12 and C13, from the screens' own queries.
+  const viewer = { tenantId, user: { roles: [] } } as unknown as RequestContext;
+  const noEdit = { has: () => false } as never;
+  const taxes10 = await new TaxCodesQuery(prisma as PrismaService, undefined as never, undefined as never, noEdit, clock).list(viewer);
+  expect('Tax codes (rate · items buying · selling)', 'EXEMPT 0% · 6 · 0, SST10 10% · 31 · 17, SVC8 8% · 2 · 1', taxes10.codes.map((c) => `${c.code} ${c.rate} · ${c.buying} · ${c.selling}`).join(', '));
+  const reference = await new ReferenceQuery(prisma as PrismaService, noEdit).lists(viewer);
+  expect(
+    'Reference lists (C12 tabs · Seating · 30 days)',
+    '19 · 6 · 2 · 2 · 6 items · 6 customers · 10 suppliers',
+    [...Object.values(reference.lists).map((l) => l.length), reference.lists['item-groups'].find((e) => e.name === 'Seating')?.usedBy, reference.lists['credit-terms'].find((e) => e.days === 30)?.usedBy].join(' · '),
+  );
+  const stores = await new WarehousesQuery(prisma as PrismaService, undefined as never, undefined as never, noEdit).list(viewer);
+  expect('Warehouses (locations)', 'HQ-DMG 1, HQ-MAIN 5, PNG-MAIN 2', stores.warehouses.map((w) => `${w.code} ${w.locations.length}`).join(', '));
   expect('Core home cards (items · customers · suppliers · tax codes)', '39 · 7 · 10 · 3', ['items', 'customers', 'suppliers', 'tax-codes'].map((k) => home.cards.find((c) => c.key === k)?.total).join(' · '));
   return checks;
 }

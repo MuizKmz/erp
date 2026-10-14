@@ -1,6 +1,6 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
-import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ItemListItem, PriceListDetail, PriceListInput, PriceListListItem, PurchasableItemOption, SellableItemOption, SupplierDetail, SupplierFormOptions, SupplierInput, SupplierListItem, SupplierOption, UomDetail, UomsData } from '../types'
+import type { CoreDashboard, CustomerDetail, CustomerFormOptions, CustomerInput, CustomerListItem, ItemDetail, ItemFormOptions, ItemInput, ItemListItem, PriceListDetail, PriceListInput, PriceListListItem, PurchasableItemOption, ReferenceData, ReferenceListKey, SellableItemOption, TaxCodeDetail, TaxCodesData, TaxType, WarehouseDetail, WarehousesData, SupplierDetail, SupplierFormOptions, SupplierInput, SupplierListItem, SupplierOption, UomDetail, UomsData } from '../types'
 
 /** Core API (/api/v1/core). Each build step adds its resources here. */
 export const coreApi = {
@@ -59,4 +59,30 @@ export const corePriceListsApi = {
   update: (id: string, input: PriceListInput & { version: number }) => api<PriceListDetail>(`/core/price-lists/${id}`, { method: 'PATCH', body: input }),
   setStatus: (id: string, action: 'deactivate' | 'activate', version: number) => api<PriceListDetail>(`/core/price-lists/${id}/${action}`, { method: 'POST', body: { version } }),
   remove: (id: string, version: number) => api<{ deleted: boolean; code: string }>(`/core/price-lists/${id}`, { method: 'DELETE', query: { version } }),
+}
+
+export const coreTaxCodesApi = {
+  list: () => api<TaxCodesData>('/core/tax-codes'),
+  get: (code: string) => api<TaxCodeDetail>(`/core/tax-codes/${code}`),
+  create: (input: { code: string; name: string; type: TaxType; rate: string; validFrom: string }) => api<TaxCodeDetail>('/core/tax-codes', { method: 'POST', body: input }),
+  update: (code: string, input: { name: string; type: TaxType; isActive: boolean; version: number }) => api<TaxCodeDetail>(`/core/tax-codes/${code}`, { method: 'PATCH', body: input }),
+  addRate: (code: string, input: { rate: string; validFrom: string; name: string; version: number }) => api<TaxCodeDetail>(`/core/tax-codes/${code}/rates`, { method: 'POST', body: input }),
+  removeRate: (code: string, id: string, version: number) => api<TaxCodeDetail>(`/core/tax-codes/${code}/rates/${id}`, { method: 'DELETE', query: { version } }),
+  remove: (code: string, version: number) => api<{ deleted: boolean; code: string }>(`/core/tax-codes/${code}`, { method: 'DELETE', query: { version } }),
+}
+
+export const coreReferenceApi = {
+  list: () => api<ReferenceData>('/core/reference'),
+  create: (list: ReferenceListKey, input: { name: string; days?: number }) => api<ReferenceData>(`/core/reference/${list}`, { method: 'POST', body: input }),
+  update: (list: ReferenceListKey, id: string, input: { name: string; days?: number; isActive: boolean; version: number }) =>
+    api<ReferenceData>(`/core/reference/${list}/${id}`, { method: 'PATCH', body: input }),
+  remove: (list: ReferenceListKey, id: string, version: number) => api<ReferenceData>(`/core/reference/${list}/${id}`, { method: 'DELETE', query: { version } }),
+}
+
+export const coreWarehousesApi = {
+  list: () => api<WarehousesData>('/core/warehouses'),
+  get: (id: string) => api<WarehouseDetail>(`/core/warehouses/${id}`),
+  create: (input: { code: string; name: string; branchCode: string }) => api<WarehousesData>('/core/warehouses', { method: 'POST', body: input }),
+  update: (id: string, input: { name: string; branchCode: string; isActive: boolean; version: number }) => api<WarehousesData>(`/core/warehouses/${id}`, { method: 'PATCH', body: input }),
+  remove: (id: string, version: number) => api<WarehousesData>(`/core/warehouses/${id}`, { method: 'DELETE', query: { version } }),
 }

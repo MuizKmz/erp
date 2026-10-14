@@ -139,9 +139,9 @@ The item, customer and supplier forms show where the record is used. Delete is p
 | C07 | Supplier with contract prices | `CoreSupplierForm.html` | `/core/suppliers/:id` | GET, POST, PATCH /api/v1/core/suppliers/:id (contract prices need core.supplier.contract; GET includes where it is used) · POST …/block, …/activate · DELETE /api/v1/core/suppliers/:id (only if never used) |
 | C08 | Price lists | `CorePriceLists.html` | `/core/price-lists` | GET /api/v1/core/price-lists (prices, used by) |
 | C09 | Price list with its prices | `CorePriceListForm.html` | `/core/price-lists/:id` | GET, POST, PATCH /api/v1/core/price-lists/:id (PATCH sends the prices from today on; earlier prices are history) · POST …/deactivate, …/activate · DELETE /api/v1/core/price-lists/:id (only if no customer or Sales document uses it) · GET /api/v1/core/lookups/sellable-items?q= (items with their units) |
-| C10 | Tax codes | `CoreTaxCodes.html` | `/core/tax-codes` | GET, POST /api/v1/core/tax-codes · POST …/:code/rates |
+| C10 | Tax codes | `CoreTaxCodes.html` | `/core/tax-codes` | GET, POST /api/v1/core/tax-codes · GET, PATCH, DELETE /api/v1/core/tax-codes/:code (by code: a code is all its rate periods; DELETE only if unused) · POST …/:code/rates (new rate) · DELETE …/:code/rates/:id (a rate that has not started) |
 | C11 | Units of measure | `CoreUoms.html` | `/core/uoms` | GET, POST /api/v1/core/uoms · GET, PATCH, DELETE /api/v1/core/uoms/:id (delete only if never used) |
-| C12 | Reference lists | `CoreReference.html` | `/core/reference` | GET, POST, PATCH /api/v1/core/reference/:list |
-| C13 | Warehouses and locations (locations read only) | `CoreWarehouses.html` | `/core/warehouses` | GET, POST, PATCH /api/v1/core/warehouses · GET /api/v1/core/warehouses/:code/locations |
+| C12 | Reference lists | `CoreReference.html` | `/core/reference` | GET /api/v1/core/reference (the four lists) · POST /api/v1/core/reference/:list · PATCH, DELETE …/:list/:id (`item-groups`, `customer-categories`, `areas`, `credit-terms`; tab in `?list=`) |
+| C13 | Warehouses and locations (locations read only) | `CoreWarehouses.html` | `/core/warehouses` | GET /api/v1/core/warehouses (with their locations, read only) · POST · GET, PATCH, DELETE /api/v1/core/warehouses/:id (DELETE only if unused and without locations); selected warehouse in `?w=` |
 | C14 | Import from CSV | `CoreImport.html` | `/core/import` | POST /api/v1/core/imports (check, saves nothing) · POST /api/v1/core/imports/:id/load (saves the rows that pass) · GET /api/v1/core/imports/:id/problems.csv |
 
