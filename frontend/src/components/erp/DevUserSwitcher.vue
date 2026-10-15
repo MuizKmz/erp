@@ -5,8 +5,8 @@ import { roleLabel, useSession } from '@/composables/useSession'
 import { initials } from '@/utils/format'
 
 /**
- * Dev user switcher (no login yet). Shows who you are; click to act as another seeded user — this is how
- * approvals are tested (e.g. Lim Mei Ying sends, Ahmad Zaki approves). The choice is kept in localStorage.
+ * Dev user switcher (AUTH_MODE=dev, sign-in off). Shows who you are; click to act as another seeded user — this is
+ * how approvals are tested (e.g. Lim Mei Ying sends, Ahmad Zaki approves). The choice is kept in localStorage.
  *
  * variant: "module" = floating module top bar, "home" = white module home header, "launcher" = launcher top bar.
  */
@@ -89,7 +89,7 @@ const avatarClass = computed(
       class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-erp-border bg-erp-card text-erp-text shadow-lg"
     >
       <div class="border-b border-erp-row bg-erp-head px-4 py-2.5 text-xs text-erp-muted">
-        <strong class="text-erp-text">Dev user switcher</strong> · no login yet. Act as:
+        <strong class="text-erp-text">Dev user switcher</strong> · sign-in is off. Act as:
       </div>
       <ul class="m-0 max-h-[420px] list-none overflow-y-auto p-1">
         <li v-for="u in state.users" :key="u.code">
@@ -113,6 +113,9 @@ const avatarClass = computed(
           </button>
         </li>
       </ul>
+      <div class="border-t border-erp-row p-1">
+        <RouterLink to="/account" role="menuitem" class="block rounded-lg px-3 py-2 text-[13px] text-erp-text hover:bg-erp-head" @click="open = false">My account</RouterLink>
+      </div>
     </div>
   </div>
 </template>

@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { randomUUID } from 'node:crypto';
 import type { Env } from '../../config/env';
-import { PrismaService } from '../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from './context.decorators';
 import { PermissionRegistry } from './permission.registry';
 import { USER_DIRECTORY, type ErpRequest, type UserDirectory } from './request-context';
+import { TenantService } from './tenant.service';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -17,33 +17,33 @@ function header(request: ErpRequest, name: string): string | undefined {
 }
 
 /**
- * No login yet (AUTH_MODE=dev): the user is picked with the x-dev-user header (default from DEV_DEFAULT_USER).
- * Builds the RequestContext that @CurrentUser() / @CurrentContext() read. A JWT guard will replace this
- * class later without any change to controllers or services.
+ * Dev mode (AUTH_MODE=dev): the user is picked with the x-dev-user header (default from DEV_DEFAULT_USER), the branch
+ * with x-branch. Builds the RequestContext that @CurrentUser() / @CurrentContext() read. In sign-in mode it stands
+ * aside and the JwtUserGuard builds the same context from the access token.
  */
 @Injectable()
 export class DevUserGuard implements CanActivate {
-  private tenantId: string | undefined;
   private readonly defaultUser: string;
-  private readonly tenantCode: string;
+  private readonly enabled: boolean;
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly prisma: PrismaService,
+    private readonly tenants: TenantService,
     @Inject(USER_DIRECTORY) private readonly users: UserDirectory,
     private readonly permissions: PermissionRegistry,
     config: ConfigService<Env, true>,
   ) {
     this.defaultUser = config.get('DEV_DEFAULT_USER', { infer: true });
-    this.tenantCode = config.get('DEV_TENANT_CODE', { infer: true });
+    this.enabled = config.get('AUTH_MODE', { infer: true }) === 'dev';
   }
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    if (!this.enabled) return true;
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [ctx.getHandler(), ctx.getClass()]);
     if (isPublic) return true;
 
     const request = ctx.switchToHttp().getRequest<ErpRequest>();
-    const tenantId = await this.resolveTenantId();
+    const tenantId = await this.tenants.resolve();
 
     const code = (header(request, 'x-dev-user') ?? this.defaultUser).toUpperCase();
     const user = await this.users.findUserByCode(tenantId, code);
@@ -81,19 +81,5 @@ export class DevUserGuard implements CanActivate {
       correlationId: correlation && UUID.test(correlation) ? correlation : randomUUID(),
     };
     return true;
-  }
-
-  private async resolveTenantId(): Promise<string> {
-    if (this.tenantId) return this.tenantId;
-    const code = this.tenantCode;
-    const tenant = await this.prisma.sysTenant.findUnique({ where: { code }, select: { id: true } });
-    if (!tenant) {
-      throw new HttpException(
-        { code: 'NO_TENANT', message: `Tenant "${code}" is not set up. Run: npx prisma db seed` },
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    }
-    this.tenantId = tenant.id;
-    return tenant.id;
   }
 }

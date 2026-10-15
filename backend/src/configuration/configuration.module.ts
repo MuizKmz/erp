@@ -1,5 +1,8 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
 import { PermissionCatalogue } from '../platform/context/permission-catalogue';
+import { AuthGateModule } from './auth/auth-gate.module';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
 import { CONFIG_PERMISSION_CATALOGUE } from './configuration.permissions';
 import { ConfigDashboardController } from './dashboard/dashboard.controller';
 import { ConfigDashboardQuery } from './dashboard/dashboard.query';
@@ -10,7 +13,6 @@ import { ConfigPermissionsController, ConfigRolesController } from './roles/role
 import { RolesQuery } from './roles/roles.query';
 import { RolesService } from './roles/roles.service';
 import { ConfigRecordsService } from './shared/config-records.service';
-import { SecurityEventsService } from './shared/security-events.service';
 import { ConfigUsersController } from './users/users.controller';
 import { UsersQuery } from './users/users.query';
 import { UsersService } from './users/users.service';
@@ -21,8 +23,9 @@ import { UsersService } from './users/users.service';
  * and branches through MasterDataPort and permissions through @RequirePermission. Never imports purchase/, sales/ or core/.
  */
 @Module({
-  controllers: [ConfigDashboardController, ConfigCompaniesController, ConfigBranchesController, ConfigUsersController, ConfigRolesController, ConfigPermissionsController],
-  providers: [ConfigDashboardQuery, ConfigRecordsService, SecurityEventsService, OrganisationQuery, OrganisationService, UsersQuery, UsersService, RolesQuery, RolesService],
+  imports: [AuthGateModule],
+  controllers: [AuthController, ConfigDashboardController, ConfigCompaniesController, ConfigBranchesController, ConfigUsersController, ConfigRolesController, ConfigPermissionsController],
+  providers: [AuthService, ConfigDashboardQuery, ConfigRecordsService, OrganisationQuery, OrganisationService, UsersQuery, UsersService, RolesQuery, RolesService],
 })
 export class ConfigurationModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionCatalogue) {}

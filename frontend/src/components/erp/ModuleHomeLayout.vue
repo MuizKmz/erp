@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Bell, LogOut } from '@lucide/vue'
 import { useApprovalsCount } from '@/composables/useApprovalsCount'
 import { useModuleTheme } from '@/composables/useModuleTheme'
 import { useSession } from '@/composables/useSession'
 import { moduleDef } from '@/modules/registry'
 import { formatLongDate } from '@/utils/format'
-import DevUserSwitcher from './DevUserSwitcher.vue'
+import AccountMenu from './AccountMenu.vue'
+import BranchSwitch from './BranchSwitch.vue'
 
 /** The module home frame: white header, content, footer (PurHome.html). No sidebar here. */
 const route = useRoute()
-const { state, today } = useSession()
+const router = useRouter()
+const { state, today, isJwt, signOut } = useSession()
+
+/** Sign-in mode ends the session; dev mode goes back to the launcher, as before. */
+async function leave() {
+  if (isJwt.value) {
+    await signOut()
+    await router.push('/sign-in')
+  } else await router.push('/')
+}
 const module = computed(() => moduleDef(route.meta.module))
 useModuleTheme(() => module.value.key)
 const { count: approvals } = useApprovalsCount(() => module.value)
@@ -37,15 +47,17 @@ const year = computed(() => (today.value ? today.value.slice(0, 4) : ''))
           <Bell :size="18" aria-hidden="true" />Approvals
           <span v-if="approvals" class="rounded-[10px] bg-mod-side px-[7px] py-px text-[11px] font-bold text-erp-on-dark">{{ approvals }}</span>
         </RouterLink>
-        <DevUserSwitcher variant="home" :subtitle="today ? formatLongDate(today) : ''" />
-        <RouterLink
-          to="/"
+        <BranchSwitch />
+        <AccountMenu variant="home" :subtitle="today ? formatLongDate(today) : ''" />
+        <button
+          type="button"
           aria-label="Sign out"
           title="Sign out"
-          class="flex h-9 w-9 items-center justify-center rounded-lg border border-erp-input bg-erp-card text-erp-muted"
+          class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-erp-input bg-erp-card text-erp-muted"
+          @click="leave"
         >
           <LogOut :size="16" class="rotate-180" aria-hidden="true" />
-        </RouterLink>
+        </button>
       </div>
     </header>
 

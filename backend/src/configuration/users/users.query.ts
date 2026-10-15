@@ -103,7 +103,7 @@ export class UsersQuery {
   async list(ctx: RequestContext, query: UserListQueryDto) {
     const tenantId = ctx.tenantId;
     const today = this.clock.today();
-    const now = this.clock.now();
+    const now = new Date(); // lockouts are real times, not the demo's business date
     const [users, facts] = await Promise.all([
       this.prisma.sysUser.findMany({ where: { tenantId }, orderBy: { name: 'asc' }, include: USER_INCLUDE }),
       this.roleFacts(tenantId),
@@ -180,7 +180,7 @@ export class UsersQuery {
     const customers = agentRoles.length ? (await this.masterData.listCustomers(tenantId)).filter((c) => c.defaultAgentCode === user.code).map((c) => c.code) : [];
     const { codes, defaultBranch } = branchesOf(user);
     const state = this.twoFactor(user, facts.twoFactorRoles, today);
-    const status = userStatus(user.isActive, user.lockedUntil, this.clock.now());
+    const status = userStatus(user.isActive, user.lockedUntil, new Date());
     const canEdit = this.canEdit(ctx);
     const refusal = user.isActive ? deactivateRefusal(user.id === ctx.user.id, user.name, holdsAdminForGood(rows, today) && otherAdmins === 0) : null;
     return {

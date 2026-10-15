@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import ConfirmDialog from 'primevue/confirmdialog'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
@@ -10,6 +10,7 @@ import ModuleLayout from '@/components/erp/ModuleLayout.vue'
 import { useSession } from '@/composables/useSession'
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const session = useSession()
 
@@ -19,6 +20,18 @@ onApiError((error) => {
 })
 
 onMounted(() => void session.start())
+
+// Sign-in mode: nobody signed in on this device → the sign-in page, coming back to where they were; signed in → away from it.
+watch(
+  () => [session.state.ready, session.state.signedOut, route.fullPath] as const,
+  async ([ready, signedOut]) => {
+    if (!ready || session.state.mode !== 'jwt') return
+    await router.isReady() // the first URL, not the router's starting '/'
+    if (signedOut && !route.meta.public) void router.replace({ path: '/sign-in', query: route.path === '/' ? {} : { next: route.fullPath } })
+    else if (!signedOut && route.path === '/sign-in') void router.replace(typeof route.query.next === 'string' ? route.query.next : '/')
+  },
+)
+const showPage = computed(() => !(session.state.mode === 'jwt' && session.state.signedOut && !route.meta.public))
 
 const layout = computed(() => {
   if (route.meta.layout === 'module') return ModuleLayout
@@ -46,7 +59,7 @@ const pageKey = computed(() => `${session.state.version}:${route.path}`)
     Loading…
   </div>
 
-  <template v-else>
+  <template v-else-if="showPage">
     <component :is="layout" v-if="layout">
       <RouterView :key="pageKey" />
     </component>

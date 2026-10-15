@@ -9,7 +9,8 @@ import { useSession } from '@/composables/useSession'
 import { moduleDef } from '@/modules/registry'
 import type { MenuGroup } from '@/modules/purchase/menu'
 import { formatTime, formatTopBarDate } from '@/utils/format'
-import DevUserSwitcher from './DevUserSwitcher.vue'
+import AccountMenu from './AccountMenu.vue'
+import BranchSwitch from './BranchSwitch.vue'
 import PageSearch from './PageSearch.vue'
 
 /**
@@ -19,7 +20,15 @@ import PageSearch from './PageSearch.vue'
  */
 const route = useRoute()
 const router = useRouter()
-const { today, now } = useSession()
+const { today, now, isJwt, signOut } = useSession()
+
+/** Sign-in mode ends the session; dev mode goes back to the launcher, as before. */
+async function leave() {
+  if (isJwt.value) {
+    await signOut()
+    await router.push('/sign-in')
+  } else await router.push('/')
+}
 
 const module = computed(() => moduleDef(route.meta.module))
 useModuleTheme(() => module.value.key)
@@ -133,17 +142,19 @@ const railActive = 'bg-erp-on-dark/20 text-erp-on-dark ring-1 ring-erp-on-dark/1
         >
           <House :size="18" aria-hidden="true" />
         </RouterLink>
-        <RouterLink
-          to="/"
+        <button
+          type="button"
           aria-label="Sign out"
+          class="cursor-pointer border-0"
           :class="[railButton, railIdle]"
+          @click="leave"
           @mouseenter="showTip($event, 'Sign out')"
           @mouseleave="hideTip"
           @focus="showTip($event, 'Sign out')"
           @blur="hideTip"
         >
           <LogOut :size="18" class="rotate-180" aria-hidden="true" />
-        </RouterLink>
+        </button>
       </div>
     </nav>
 
@@ -202,7 +213,7 @@ const railActive = 'bg-erp-on-dark/20 text-erp-on-dark ring-1 ring-erp-on-dark/1
       <div class="sticky top-0 z-20 px-4 pt-3 pb-2 backdrop-blur-sm md:px-6">
         <header class="flex h-12 items-center gap-4 rounded-2xl border border-erp-border bg-erp-card/95 px-5 shadow-sm">
           <div class="w-[180px] shrink-0 truncate text-xs font-medium text-erp-muted">{{ today ? formatTopBarDate(today) : '' }}</div>
-          <div class="flex grow justify-center"><PageSearch :module="module" /></div>
+          <div class="flex min-w-0 grow justify-center"><PageSearch :module="module" /></div>
           <div class="flex shrink-0 items-center gap-4">
             <RouterLink
               v-if="module.approvalsTo"
@@ -213,9 +224,10 @@ const railActive = 'bg-erp-on-dark/20 text-erp-on-dark ring-1 ring-erp-on-dark/1
               <Bell :size="16" aria-hidden="true" />Approvals
               <span v-if="approvals" class="rounded-[10px] bg-mod-side px-[7px] py-px text-[11px] font-bold text-erp-on-dark">{{ approvals }}</span>
             </RouterLink>
+            <BranchSwitch />
             <div class="erp-num text-xs text-erp-muted">{{ clock }}</div>
             <div class="h-4 w-px bg-erp-border" aria-hidden="true" />
-            <DevUserSwitcher variant="module" />
+            <AccountMenu variant="module" />
           </div>
         </header>
       </div>

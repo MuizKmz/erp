@@ -20,7 +20,8 @@ import { PurchaseUsageProvider } from '../../src/purchase/usage/purchase-usage.p
 import { RecordUsageRegistry } from '../../src/platform/usage/record-usage.registry';
 import { SalesUsageProvider } from '../../src/sales/usage/sales-usage.provider';
 import { SALES_ROLE_GRANTS } from '../../src/sales/sales.permissions';
-import { CATALOGUE, SEEDED_USERS } from './configuration';
+import * as argon2 from 'argon2';
+import { CATALOGUE, DEMO_PASSWORD, SEEDED_USERS } from './configuration';
 import { day, kl, type SeedCtx } from './util';
 import type { Check } from './verify';
 
@@ -110,6 +111,11 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
   );
   const aina = await usersQuery.detail(admin, list.items.find((u) => u.code === 'AR')!.id);
   expect('Aina Rahman (A07: roles · effective)', 'Sales agent 9, Billing 6, Sales store 5 · 16 permissions from 3 roles.', `${aina.roles.map((r) => `${r.name} ${r.permissions}`).join(', ')} · ${aina.effective.text}`);
+
+  // A02: with AUTH_MODE=jwt every seeded user signs in with the demo password.
+  const hashes = await prisma.sysUser.findMany({ where: { tenantId, createdBy: null }, select: { passwordHash: true } });
+  const signIn = await Promise.all(hashes.map((h) => (h.passwordHash ? argon2.verify(h.passwordHash, DEMO_PASSWORD) : false)));
+  expect('Users who can sign in with the demo password (A02)', '14 of 14', `${signIn.filter(Boolean).length} of ${hashes.length}`);
 
   // A09 and A10 from the screens' own query.
   const rolesQuery = new RolesQuery(prisma as PrismaService, clock, { listFor: async () => [] } as never, { has: () => true } as never, catalogue);

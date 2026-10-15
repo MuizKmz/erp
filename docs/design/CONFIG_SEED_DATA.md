@@ -162,3 +162,5 @@ Not covered by the SRS or SDD, or settled by the user on 14 Oct 2026. The user a
 | 18 | A05 | Branch statutory numbers for payroll (employer, EPF, SOCSO: FR-PLT-002). | Come with payroll. A branch now has its address, contacts, document prefix and MyInvois branch name. |
 | 19 | All | Keeping the demo and the tests working. | `AUTH_MODE=dev` keeps the user switcher and `x-dev-user`, as today. `AUTH_MODE=jwt` turns on sign-in and hides the switcher. Data scopes apply in both modes. |
 | 20 | A11 | Where *My account* opens. | From the user menu in the top bar of every module. Everyone can open it; the rest of Configuration needs `config.view`. |
+| 21 | A5 | Which clock sign-in uses while the demo pins the date (`DEV_TODAY`). | The real clock: sessions, lockouts, attempts and the security log keep real times; only business dates follow `DEV_TODAY`. |
+| 22 | A5 | Locking a network address (FR-SEC-062). | As decided: 5 failures (wrong passwords or unknown users) from one address within 15 minutes lock that address for everyone for 15 minutes. People behind one office address share the count; raising it is a setting to add if that bites. |

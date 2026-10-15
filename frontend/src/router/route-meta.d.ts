@@ -22,5 +22,7 @@ declare module 'vue-router' {
     step?: number
     /** Mockup file in docs/design/mockups */
     mockup?: string
+    /** Open without signing in (the sign-in pages) */
+    public?: boolean
   }
 }

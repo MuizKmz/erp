@@ -18,6 +18,18 @@ const router = createRouter({
     ...coreRoutes,
     ...configRoutes,
     {
+      path: '/sign-in',
+      name: 'sign-in',
+      component: () => import('@/modules/auth/views/SignInView.vue'),
+      meta: { code: 'A02', title: 'Sign in', layout: 'bare', public: true, mockup: 'CfgSignIn.html' },
+    },
+    {
+      path: '/sign-in/forgot',
+      name: 'sign-in-forgot',
+      component: () => import('@/modules/auth/views/ForgotPasswordView.vue'),
+      meta: { title: 'Forgot password', layout: 'bare', public: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/modules/common/NotFoundView.vue'),

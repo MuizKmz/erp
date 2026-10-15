@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
 import type { Env } from './config/env';
 import { AllExceptionsFilter } from './platform/http/all-exceptions.filter';
 import { buildValidationPipe } from './platform/http/validation';
@@ -14,7 +15,10 @@ export function configureApp(app: INestApplication): void {
       .split(',')
       .map((o) => o.trim()),
     exposedHeaders: ['Content-Disposition'],
+    // The refresh-token cookie travels with sign-in requests (AUTH_MODE=jwt).
+    credentials: true,
   });
+  app.use(cookieParser());
   app.useGlobalPipes(buildValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());
 }

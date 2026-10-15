@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref, type Component } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { ArrowRight, ChartLine, ClipboardCheck, Database, Factory, Star, Sun, Warehouse } from '@lucide/vue'
 import { sessionApi, type ModuleTile } from '@/api/session'
-import DevUserSwitcher from '@/components/erp/DevUserSwitcher.vue'
+import AccountMenu from '@/components/erp/AccountMenu.vue'
 import { useSession } from '@/composables/useSession'
 import { MODULES } from '@/modules/registry'
 import { formatLongDate, greeting } from '@/utils/format'
@@ -105,7 +105,7 @@ const year = computed(() => today.value.slice(0, 4))
             {{ state.tenantName }}
           </span>
         </div>
-        <DevUserSwitcher variant="launcher" />
+        <AccountMenu variant="launcher" />
       </header>
     </div>
 

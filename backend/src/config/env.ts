@@ -4,8 +4,14 @@
  */
 export interface Env {
   DATABASE_URL: string;
-  AUTH_MODE: 'dev';
+  /** dev: the x-dev-user header picks the user (no password). jwt: sign-in with a password (Phase 4 · A5). */
+  AUTH_MODE: 'dev' | 'jwt';
+  /** Signs the access tokens. Required with AUTH_MODE=jwt, at least 32 characters. */
+  JWT_SECRET: string | null;
+  /** Send the refresh cookie only over HTTPS. Off for localhost. */
+  COOKIE_SECURE: boolean;
   DEV_DEFAULT_USER: string;
+  /** The tenant this server serves, in both modes (one tenant per server for now, SDD ADR-05). */
   DEV_TENANT_CODE: string;
   PORT: number;
   CORS_ORIGIN: string;
@@ -40,8 +46,16 @@ export function validateEnv(raw: Record<string, unknown>): Env {
   };
 
   const authMode = str('AUTH_MODE', 'dev');
-  if (authMode !== 'dev') {
-    problems.push(`AUTH_MODE must be "dev" until login is built (got "${authMode}")`);
+  if (authMode !== 'dev' && authMode !== 'jwt') {
+    problems.push(`AUTH_MODE must be "dev" or "jwt" (got "${authMode}")`);
+  }
+  const jwtSecret = typeof raw.JWT_SECRET === 'string' && raw.JWT_SECRET.trim() !== '' ? raw.JWT_SECRET.trim() : null;
+  if (authMode === 'jwt' && (!jwtSecret || jwtSecret.length < 32)) {
+    problems.push('JWT_SECRET must be set to at least 32 random characters when AUTH_MODE=jwt');
+  }
+  const cookieSecure = str('COOKIE_SECURE', 'off').toLowerCase();
+  if (!['on', 'off'].includes(cookieSecure)) {
+    problems.push(`COOKIE_SECURE must be "on" or "off" (got "${cookieSecure}")`);
   }
 
   const dispatch = str('OUTBOX_DISPATCH', 'on').toLowerCase();
@@ -56,7 +70,9 @@ export function validateEnv(raw: Record<string, unknown>): Env {
 
   const env: Env = {
     DATABASE_URL: str('DATABASE_URL'),
-    AUTH_MODE: 'dev',
+    AUTH_MODE: authMode === 'jwt' ? 'jwt' : 'dev',
+    JWT_SECRET: jwtSecret,
+    COOKIE_SECURE: cookieSecure === 'on',
     DEV_DEFAULT_USER: str('DEV_DEFAULT_USER', 'LMY').toUpperCase(),
     DEV_TENANT_CODE: str('DEV_TENANT_CODE', 'CLB'),
     PORT: toInt('PORT', raw.PORT, 3000, problems),

@@ -1,7 +1,9 @@
 /**
  * The one way the frontend talks to the API.
  * - Base URL from VITE_API_URL
- * - Sends the dev user (x-dev-user) until login exists
+ * - Sign-in mode (AUTH_MODE=jwt): sends the access token, refreshes it once when it runs out (the refresh token is an
+ *   httpOnly cookie), and reports a lost sign-in so the app opens the sign-in page
+ * - Dev mode: sends the dev user (x-dev-user) and branch (x-branch)
  * - Turns error responses into ApiError and shows them as a toast (unless `silent`)
  */
 
@@ -49,11 +51,30 @@ export interface RequestOptions {
 const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1').replace(/\/$/, '')
 
 let devUserCode = ''
+let devBranchCode = ''
+let accessToken: string | null = null
 let errorListener: ((error: ApiError) => void) | null = null
+let signedOutListener: ((message: string) => void) | null = null
+let refreshing: Promise<boolean> | null = null
 
 /** Set by the session when the dev user changes. */
 export function setDevUser(code: string): void {
   devUserCode = code
+}
+
+/** Dev mode: the branch to work in (x-branch); empty = the user's default branch. */
+export function setDevBranch(code: string): void {
+  devBranchCode = code
+}
+
+/** Sign-in mode: the access token, kept in memory only (never in localStorage). */
+export function setAccessToken(token: string | null): void {
+  accessToken = token
+}
+
+/** The session registers here: a sign-in that cannot be refreshed any more sends the user to the sign-in page. */
+export function onSignedOut(listener: (message: string) => void): void {
+  signedOutListener = listener
 }
 
 /** App.vue registers the toast here. */
@@ -82,20 +103,58 @@ async function readError(response: Response): Promise<ApiErrorBody> {
   }
 }
 
+/** Who is asking: the access token in sign-in mode, the dev user and branch in dev mode. */
+function authHeaders(): Record<string, string> {
+  if (accessToken) return { Authorization: `Bearer ${accessToken}` }
+  return { ...(devUserCode && { 'x-dev-user': devUserCode }), ...(devBranchCode && { 'x-branch': devBranchCode }) }
+}
+
+/** One refresh at a time, shared by every request that found its token run out. */
+export function refreshAccess(): Promise<boolean> {
+  refreshing ??= (async () => {
+    try {
+      const response = await fetch(buildUrl('/auth/refresh'), { method: 'POST', credentials: 'include', headers: { Accept: 'application/json' } })
+      if (!response.ok) return false
+      accessToken = ((await response.json()) as { accessToken: string }).accessToken
+      return true
+    } catch {
+      return false
+    } finally {
+      setTimeout(() => (refreshing = null), 0)
+    }
+  })()
+  return refreshing
+}
+
+const AUTH_PATHS = ['/auth/sign-in', '/auth/refresh', '/auth/sign-out', '/auth/mode']
+
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }
   const isForm = options.body instanceof FormData
   if (options.body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
-  if (devUserCode) headers['x-dev-user'] = devUserCode
+
+  const send = () =>
+    fetch(buildUrl(path, options.query), {
+      method: options.method ?? 'GET',
+      headers: { ...headers, ...authHeaders() },
+      body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
+      signal: options.signal,
+      credentials: 'include',
+    })
 
   let response: Response
   try {
-    response = await fetch(buildUrl(path, options.query), {
-      method: options.method ?? 'GET',
-      headers,
-      body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
-      signal: options.signal,
-    })
+    response = await send()
+    // Sign-in mode: the access token runs out after 15 minutes; refresh once and try again.
+    if (response.status === 401 && accessToken && !AUTH_PATHS.includes(path)) {
+      const body = await readError(response.clone())
+      if (body.code === 'TOKEN_EXPIRED' && (await refreshAccess())) response = await send()
+      if (response.status === 401) {
+        const lost = await readError(response.clone())
+        accessToken = null
+        signedOutListener?.(lost.message)
+      }
+    }
   } catch (cause) {
     if (cause instanceof DOMException && cause.name === 'AbortError') throw cause
     const error = new ApiError(0, { code: 'NETWORK', message: 'Cannot reach the server. Is the API running on port 3000?' })
@@ -113,12 +172,13 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 }
 
 /**
- * Opens a stored file (e.g. a supplier's quote PDF) in a new tab. Fetched with the dev-user header, since a
- * plain link cannot send it.
+ * Opens a stored file (e.g. a supplier's quote PDF) in a new tab. Fetched with the access token (or the dev user),
+ * since a plain link cannot send it.
  */
 export async function openFile(path: string): Promise<void> {
   const tab = window.open('', '_blank')
-  const response = await fetch(buildUrl(path), { headers: devUserCode ? { 'x-dev-user': devUserCode } : {} })
+  let response = await fetch(buildUrl(path), { headers: authHeaders(), credentials: 'include' })
+  if (response.status === 401 && accessToken && (await refreshAccess())) response = await fetch(buildUrl(path), { headers: authHeaders(), credentials: 'include' })
   if (!response.ok) {
     tab?.close()
     const error = new ApiError(response.status, await readError(response))

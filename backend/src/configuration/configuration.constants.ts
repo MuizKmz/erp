@@ -16,8 +16,14 @@ export const CONFIG_EVENT = {
   ROLE_UPDATED: 'config.role.updated',
 } as const;
 
-/** What sys_security_event rows record (NFR-SEC-012). Sign-in events come with A5. */
+/** What sys_security_event rows record (NFR-SEC-012). */
 export const SECURITY_EVENT = {
+  SIGNED_IN: 'SIGNED_IN',
+  SIGN_IN_FAILED: 'SIGN_IN_FAILED',
+  LOCKED_OUT: 'LOCKED_OUT',
+  SIGNED_OUT: 'SIGNED_OUT',
+  SESSION_ENDED: 'SESSION_ENDED',
+  TOKEN_REUSED: 'TOKEN_REUSED',
   USER_CREATED: 'USER_CREATED',
   ROLES_CHANGED: 'ROLES_CHANGED',
   USER_DEACTIVATED: 'USER_DEACTIVATED',

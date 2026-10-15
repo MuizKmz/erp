@@ -32,7 +32,8 @@ export class ConfigDashboardQuery {
   async summary(ctx: RequestContext) {
     const tenantId = ctx.tenantId;
     const where = { tenantId };
-    const now = this.clock.now();
+    // Sign-in facts are real times, not the demo's business date (DEV_TODAY).
+    const now = new Date();
     const [companies, branches, users, roles, settings, openSessions, failed, events] = await Promise.all([
       this.prisma.sysLegalEntity.findMany({ where, orderBy: { code: 'asc' }, select: { legalName: true, demoFields: true } }),
       this.prisma.sysBranch.findMany({ where, orderBy: { code: 'asc' }, select: { name: true } }),

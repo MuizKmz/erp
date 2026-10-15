@@ -7,6 +7,7 @@
  * as it was and removes companies, branches, users and roles made while testing.
  */
 import { Prisma } from '@prisma/client';
+import * as argon2 from 'argon2';
 import { CONFIG_PERMISSION_CATALOGUE } from '../../src/configuration/configuration.permissions';
 import { STARTER_ROLES, starterPermissions } from '../../src/configuration/roles/roles.rules';
 import { SIGN_IN_DEFAULTS, signInKey, type SignInSettings } from '../../src/configuration/settings/sign-in.rules';
@@ -74,10 +75,12 @@ const USERS: { code: string; name: string; email: string; roles: string[]; branc
 /** The users as the seed defines them, for the checks: code → roles and branches. */
 export const SEEDED_USERS = USERS;
 
-/** Nobody has signed in yet: no password (with AUTH_MODE=dev nobody needs one), no two-factor, no lockout. */
+/** With AUTH_MODE=jwt every seeded user signs in with this password (CONFIG_SEED_DATA.md → Users). Dev mode needs none. */
+export const DEMO_PASSWORD = 'Zora-demo-2026';
+
+/** Nobody has signed in yet: no two-factor, no lockout, the demo password just set. */
 const NOT_SIGNED_IN = {
   isActive: true,
-  passwordHash: null,
   passwordChangedAt: null,
   twoFactorSecret: null,
   twoFactorEnabledAt: null,
@@ -134,7 +137,8 @@ export async function seedConfiguration(ctx: SeedCtx): Promise<void> {
   }
 
   for (const u of USERS) {
-    const data = { name: u.name, email: u.email, department: u.department ?? null, jobTitle: u.jobTitle ?? null, ...NOT_SIGNED_IN };
+    const passwordHash = await argon2.hash(DEMO_PASSWORD, { type: argon2.argon2id });
+    const data = { name: u.name, email: u.email, department: u.department ?? null, jobTitle: u.jobTitle ?? null, ...NOT_SIGNED_IN, passwordHash };
     const row = await prisma.sysUser.upsert({
       where: { tenantId_code: { tenantId, code: u.code } },
       update: { ...data, ...AS_SEEDED },
