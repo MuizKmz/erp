@@ -8,7 +8,7 @@ import { TenantService } from '../../platform/context/tenant.service';
 import { SignInSettingsService } from '../settings/sign-in-settings.service';
 import type { RequestMeta } from '../shared/security-events.service';
 import { AuthService, type Issued } from './auth.service';
-import { SignInDto, SwitchBranchDto } from './dto/auth.dto';
+import { ForgotDto, LinkDto, ResetPasswordDto, SignInDto, SwitchBranchDto, TwoFactorDto } from './dto/auth.dto';
 
 /** The refresh cookie: httpOnly, only sent to /api/v1/auth, for the device's 30 days (SDD 10.2). */
 export const REFRESH_COOKIE = 'zora_refresh';
@@ -53,7 +53,54 @@ export class AuthController {
   @HttpCode(200)
   async signIn(@Body() dto: SignInDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     this.requireJwtMode();
-    return this.answer(res, await this.auth.signIn(dto.identifier, dto.password, metaOf(req)));
+    const answer = await this.auth.signIn(dto.identifier, dto.password, metaOf(req));
+    // A correct password with two-factor still to do gives only a short-lived ticket, no session and no cookie.
+    if (answer.step !== 'DONE') return answer;
+    return { step: 'DONE', ...this.answer(res, answer) };
+  }
+
+  /** A03 · the code from the app, or a recovery code, after a correct password. */
+  @Public()
+  @Post('two-factor')
+  @HttpCode(200)
+  async twoFactor(@Body() dto: TwoFactorDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    this.requireJwtMode();
+    const issued = await this.auth.verifyTwoFactor(dto.ticket, dto.code, metaOf(req));
+    return { ...this.answer(res, issued), ...(issued.recoveryCodesLeft !== undefined && { recoveryCodesLeft: issued.recoveryCodesLeft }) };
+  }
+
+  /** A03 · set-up when a role requires two-factor: confirm the secret with a code; the recovery codes come back once. */
+  @Public()
+  @Post('two-factor/setup')
+  @HttpCode(200)
+  async twoFactorSetup(@Body() dto: TwoFactorDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    this.requireJwtMode();
+    const issued = await this.auth.completeSetup(dto.ticket, dto.code, metaOf(req));
+    return { ...this.answer(res, issued), recoveryCodes: issued.recoveryCodes };
+  }
+
+  /** Forgot password: the same answer whether or not the account exists (FR-SEC-063). */
+  @Public()
+  @Post('forgot')
+  @HttpCode(200)
+  async forgot(@Body() dto: ForgotDto, @Req() req: Request) {
+    await this.auth.forgot(dto.identifier, metaOf(req));
+    return { message: 'If an account matches, a link to reset the password is on its way to its email.' };
+  }
+
+  /** What a reset or set-password link is for, before the new password is typed. */
+  @Public()
+  @Post('link')
+  @HttpCode(200)
+  link(@Body() dto: LinkDto) {
+    return this.auth.checkLink(dto.token);
+  }
+
+  @Public()
+  @Post('reset')
+  @HttpCode(200)
+  reset(@Body() dto: ResetPasswordDto, @Req() req: Request) {
+    return this.auth.resetWithLink(dto.token, dto.newPassword, metaOf(req));
   }
 
   @Public()

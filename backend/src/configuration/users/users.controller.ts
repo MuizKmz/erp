@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { CurrentContext, RequirePermission } from '../../platform/context/context.decorators';
 import type { RequestContext } from '../../platform/context/request-context';
 import { CONFIG_PERMISSIONS as P } from '../configuration.permissions';
 import { CreateUserDto, UpdateUserDto, UserListQueryDto, UserVersionDto } from './dto/user.dto';
+import { UserSignInService } from './user-sign-in.service';
 import { UsersQuery } from './users.query';
 import { UsersService } from './users.service';
 
@@ -12,6 +13,7 @@ export class ConfigUsersController {
   constructor(
     private readonly query: UsersQuery,
     private readonly service: UsersService,
+    private readonly signIn: UserSignInService,
   ) {}
 
   @Get()
@@ -54,5 +56,34 @@ export class ConfigUsersController {
   @RequirePermission(P.USER_EDIT)
   activate(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UserVersionDto) {
     return this.service.setActive(ctx, id, true, dto.version);
+  }
+
+  /** A07 · Sign-in card (A6). */
+  @Post(':id/send-link')
+  @HttpCode(200)
+  @RequirePermission(P.USER_EDIT)
+  sendLink(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.signIn.sendLink(ctx, id);
+  }
+
+  @Post(':id/revoke-sessions')
+  @HttpCode(200)
+  @RequirePermission(P.USER_EDIT)
+  revokeSessions(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.signIn.revokeSessions(ctx, id);
+  }
+
+  @Post(':id/reset-two-factor')
+  @HttpCode(200)
+  @RequirePermission(P.USER_EDIT)
+  resetTwoFactor(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.signIn.resetTwoFactor(ctx, id);
+  }
+
+  @Post(':id/unlock')
+  @HttpCode(200)
+  @RequirePermission(P.USER_EDIT)
+  unlock(@CurrentContext() ctx: RequestContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.signIn.unlock(ctx, id);
   }
 }

@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import DatePicker from 'primevue/datepicker'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
-import { KeyRound, Lock, Pencil, Plus, X } from '@lucide/vue'
+import { KeyRound, Lock, Mail, Pencil, Plus, X } from '@lucide/vue'
 import { ApiError } from '@/api/http'
 import ActivityList from '@/components/erp/ActivityList.vue'
 import FormField from '@/components/erp/FormField.vue'
@@ -15,7 +15,7 @@ import SwitchToggle from '@/components/erp/SwitchToggle.vue'
 import { usePageCrumb } from '@/composables/usePageCrumb'
 import { formatDate, formatDateTime } from '@/utils/format'
 import { configUsersApi } from '../api/config'
-import type { UserDetail, UserInput, UserLookups } from '../types'
+import type { UserAction, UserDetail, UserInput, UserLookups } from '../types'
 
 /** A07 · New user / user with roles, branches and sign-in (CfgUserForm.html) */
 const route = useRoute()
@@ -56,7 +56,7 @@ const form = reactive({
 const saved = ref('')
 const snapshot = () => JSON.stringify({ ...form, roles: form.roles.map((r) => [r.roleCode, r.validFrom, r.validUntil]) })
 const dirty = computed(() => snapshot() !== saved.value)
-const can = (a: 'edit' | 'deactivate' | 'activate') => Boolean(user.value?.allowedActions.includes(a))
+const can = (a: UserAction) => Boolean(user.value?.allowedActions.includes(a))
 const editable = computed(() => (isNew.value ? Boolean(lookups.value?.canEdit) : can('edit')))
 const STATUS_GROUP = { active: 'done', locked: 'pending', inactive: 'draft' } as const
 
@@ -142,6 +142,50 @@ async function save() {
   }
 }
 
+/** A07 · Sign-in card (A6): links by email, sessions, two-factor and lockout. */
+const SIGN_IN_ACTIONS = {
+  'send-link': {
+    header: (u: UserDetail) => (u.signIn.hasPassword ? `Send ${u.name} a reset link?` : `Send ${u.name} a set-password link?`),
+    message: (u: UserDetail) => `A single-use link goes to ${u.email}. Their current password keeps working until they use it.`,
+    accept: 'Send link',
+    done: (u: UserDetail) => `Link sent to ${u.email}`,
+  },
+  'revoke-sessions': {
+    header: (u: UserDetail) => `Sign ${u.name} out everywhere?`,
+    message: (u: UserDetail) => `Every device they are signed in on (${u.signIn.openSessions}) asks them to sign in again.`,
+    accept: 'Sign out everywhere',
+    done: (u: UserDetail) => `${u.name} signed out everywhere`,
+  },
+  'reset-two-factor': {
+    header: (u: UserDetail) => `Reset the two-factor of ${u.name}?`,
+    message: () => 'For a lost phone: their authenticator and recovery codes stop working and they are signed out. If their roles need two-factor, they set it up again at their next sign-in.',
+    accept: 'Reset two-factor',
+    done: (u: UserDetail) => `Two-factor of ${u.name} reset`,
+  },
+  unlock: {
+    header: (u: UserDetail) => `Unlock ${u.name}?`,
+    message: () => 'The wrong-password count goes back to 0 and they can sign in again now.',
+    accept: 'Unlock',
+    done: (u: UserDetail) => `${u.name} unlocked`,
+  },
+} as const
+
+function signInAction(action: keyof typeof SIGN_IN_ACTIONS) {
+  const u = user.value!
+  const def = SIGN_IN_ACTIONS[action]
+  confirm.require({
+    header: def.header(u),
+    message: def.message(u),
+    acceptLabel: def.accept,
+    rejectLabel: 'Cancel',
+    accept: async () => {
+      show(await configUsersApi.signInAction(u.id, action))
+      toast.add({ severity: 'success', summary: def.done(u), life: 3000 })
+    },
+  })
+}
+const openEmail = ref('')
+
 function setActive(action: 'deactivate' | 'activate') {
   const u = user.value!
   const run = async () => {
@@ -165,7 +209,7 @@ function setActive(action: 'deactivate' | 'activate') {
 
   <template v-else-if="lookups">
     <section class="erp-card px-6 py-[18px]">
-      <PageHeader :title="isNew ? 'New user' : `User ${user?.code ?? ''}`" :subtitle="isNew ? 'They get a set-password link once sign-in is on.' : user?.subtitle" document>
+      <PageHeader :title="isNew ? 'New user' : `User ${user?.code ?? ''}`" :subtitle="isNew ? 'They get a link by email to set their password.' : user?.subtitle" document>
         <template v-if="user" #chip>
           <StatusChip :status="user.status.toUpperCase()" :label="user.statusLabel" :group="STATUS_GROUP[user.status]" />
         </template>
@@ -334,10 +378,35 @@ function setActive(action: 'deactivate' | 'activate') {
               <div id="failed" class="erp-input-ro">{{ user.signIn.failedSignIns }}</div>
             </FormField>
           </div>
-          <div class="flex items-center gap-2">
-            <button type="button" class="erp-btn erp-btn-secondary" disabled title="Comes with sign-in (steps A5 and A6)"><KeyRound :size="14" aria-hidden="true" />Send a reset link</button>
-            <button type="button" class="erp-btn erp-btn-secondary" disabled title="Comes with sign-in (steps A5 and A6)">Revoke all sessions</button>
-            <span class="text-xs text-erp-muted">Reset links and sessions work once sign-in is on. The demo runs with the user switcher.</span>
+          <div v-if="user.status === 'locked' && user.signIn.lockedUntil" class="text-[13px] font-semibold text-note-warn-strong">
+            Locked until {{ formatDateTime(user.signIn.lockedUntil) }} after too many wrong passwords.
+          </div>
+          <div v-if="can('send-link') || can('revoke-sessions')" class="flex flex-wrap items-center gap-2">
+            <button v-if="can('send-link')" type="button" class="erp-btn erp-btn-secondary" :disabled="dirty" @click="signInAction('send-link')">
+              <KeyRound :size="14" aria-hidden="true" />{{ user.signIn.hasPassword ? 'Send a reset link' : 'Send a set-password link' }}
+            </button>
+            <button v-if="can('revoke-sessions')" type="button" class="erp-btn erp-btn-secondary" :disabled="dirty || !user.signIn.openSessions" :title="user.signIn.openSessions ? undefined : 'Not signed in anywhere'" @click="signInAction('revoke-sessions')">
+              Revoke all sessions
+            </button>
+            <button v-if="can('unlock')" type="button" class="erp-btn erp-btn-secondary" :disabled="dirty" @click="signInAction('unlock')">Unlock</button>
+            <button v-if="can('reset-two-factor')" type="button" class="erp-btn erp-btn-secondary" :disabled="dirty" @click="signInAction('reset-two-factor')">Reset two-factor</button>
+            <span class="text-xs text-erp-muted">
+              {{ user.signIn.openSessions ? `Signed in on ${user.signIn.openSessions} device${user.signIn.openSessions === 1 ? '' : 's'}.` : 'Not signed in anywhere.' }}
+              {{ user.signIn.hasPassword ? '' : 'No password yet: they set one with the link.' }}
+            </span>
+          </div>
+          <div v-if="user.signIn.emails.length" class="flex flex-col gap-1.5">
+            <span class="text-xs font-medium text-erp-muted">Sign-in emails · in the email log until real email is connected</span>
+            <ul class="m-0 flex list-none flex-col p-0">
+              <li v-for="e in user.signIn.emails" :key="e.id" class="border-t border-erp-row py-2 first:border-t-0">
+                <button type="button" class="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left text-[13px]" :aria-expanded="openEmail === e.id" @click="openEmail = openEmail === e.id ? '' : e.id">
+                  <Mail :size="14" class="shrink-0 text-erp-muted" aria-hidden="true" />
+                  <span class="font-semibold">{{ e.subject }}</span>
+                  <span class="text-erp-muted">to {{ e.to }} · {{ formatDateTime(e.at) }}</span>
+                </button>
+                <pre v-if="openEmail === e.id" class="mt-2 mb-0 rounded-lg bg-erp-bg px-3 py-2.5 font-sans text-xs leading-relaxed break-all whitespace-pre-wrap">{{ e.body }}</pre>
+              </li>
+            </ul>
           </div>
         </section>
       </div>
@@ -355,7 +424,7 @@ function setActive(action: 'deactivate' | 'activate') {
         </template>
         <SideCard v-else title="Who gets in">
           <p class="m-0 text-[13px] text-erp-muted">
-            A user needs at least one role and one branch. With sign-in on, they get a single-use link to set their own password; nobody ever sends a password.
+            A user needs at least one role and one branch. They get a single-use link by email to set their own password; nobody ever sends a password.
           </p>
         </SideCard>
       </div>

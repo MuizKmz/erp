@@ -2,15 +2,16 @@
 import { computed, onMounted, reactive, ref, type Component } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { ArrowRight, ChartLine, ClipboardCheck, Database, Factory, Star, Sun, Warehouse } from '@lucide/vue'
-import { sessionApi, type ModuleTile } from '@/api/session'
+import { accountApi, sessionApi, type ModuleTile } from '@/api/session'
 import AccountMenu from '@/components/erp/AccountMenu.vue'
+import NoticeBanner from '@/components/erp/NoticeBanner.vue'
 import { useSession } from '@/composables/useSession'
 import { MODULES } from '@/modules/registry'
 import { formatLongDate, greeting } from '@/utils/format'
 
 /** 00 · Choose a module. A tile opens only when its module is built in this app; the rest say "Coming soon". */
 const toast = useToast()
-const { state, user, today, now } = useSession()
+const { state, user, today, now, isJwt } = useSession()
 
 /** Tile colour (a theme token), icon and one-line purpose per module. */
 const TILE_STYLE: Record<ModuleTile['code'], { icon: Component; color: string; description: string }> = {
@@ -52,11 +53,20 @@ async function loadWaiting() {
   }
 }
 
+// A14 "Ask to change regularly": the password is old enough to ask for a new one (sign-in mode only).
+const passwordDue = ref(false)
+
 onMounted(async () => {
   try {
     tiles.value = (await sessionApi.modules()).items
   } catch {
     /* keep the static list; the error toast already explains */
+  }
+  if (isJwt.value) {
+    accountApi
+      .get(true)
+      .then((a) => (passwordDue.value = a.password.changeDue))
+      .catch(() => undefined)
   }
   await loadWaiting()
 })
@@ -115,6 +125,10 @@ const year = computed(() => today.value.slice(0, 4))
         <h1 class="m-0 text-[28px] leading-tight font-bold">{{ hello }}</h1>
         <p class="m-0 text-sm text-erp-subtle">Choose a module to start working.</p>
       </div>
+
+      <NoticeBanner v-if="passwordDue" kind="warning">
+        It is time to change your password. <RouterLink to="/account" class="erp-link font-semibold">Change it in My account</RouterLink>
+      </NoticeBanner>
 
       <ul class="m-0 grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3">
         <li v-for="tile in sortedTiles" :key="tile.code" :style="{ '--tile-color': TILE_STYLE[tile.code].color }">

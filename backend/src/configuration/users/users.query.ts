@@ -40,6 +40,15 @@ export type UserRow = Prisma.SysUserGetPayload<{ include: typeof USER_INCLUDE }>
 
 const isoDay = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
 
+/** What an editor may do on A07: save, (de)activate and the Sign-in card's buttons that make sense now. */
+function signInActions(user: UserRow, now: Date): string[] {
+  if (!user.isActive) return ['edit', 'activate']; // deactivating already ended their sessions
+  const actions = ['edit', 'deactivate', 'send-link', 'revoke-sessions'];
+  if (user.twoFactorEnabledAt || user.twoFactorSecret) actions.push('reset-two-factor');
+  if (userStatus(true, user.lockedUntil, now) === 'locked' || user.failedSignIns > 0) actions.push('unlock');
+  return actions;
+}
+
 /** The user's roles as the rules read them. */
 export function roleRows(user: UserRow): RoleRow[] {
   return user.roles.map((r) => ({ roleCode: r.role.code, validFrom: isoDay(r.validFrom), validUntil: isoDay(r.validUntil) }));
@@ -173,15 +182,29 @@ export class UsersQuery {
     const today = this.clock.today();
     const user = await this.findUser(ctx, id);
     const rows = roleRows(user);
-    const [facts, activity, otherAdmins] = await Promise.all([this.roleFacts(tenantId), this.activity.listFor(tenantId, CONFIG_ENTITY.USER, id), this.otherAdmins(tenantId, id)]);
+    const canEdit = this.canEdit(ctx);
+    const now = new Date(); // sessions and lockouts are real times, not the demo's business date
+    const [facts, activity, otherAdmins, sessions, emails] = await Promise.all([
+      this.roleFacts(tenantId),
+      this.activity.listFor(tenantId, CONFIG_ENTITY.USER, id),
+      this.otherAdmins(tenantId, id),
+      this.prisma.sysSession.count({ where: { userId: id, revokedAt: null, expiresAt: { gt: now } } }),
+      canEdit
+        ? this.prisma.sysEmailLog.findMany({
+            where: { tenantId, entityType: CONFIG_ENTITY.USER, entityId: id, templateKey: { startsWith: 'sign_in.' } },
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+            select: { id: true, templateKey: true, toAddress: true, subject: true, body: true, createdAt: true },
+          })
+        : Promise.resolve([]),
+    ]);
     const counting = rows.filter((r) => roleCounts(r, today));
     const effective = new Set(counting.flatMap((r) => [...(facts.keys.get(r.roleCode) ?? [])]));
     const agentRoles = user.roles.filter((r) => r.role.agentScopeCustomers && roleCounts(rows.find((x) => x.roleCode === r.role.code)!, today)).map((r) => r.role.name);
     const customers = agentRoles.length ? (await this.masterData.listCustomers(tenantId)).filter((c) => c.defaultAgentCode === user.code).map((c) => c.code) : [];
     const { codes, defaultBranch } = branchesOf(user);
     const state = this.twoFactor(user, facts.twoFactorRoles, today);
-    const status = userStatus(user.isActive, user.lockedUntil, new Date());
-    const canEdit = this.canEdit(ctx);
+    const status = userStatus(user.isActive, user.lockedUntil, now);
     const refusal = user.isActive ? deactivateRefusal(user.id === ctx.user.id, user.name, holdsAdminForGood(rows, today) && otherAdmins === 0) : null;
     return {
       id: user.id,
@@ -215,9 +238,12 @@ export class UsersQuery {
         lastSignInAt: user.lastSignInAt?.toISOString() ?? null,
         failedSignIns: user.failedSignIns,
         lockedUntil: user.lockedUntil?.toISOString() ?? null,
+        hasPassword: !!user.passwordHash,
+        openSessions: sessions,
+        emails: emails.map((e) => ({ id: e.id, kind: e.templateKey, to: e.toAddress, subject: e.subject, body: e.body, at: e.createdAt.toISOString() })),
       },
       activity,
-      allowedActions: canEdit ? ['edit', user.isActive ? 'deactivate' : 'activate'] : [],
+      allowedActions: canEdit ? signInActions(user, now) : [],
       refusals: { deactivate: refusal },
     };
   }

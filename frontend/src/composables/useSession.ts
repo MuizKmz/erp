@@ -1,6 +1,6 @@
 import { computed, reactive, readonly } from 'vue'
 import { ApiError, onSignedOut, refreshAccess, setAccessToken, setDevBranch, setDevUser } from '@/api/http'
-import { authApi, sessionApi, type AuthMode, type AuthModeInfo, type DevUser, type Me } from '@/api/session'
+import { authApi, sessionApi, type AuthMode, type AuthModeInfo, type DevUser, type Issued, type Me, type TwoFactorSetup } from '@/api/session'
 
 /**
  * Who is using the app, in two modes (CLAUDE.md → Phase 4 · A5):
@@ -39,6 +39,10 @@ const state = reactive({
   /** Why the last sign-in ended ("Signed out after 30 minutes without activity."), shown on the sign-in page. */
   signedOutMessage: '' as string,
   info: null as AuthModeInfo | null,
+  /** A03 · after a correct password, a code from the app is still to come. Memory only: the ticket lives 10 minutes. */
+  twoFactor: null as { stage: 'code' | 'setup'; ticket: string; setup: TwoFactorSetup | null; reason: string; demoBypassCode: string | null } | null,
+  /** The 8 recovery codes from a set-up just finished, shown once on the two-factor page before going on. */
+  recoveryCodes: [] as string[],
   userCode: readStored(STORAGE_KEY),
   me: null as Me | null,
   users: [] as DevUser[],
@@ -117,14 +121,56 @@ async function switchUser(code: string): Promise<void> {
   state.version += 1
 }
 
-/** Sign-in mode: email or user code and password. Throws the server's answer (wrong password, locked …). */
-async function signIn(identifier: string, password: string): Promise<void> {
-  const issued = await authApi.signIn(identifier, password)
+/** A sign-in that is complete: the access token in memory, the refresh token already in its cookie. */
+async function finish(issued: Issued): Promise<void> {
   setAccessToken(issued.accessToken)
+  state.twoFactor = null
   await loadMe()
   state.signedOut = false
   state.signedOutMessage = ''
   state.version += 1
+}
+
+/**
+ * Sign-in mode: email or user code and password. 'TWO_FACTOR' when a code from the app comes next (the two-factor page
+ * reads state.twoFactor). Throws the server's answer (wrong password, locked …).
+ */
+async function signIn(identifier: string, password: string): Promise<'DONE' | 'TWO_FACTOR'> {
+  const answer = await authApi.signIn(identifier, password)
+  if (answer.step === 'DONE') {
+    await finish(answer)
+    return 'DONE'
+  }
+  state.twoFactor =
+    answer.step === 'TWO_FACTOR'
+      ? { stage: 'code', ticket: answer.ticket, setup: null, reason: '', demoBypassCode: answer.demoBypassCode ?? null }
+      : { stage: 'setup', ticket: answer.ticket, setup: answer.setup, reason: answer.reason, demoBypassCode: answer.demoBypassCode ?? null }
+  return 'TWO_FACTOR'
+}
+
+/** A03 · the code from the app, or a recovery code. Gives how many recovery codes are left when one was used. */
+async function verifyTwoFactor(code: string): Promise<number | undefined> {
+  if (!state.twoFactor) throw new Error('Sign in first.')
+  const issued = await authApi.twoFactor(state.twoFactor.ticket, code)
+  await finish(issued)
+  return issued.recoveryCodesLeft
+}
+
+/** A03 · set-up: the first code from the app turns two-factor on; the recovery codes wait in state.recoveryCodes. */
+async function completeTwoFactorSetup(code: string): Promise<void> {
+  if (!state.twoFactor) throw new Error('Sign in first.')
+  const issued = await authApi.completeSetup(state.twoFactor.ticket, code)
+  state.recoveryCodes = issued.recoveryCodes
+  await finish(issued)
+}
+
+function clearRecoveryCodes(): void {
+  state.recoveryCodes = []
+}
+
+/** Back to the password (the ticket ran out, or another account). */
+function cancelTwoFactor(): void {
+  state.twoFactor = null
 }
 
 /** Ends this device's session; dev mode has nothing to end. */
@@ -159,6 +205,10 @@ export function useSession() {
     start,
     switchUser,
     signIn,
+    verifyTwoFactor,
+    completeTwoFactorSetup,
+    clearRecoveryCodes,
+    cancelTwoFactor,
     signOut,
     switchBranch,
     isJwt: computed(() => state.mode === 'jwt'),

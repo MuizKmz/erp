@@ -7,7 +7,7 @@ import type { Env } from '../../config/env';
 import { IS_PUBLIC_KEY } from './context.decorators';
 import { PermissionRegistry } from './permission.registry';
 import { USER_DIRECTORY, type ErpRequest, type UserDirectory } from './request-context';
-import { SESSION_GATE, type AccessClaims, type SessionGate } from './session-gate';
+import { ACCESS_AUDIENCE, isAccessClaims, SESSION_GATE, type AccessClaims, type SessionGate } from './session-gate';
 import { TenantService } from './tenant.service';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -48,7 +48,9 @@ export class JwtUserGuard implements CanActivate {
 
     let claims: AccessClaims;
     try {
-      claims = await this.jwt.verifyAsync<AccessClaims>(token);
+      const verified = await this.jwt.verifyAsync<AccessClaims>(token, { audience: ACCESS_AUDIENCE });
+      if (!isAccessClaims(verified)) throw new Error('not an access token');
+      claims = verified;
     } catch (error) {
       const expired = error instanceof Error && error.name === 'TokenExpiredError';
       throw signedOut(expired ? 'TOKEN_EXPIRED' : 'NOT_SIGNED_IN', expired ? 'Your sign-in needs refreshing.' : 'Sign in to continue.');

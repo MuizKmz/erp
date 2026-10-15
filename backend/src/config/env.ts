@@ -8,6 +8,8 @@ export interface Env {
   AUTH_MODE: 'dev' | 'jwt';
   /** Signs the access tokens. Required with AUTH_MODE=jwt, at least 32 characters. */
   JWT_SECRET: string | null;
+  /** Local demo only: six-digit two-factor shortcut for the seeded ADM account. Never active in production. */
+  DEMO_ADMIN_2FA_BYPASS_CODE: string | null;
   /** Send the refresh cookie only over HTTPS. Off for localhost. */
   COOKIE_SECURE: boolean;
   DEV_DEFAULT_USER: string;
@@ -53,6 +55,10 @@ export function validateEnv(raw: Record<string, unknown>): Env {
   if (authMode === 'jwt' && (!jwtSecret || jwtSecret.length < 32)) {
     problems.push('JWT_SECRET must be set to at least 32 random characters when AUTH_MODE=jwt');
   }
+  const demoAdminBypassCode = typeof raw.DEMO_ADMIN_2FA_BYPASS_CODE === 'string' && raw.DEMO_ADMIN_2FA_BYPASS_CODE.trim() !== '' ? raw.DEMO_ADMIN_2FA_BYPASS_CODE.trim() : null;
+  if (demoAdminBypassCode && !/^\d{6}$/.test(demoAdminBypassCode)) {
+    problems.push('DEMO_ADMIN_2FA_BYPASS_CODE must be exactly six digits');
+  }
   const cookieSecure = str('COOKIE_SECURE', 'off').toLowerCase();
   if (!['on', 'off'].includes(cookieSecure)) {
     problems.push(`COOKIE_SECURE must be "on" or "off" (got "${cookieSecure}")`);
@@ -72,6 +78,7 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     DATABASE_URL: str('DATABASE_URL'),
     AUTH_MODE: authMode === 'jwt' ? 'jwt' : 'dev',
     JWT_SECRET: jwtSecret,
+    DEMO_ADMIN_2FA_BYPASS_CODE: demoAdminBypassCode,
     COOKIE_SECURE: cookieSecure === 'on',
     DEV_DEFAULT_USER: str('DEV_DEFAULT_USER', 'LMY').toUpperCase(),
     DEV_TENANT_CODE: str('DEV_TENANT_CODE', 'CLB'),

@@ -221,9 +221,19 @@ export interface UserDetail {
   defaultBranch: string | null
   branchNote: string
   effective: { permissions: number; roles: number; text: string }
-  signIn: { twoFactor: TwoFactorState; twoFactorText: string; lastSignInAt: string | null; failedSignIns: number; lockedUntil: string | null }
+  signIn: {
+    twoFactor: TwoFactorState
+    twoFactorText: string
+    lastSignInAt: string | null
+    failedSignIns: number
+    lockedUntil: string | null
+    hasPassword: boolean
+    openSessions: number
+    /** The sign-in emails (set-password and reset links), newest first: the mailbox until real email is connected. Editors only. */
+    emails: { id: string; kind: 'sign_in.reset' | 'sign_in.set_password'; to: string; subject: string; body: string; at: string }[]
+  }
   activity: ActivityItem[]
-  allowedActions: ('edit' | 'deactivate' | 'activate')[]
+  allowedActions: UserAction[]
   refusals: { deactivate: string | null }
 }
 
@@ -293,4 +303,32 @@ export interface RoleComparison {
   b: { code: string; name: string; permissions: number }
   rows: (PermissionRow & { a: boolean; b: boolean })[]
   text: string
+}
+
+export type UserAction = 'edit' | 'deactivate' | 'activate' | 'send-link' | 'revoke-sessions' | 'reset-two-factor' | 'unlock'
+
+/** A14 · Sign-in settings (CONFIG_SEED_DATA.md → Sign-in settings). */
+export interface SignInSettings {
+  passwordMinLength: number
+  refuseCommonPasswords: boolean
+  passwordMaxAgeDays: number | null
+  lockoutAttempts: number
+  lockoutMinutes: number
+  lockoutPerAddress: boolean
+  idleMinutes: number
+  refreshDays: number
+  accessMinutes: number
+  linkMinutes: number
+  twoFactorRoles: string[]
+  emailSetPasswordLink: boolean
+}
+
+export interface SignInSettingsView {
+  settings: SignInSettings
+  version: number
+  tenantName: string
+  roles: { code: string; name: string }[]
+  limits: Record<'passwordMinLength' | 'lockoutAttempts' | 'lockoutMinutes' | 'idleMinutes' | 'refreshDays' | 'linkMinutes', { min: number; max: number }>
+  passwordAgeChoices: (number | null)[]
+  allowedActions: 'edit'[]
 }

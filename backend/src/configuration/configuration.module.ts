@@ -1,8 +1,11 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
 import { PermissionCatalogue } from '../platform/context/permission-catalogue';
+import { AccountController } from './account/account.controller';
+import { AccountService } from './account/account.service';
 import { AuthGateModule } from './auth/auth-gate.module';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
+import { CredentialsService } from './auth/credentials.service';
 import { CONFIG_PERMISSION_CATALOGUE } from './configuration.permissions';
 import { ConfigDashboardController } from './dashboard/dashboard.controller';
 import { ConfigDashboardQuery } from './dashboard/dashboard.query';
@@ -12,8 +15,11 @@ import { OrganisationService } from './organisation/organisation.service';
 import { ConfigPermissionsController, ConfigRolesController } from './roles/roles.controller';
 import { RolesQuery } from './roles/roles.query';
 import { RolesService } from './roles/roles.service';
+import { ConfigSettingsController } from './settings/settings.controller';
+import { SettingsService } from './settings/settings.service';
 import { ConfigRecordsService } from './shared/config-records.service';
 import { ConfigUsersController } from './users/users.controller';
+import { UserSignInService } from './users/user-sign-in.service';
 import { UsersQuery } from './users/users.query';
 import { UsersService } from './users/users.service';
 
@@ -24,8 +30,32 @@ import { UsersService } from './users/users.service';
  */
 @Module({
   imports: [AuthGateModule],
-  controllers: [AuthController, ConfigDashboardController, ConfigCompaniesController, ConfigBranchesController, ConfigUsersController, ConfigRolesController, ConfigPermissionsController],
-  providers: [AuthService, ConfigDashboardQuery, ConfigRecordsService, OrganisationQuery, OrganisationService, UsersQuery, UsersService, RolesQuery, RolesService],
+  controllers: [
+    AuthController,
+    AccountController,
+    ConfigDashboardController,
+    ConfigCompaniesController,
+    ConfigBranchesController,
+    ConfigUsersController,
+    ConfigRolesController,
+    ConfigPermissionsController,
+    ConfigSettingsController,
+  ],
+  providers: [
+    AuthService,
+    CredentialsService,
+    AccountService,
+    ConfigDashboardQuery,
+    ConfigRecordsService,
+    OrganisationQuery,
+    OrganisationService,
+    UsersQuery,
+    UsersService,
+    UserSignInService,
+    RolesQuery,
+    RolesService,
+    SettingsService,
+  ],
 })
 export class ConfigurationModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionCatalogue) {}

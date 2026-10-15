@@ -68,8 +68,8 @@ const crumbs = computed(() => {
   const items: { label: string; to?: string }[] = [{ label: 'Home', to: module.value.home }]
   if (route.meta.parent) {
     items.push({ label: route.meta.parent.title, to: route.meta.parent.to })
-  } else if (route.meta.code !== 'P02') {
-    items.push({ label: group.value.title })
+  } else if (route.meta.code !== 'P02' && group.value.title.toLowerCase() !== String(route.meta.title ?? '').toLowerCase()) {
+    items.push({ label: group.value.title }) // not twice when the group is the page ("My Account")
   }
   items.push({ label: pageCrumb.value ?? route.meta.title ?? '' })
   return items

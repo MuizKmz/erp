@@ -126,7 +126,7 @@ export function refreshAccess(): Promise<boolean> {
   return refreshing
 }
 
-const AUTH_PATHS = ['/auth/sign-in', '/auth/refresh', '/auth/sign-out', '/auth/mode']
+const AUTH_PATHS = ['/auth/sign-in', '/auth/refresh', '/auth/sign-out', '/auth/mode', '/auth/two-factor', '/auth/two-factor/setup', '/auth/forgot', '/auth/link', '/auth/reset']
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }

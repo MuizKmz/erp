@@ -30,6 +30,18 @@ const router = createRouter({
       meta: { title: 'Forgot password', layout: 'bare', public: true },
     },
     {
+      path: '/sign-in/two-factor',
+      name: 'sign-in-two-factor',
+      component: () => import('@/modules/auth/views/TwoFactorView.vue'),
+      meta: { code: 'A03', title: 'Two-factor sign-in', layout: 'bare', public: true, mockup: 'CfgTwoFactor.html' },
+    },
+    {
+      path: '/sign-in/reset',
+      name: 'sign-in-reset',
+      component: () => import('@/modules/auth/views/ResetPasswordView.vue'),
+      meta: { title: 'Password link', layout: 'bare', public: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/modules/common/NotFoundView.vue'),

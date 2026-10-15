@@ -14,6 +14,8 @@ import type {
   RoleDetail,
   RoleInput,
   RoleListItem,
+  SignInSettings,
+  SignInSettingsView,
   UserDetail,
   UserInput,
   UserListItem,
@@ -47,6 +49,13 @@ export const configUsersApi = {
   create: (input: UserInput & { code: string }) => api<UserDetail>('/config/users', { method: 'POST', body: input }),
   update: (id: string, input: UserInput & { version: number }) => api<UserDetail>(`/config/users/${id}`, { method: 'PATCH', body: input }),
   setActive: (id: string, action: 'deactivate' | 'activate', version: number) => api<UserDetail>(`/config/users/${id}/${action}`, { method: 'POST', body: { version } }),
+  /** A07 · Sign-in card */
+  signInAction: (id: string, action: 'send-link' | 'revoke-sessions' | 'reset-two-factor' | 'unlock') => api<UserDetail>(`/config/users/${id}/${action}`, { method: 'POST' }),
+}
+
+export const configSettingsApi = {
+  signIn: () => api<SignInSettingsView>('/config/settings/sign-in'),
+  saveSignIn: (input: Partial<SignInSettings> & { version: number }) => api<SignInSettingsView>('/config/settings/sign-in', { method: 'PATCH', body: input }),
 }
 
 export const configRolesApi = {

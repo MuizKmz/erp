@@ -6,6 +6,8 @@ import type { RequestContext } from '../../platform/context/request-context';
 import { BusinessRuleError, StaleVersionError, ValidationFailedError, type FieldError } from '../../platform/http/errors';
 import { PrismaService, type Tx } from '../../platform/prisma/prisma.service';
 import { CONFIG_ENTITY, CONFIG_EVENT, SECURITY_EVENT } from '../configuration.constants';
+import { CredentialsService } from '../auth/credentials.service';
+import { SignInSettingsService } from '../settings/sign-in-settings.service';
 import { ConfigRecordsService } from '../shared/config-records.service';
 import { SecurityEventsService } from '../shared/security-events.service';
 import type { CreateUserDto, UpdateUserDto } from './dto/user.dto';
@@ -37,6 +39,8 @@ export class UsersService {
     private readonly records: ConfigRecordsService,
     private readonly security: SecurityEventsService,
     private readonly query: UsersQuery,
+    private readonly credentials: CredentialsService,
+    private readonly signInSettings: SignInSettingsService,
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
@@ -105,6 +109,7 @@ export class UsersService {
     if (errors.length) throw new ValidationFailedError(errors);
 
     const view = this.viewFrom(dto, true);
+    const settings = await this.signInSettings.get(tenantId);
     const user = await this.prisma.$transaction(async (tx) => {
       const u = await tx.sysUser.create({
         data: { tenantId, code: dto.code, name: view.name, email: view.email, jobTitle: view.jobTitle, department: view.department, createdBy: ctx.user.code, updatedBy: ctx.user.code },
@@ -126,6 +131,10 @@ export class UsersService {
         message: `${u.name} added with ${rolesText(view.roles, names)}`,
         data: { roles: view.roles.map((r) => ({ ...r })), branches: view.branches },
       });
+      if (settings.emailSetPasswordLink) {
+        await this.credentials.issueLink(tx, u, 'SET_PASSWORD', settings.linkMinutes, ctx.user.code);
+        await this.security.record(tx, ctx, { kind: SECURITY_EVENT.LINK_SENT, user: { code: u.code, name: u.name }, message: `Set-password link sent to ${u.email}` });
+      }
       return u;
     });
     return this.query.detail(ctx, user.id);

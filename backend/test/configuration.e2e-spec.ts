@@ -326,8 +326,8 @@ describe('Configuration (end to end)', () => {
       expect(ar.rolesNote).toBe('Permissions are the sum of all roles. Sales agent limits them to their own customers (Aina Rahman: C-0012, C-0102). A role can end on a date for temporary access.');
       expect(ar.branchNote).toBe('Works in HQ only. A user with no branch cannot make documents.');
       expect(ar.effective.text).toBe('16 permissions from 3 roles.');
-      expect(ar.signIn).toMatchObject({ twoFactorText: 'Not required by their roles', lastSignInAt: null, failedSignIns: 0 });
-      expect(ar.allowedActions).toEqual(['edit', 'deactivate']);
+      expect(ar.signIn).toMatchObject({ twoFactorText: 'Not required by their roles', lastSignInAt: null, failedSignIns: 0, hasPassword: true, openSessions: 0, emails: [] });
+      expect(ar.allowedActions).toEqual(['edit', 'deactivate', 'send-link', 'revoke-sessions']);
       expect(ar.activity).toEqual([]);
       expect((await api.get<User>(`config/users/${await userId('ADM')}`)).refusals.deactivate).toBe('You cannot deactivate yourself. Ask another administrator.');
     });
@@ -356,8 +356,13 @@ describe('Configuration (end to end)', () => {
       expect(home.attention.map((a) => a.key)).not.toContain('auditor');
       const event = await api.prisma.sysOutbox.findFirstOrThrow({ where: { tenantId: TENANT_ID, name: 'config.user.created' }, orderBy: { seq: 'desc' } });
       expect(event.payload).toMatchObject({ code: 'NZ', snapshot: { roles: [{ roleCode: 'AUDITOR', validFrom: null, validUntil: null }], branches: ['HQ'], defaultBranch: 'HQ' } });
-      const logged = await api.prisma.sysSecurityEvent.findFirstOrThrow({ where: { tenantId: TENANT_ID, userCode: 'NZ' } });
-      expect(logged).toMatchObject({ kind: 'USER_CREATED', actorCode: 'ADM', message: 'Nadia Zain added with Auditor' });
+      const logged = await api.prisma.sysSecurityEvent.findFirstOrThrow({ where: { tenantId: TENANT_ID, userCode: 'NZ', kind: 'USER_CREATED' } });
+      expect(logged).toMatchObject({ actorCode: 'ADM', message: 'Nadia Zain added with Auditor' });
+      // A6: a set-password link, never a password (FR-SEC-064, choice 10), in the email log until real email exists.
+      const link = await api.prisma.sysEmailLog.findFirstOrThrow({ where: { tenantId: TENANT_ID, entityId: nz.id, templateKey: 'sign_in.set_password' } });
+      expect(link).toMatchObject({ toAddress: 'nadia@warehouse.com', subject: 'Set your Zora Pro ERP password', sentByCode: 'ADM' });
+      expect(link.body).toMatch(/\/sign-in\/reset\?token=[A-Za-z0-9_-]{43}\n/);
+      expect((await api.get<User>(`config/users/${nz.id}`)).signIn).toMatchObject({ hasPassword: false, emails: [{ kind: 'sign_in.set_password', to: 'nadia@warehouse.com' }] });
     });
 
     it('gives a role for a while: dates are checked, an ended role stops, and the change is logged', async () => {
