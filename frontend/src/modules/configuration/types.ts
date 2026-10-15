@@ -158,3 +158,71 @@ export interface BranchDetail extends BranchInput {
   refusals: { deactivate: string | null; activate: string | null }
   canEdit: boolean
 }
+
+// ── A06, A07 · Users ──
+
+export type TwoFactorState = 'REQUIRED_MISSING' | 'REQUIRED_SET' | 'SET' | 'NOT_REQUIRED'
+export type UserStatus = 'active' | 'locked' | 'inactive'
+
+export interface UserListItem {
+  id: string
+  code: string
+  name: string
+  jobTitle: string | null
+  email: string
+  roles: { code: string; name: string }[]
+  /** Default branch first */
+  branches: string[]
+  twoFactor: TwoFactorState
+  twoFactorText: string
+  lastSignInAt: string | null
+  status: UserStatus
+  statusLabel: string
+}
+
+export interface UserLookups {
+  roles: { id: string; code: string; name: string; permissions: number; agentScope: boolean; twoFactor: boolean }[]
+  branches: { code: string; name: string; isActive: boolean }[]
+  canEdit: boolean
+}
+
+export interface UserRoleRow {
+  roleCode: string
+  validFrom: string | null
+  validUntil: string | null
+}
+
+export interface UserInput {
+  name: string
+  email: string
+  jobTitle: string | null
+  department: string | null
+  roles: UserRoleRow[]
+  branches: string[]
+  defaultBranch: string | null
+}
+
+export interface UserDetail {
+  id: string
+  code: string
+  name: string
+  email: string
+  jobTitle: string | null
+  department: string | null
+  isActive: boolean
+  version: number
+  status: UserStatus
+  statusLabel: string
+  /** "Aina Rahman · Sales agent · HQ" */
+  subtitle: string
+  roles: (UserRoleRow & { roleId: string; name: string; permissions: number; counts: boolean })[]
+  rolesNote: string
+  branches: string[]
+  defaultBranch: string | null
+  branchNote: string
+  effective: { permissions: number; roles: number; text: string }
+  signIn: { twoFactor: TwoFactorState; twoFactorText: string; lastSignInAt: string | null; failedSignIns: number; lockedUntil: string | null }
+  activity: ActivityItem[]
+  allowedActions: ('edit' | 'deactivate' | 'activate')[]
+  refusals: { deactivate: string | null }
+}

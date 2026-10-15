@@ -6,6 +6,7 @@
  */
 import { ConfigDashboardQuery } from '../../src/configuration/dashboard/dashboard.query';
 import { OrganisationQuery } from '../../src/configuration/organisation/organisation.query';
+import { UsersQuery } from '../../src/configuration/users/users.query';
 import { CORE_ROLE_GRANTS } from '../../src/core/core.permissions';
 import { PrismaMasterDataAdapter } from '../../src/master-data/prisma-master-data.adapter';
 import type { ClockService } from '../../src/platform/clock/clock.service';
@@ -68,7 +69,7 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
   // A01 from the screen's own query, at 10:15 on 29 Sep 2026.
   const catalogue = new PermissionCatalogue();
   for (const m of CATALOGUE) catalogue.register(m);
-  const clock = { todayDate: () => day(TODAY), now: () => kl(TODAY, '10:15') } as ClockService;
+  const clock = { todayDate: () => day(TODAY), today: () => TODAY, now: () => kl(TODAY, '10:15') } as ClockService;
   const home = await new ConfigDashboardQuery(prisma as PrismaService, clock, catalogue).summary({ tenantId } as RequestContext);
   expect(
     'Configuration home cards',
@@ -95,5 +96,18 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
     inUse.push(`${b.code} ${detail.inUse.users} users · ${detail.inUse.warehouses.join('+')} · ${detail.inUse.documents} documents (${detail.inUse.open.length} open)`);
   }
   expect('Branches in use (A05)', 'HQ 12 users · HQ-DMG+HQ-MAIN · 152 documents (40 open), PNG 9 users · PNG-MAIN · 44 documents (12 open)', inUse.join(', '));
+
+  // A06 and A07 from the screens' own query.
+  const usersQuery = new UsersQuery(prisma as PrismaService, clock, { listFor: async () => [] } as never, { has: () => true } as never, catalogue, adapter);
+  const page = { page: 1, pageSize: 20 };
+  const list = await usersQuery.list(admin, page as never);
+  const missing = await usersQuery.list(admin, { ...page, twoFactor: 'missing' } as never);
+  expect(
+    'Users (A06: total · tabs · two-factor not set up)',
+    '14 · all 14, active 14, locked 0, inactive 0 · ADM, RI',
+    `${list.total} · ${Object.entries(list.statusCounts).map(([k, v]) => `${k} ${v}`).join(', ')} · ${missing.items.map((u) => u.code).join(', ')}`,
+  );
+  const aina = await usersQuery.detail(admin, list.items.find((u) => u.code === 'AR')!.id);
+  expect('Aina Rahman (A07: roles · effective)', 'Sales agent 9, Billing 6, Sales store 5 · 16 permissions from 3 roles.', `${aina.roles.map((r) => `${r.name} ${r.permissions}`).join(', ')} · ${aina.effective.text}`);
   return checks;
 }

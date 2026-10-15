@@ -3,6 +3,8 @@ import type { RouteRecordRaw } from 'vue-router'
 const Placeholder = () => import('./views/PlaceholderView.vue')
 const Company = () => import('./views/CompanyView.vue')
 const Branches = () => import('./views/BranchesView.vue')
+const UserList = () => import('./views/UserListView.vue')
+const UserForm = () => import('./views/UserFormView.vue')
 
 type Group = 'organisation' | 'access' | 'security' | 'account'
 
@@ -30,8 +32,8 @@ const doc = (title: string, to: string) => ({ title, to })
 const SCREENS: ScreenDef[] = [
   { code: 'A04', path: '/config/company', name: 'config-company', title: 'Company', group: 'organisation', item: 'company', step: 2, mockup: 'CfgCompany.html', component: Company },
   { code: 'A05', path: '/config/branches', name: 'config-branches', title: 'Branches', group: 'organisation', item: 'branches', step: 2, mockup: 'CfgBranches.html', component: Branches },
-  { code: 'A06', path: '/config/users', name: 'config-users', title: 'Users', group: 'access', item: 'users', step: 3, mockup: 'CfgUserList.html' },
-  { code: 'A07', path: '/config/users/:id', name: 'config-user', title: 'User', group: 'access', item: 'users', step: 3, mockup: 'CfgUserForm.html', parent: doc('Users', '/config/users') },
+  { code: 'A06', path: '/config/users', name: 'config-users', title: 'Users', group: 'access', item: 'users', step: 3, mockup: 'CfgUserList.html', component: UserList },
+  { code: 'A07', path: '/config/users/:id', name: 'config-user', title: 'User', group: 'access', item: 'users', step: 3, mockup: 'CfgUserForm.html', parent: doc('Users', '/config/users'), component: UserForm },
   { code: 'A08', path: '/config/roles', name: 'config-roles', title: 'Roles', group: 'access', item: 'roles', step: 4, mockup: 'CfgRoleList.html' },
   { code: 'A09', path: '/config/roles/:id', name: 'config-role', title: 'Role', group: 'access', item: 'roles', step: 4, mockup: 'CfgRoleForm.html', parent: doc('Roles', '/config/roles') },
   { code: 'A10', path: '/config/permissions', name: 'config-permissions', title: 'Who can do what', group: 'access', item: 'permissions', step: 4, mockup: 'CfgPermissions.html' },

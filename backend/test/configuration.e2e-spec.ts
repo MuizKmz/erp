@@ -269,4 +269,157 @@ describe('Configuration (end to end)', () => {
       expect(activate.body.message).toBe('CLB Groups Pte Ltd is inactive. Activate the company first.');
     });
   });
+
+  describe('A3 · Users', () => {
+    interface UserList {
+      items: { id: string; code: string; roles: { name: string }[]; branches: string[]; twoFactorText: string; statusLabel: string }[];
+      total: number;
+      statusCounts: Record<string, number>;
+    }
+    interface User {
+      id: string;
+      code: string;
+      version: number;
+      subtitle: string;
+      roles: { roleCode: string; name: string; permissions: number; validFrom: string | null; validUntil: string | null; counts: boolean }[];
+      rolesNote: string;
+      branches: string[];
+      defaultBranch: string;
+      branchNote: string;
+      effective: { text: string };
+      signIn: { twoFactorText: string; lastSignInAt: string | null; failedSignIns: number };
+      activity: { message: string }[];
+      allowedActions: string[];
+      refusals: { deactivate: string | null };
+      status: string;
+    }
+    const codes = (l: UserList) => l.items.map((i) => i.code);
+    const userId = async (code: string) => (await api.get<UserList>(`config/users?q=${code}`)).items.find((i) => i.code === code)!.id;
+    const fields = (u: User & Record<string, unknown>) => ({
+      name: u.name,
+      email: u.email,
+      jobTitle: u.jobTitle,
+      department: u.department,
+      roles: u.roles.map((r) => ({ roleCode: r.roleCode, validFrom: r.validFrom, validUntil: r.validUntil })),
+      branches: u.branches,
+      defaultBranch: u.defaultBranch,
+      version: u.version,
+    });
+    let nz: User & Record<string, unknown>;
+
+    it('lists the 14 users as CfgUserList.html does, with its filters and tabs', async () => {
+      const all = await api.get<UserList>('config/users');
+      expect(all.total).toBe(14);
+      expect(all.statusCounts).toEqual({ all: 14, active: 14, locked: 0, inactive: 0 });
+      expect(all.items[0]).toMatchObject({ code: 'ADM', roles: [{ name: 'Administrator' }, { name: 'Master Data Admin' }], branches: ['HQ', 'PNG'], twoFactorText: 'Required · not set up', statusLabel: 'Active' });
+      expect(codes(await api.get<UserList>('config/users?twoFactor=missing'))).toEqual(['ADM', 'RI']);
+      expect(codes(await api.get<UserList>('config/users?role=SALES_AGENT'))).toEqual(['AR', 'FO', 'LWJ']);
+      expect((await api.get<UserList>('config/users?branch=PNG')).total).toBe(9);
+      expect(codes(await api.get<UserList>('config/users?q=wei'))).toEqual(['LWJ', 'TWL']);
+      expect((await api.call('GET', 'config/users', 'LMY')).status).toBe(403);
+    });
+
+    it('shows a user with what each role gives and what the roles add up to', async () => {
+      const ar = await api.get<User>(`config/users/${await userId('AR')}`);
+      expect(ar.subtitle).toBe('Aina Rahman · Sales agent · HQ');
+      expect(ar.roles.map((r) => `${r.name} ${r.permissions}`)).toEqual(['Sales agent 9', 'Billing 6', 'Sales store 5']);
+      expect(ar.rolesNote).toBe('Permissions are the sum of all roles. Sales agent limits them to their own customers (Aina Rahman: C-0012, C-0102). A role can end on a date for temporary access.');
+      expect(ar.branchNote).toBe('Works in HQ only. A user with no branch cannot make documents.');
+      expect(ar.effective.text).toBe('16 permissions from 3 roles.');
+      expect(ar.signIn).toMatchObject({ twoFactorText: 'Not required by their roles', lastSignInAt: null, failedSignIns: 0 });
+      expect(ar.allowedActions).toEqual(['edit', 'deactivate']);
+      expect(ar.activity).toEqual([]);
+      expect((await api.get<User>(`config/users/${await userId('ADM')}`)).refusals.deactivate).toBe('You cannot deactivate yourself. Ask another administrator.');
+    });
+
+    it('adds a user only with a free code and email, a role and a branch (rules 1 and 3)', async () => {
+      const input = { code: 'NZ', name: 'Nadia Zain', email: 'NADIA@warehouse.com', jobTitle: 'Internal auditor', department: 'Finance', roles: [{ roleCode: 'AUDITOR' }], branches: ['HQ'], defaultBranch: 'HQ' };
+      const bad = await api.call('POST', 'config/users', 'ADM', { ...input, code: 'LMY', email: 'meiying@warehouse.com', roles: [], branches: [], defaultBranch: null });
+      expect(bad.status).toBe(400);
+      expect(bad.body.errors).toEqual([
+        { field: 'code', message: 'LMY is already the code of Lim Mei Ying.' },
+        { field: 'email', message: 'meiying@warehouse.com is already the email of Lim Mei Ying.' },
+        { field: 'roles', message: 'Give the user at least one role.' },
+        { field: 'branches', message: 'Give the user at least one branch. A user with no branch cannot make documents.' },
+      ]);
+      expect((await api.call('POST', 'config/users', 'RI', input)).status).toBe(403);
+
+      const created = await api.call('POST', 'config/users', 'ADM', input);
+      expect(created.status).toBe(201);
+      nz = created.body;
+      expect(nz).toMatchObject({ code: 'NZ', email: 'nadia@warehouse.com', subtitle: 'Nadia Zain · Internal auditor · HQ', effective: { text: '6 permissions from 1 role.' } });
+      expect(nz.activity.map((a) => a.message)).toEqual(['User NZ created']);
+      const me = await api.get<Me>('me', 'NZ');
+      expect(me.permissions).toEqual(['config.audit.view', 'config.security.view', 'config.view', 'core.view', 'purchase.view', 'sales.view']);
+      expect(me.branchCode).toBe('HQ');
+      const home = await api.get<{ attention: { key: string }[] }>('config/dashboard');
+      expect(home.attention.map((a) => a.key)).not.toContain('auditor');
+      const event = await api.prisma.sysOutbox.findFirstOrThrow({ where: { tenantId: TENANT_ID, name: 'config.user.created' }, orderBy: { seq: 'desc' } });
+      expect(event.payload).toMatchObject({ code: 'NZ', snapshot: { roles: [{ roleCode: 'AUDITOR', validFrom: null, validUntil: null }], branches: ['HQ'], defaultBranch: 'HQ' } });
+      const logged = await api.prisma.sysSecurityEvent.findFirstOrThrow({ where: { tenantId: TENANT_ID, userCode: 'NZ' } });
+      expect(logged).toMatchObject({ kind: 'USER_CREATED', actorCode: 'ADM', message: 'Nadia Zain added with Auditor' });
+    });
+
+    it('gives a role for a while: dates are checked, an ended role stops, and the change is logged', async () => {
+      const wrong = await api.call('PATCH', `config/users/${nz.id}`, 'ADM', { ...fields(nz), roles: [{ roleCode: 'AUDITOR' }, { roleCode: 'SALES_BILLING', validFrom: '2026-10-01', validUntil: '2026-09-30' }] });
+      expect(wrong.status).toBe(400);
+      expect(wrong.body.errors).toEqual([{ field: 'roles[1]', message: 'Until (30 Sep 2026) is before From (1 Oct 2026).' }]);
+
+      const saved = await api.call('PATCH', `config/users/${nz.id}`, 'ADM', { ...fields(nz), roles: [{ roleCode: 'AUDITOR' }, { roleCode: 'SALES_BILLING', validUntil: '2026-09-28' }], branches: ['HQ', 'PNG'], defaultBranch: 'PNG' });
+      expect(saved.status).toBe(200);
+      nz = saved.body;
+      expect(nz.roles.map((r) => `${r.name} ${r.counts ? 'counts' : 'ended'}`)).toEqual(['Auditor counts', 'Billing ended']);
+      expect(nz.branchNote).toBe('Works in HQ and PNG; new documents start in PNG, the default branch. A user with no branch cannot make documents.');
+      expect(nz.activity[0]!.message).toBe('Changed roles Auditor → Auditor, Billing (until 28 Sep 2026), branches HQ → HQ, PNG and default branch HQ → PNG');
+      const me = await api.get<Me>('me', 'NZ');
+      expect(me.user.roles).toEqual(['AUDITOR']);
+      expect(me.branchCode).toBe('PNG');
+      const logged = await api.prisma.sysSecurityEvent.findFirstOrThrow({ where: { tenantId: TENANT_ID, userCode: 'NZ', kind: 'ROLES_CHANGED' } });
+      expect(logged.message).toBe('Roles of Nadia Zain changed: added Billing');
+    });
+
+    it('always keeps one active Administrator with no end date (rule 2)', async () => {
+      const adm = await api.get<User & Record<string, unknown>>(`config/users/${await userId('ADM')}`);
+      const ending = { ...fields(adm), roles: [{ roleCode: 'ADMIN', validUntil: '2026-12-31' }, { roleCode: 'MASTER_DATA_ADMIN' }] };
+      const refused = await api.call('PATCH', `config/users/${adm.id}`, 'ADM', ending);
+      expect(refused.status).toBe(409);
+      expect(refused.body.message).toBe('Admin is the only active user who holds Administrator for good. Give the role to someone else first.');
+
+      const second = await api.call('PATCH', `config/users/${nz.id}`, 'ADM', { ...fields(nz), roles: [{ roleCode: 'AUDITOR' }, { roleCode: 'ADMIN' }] });
+      expect(second.status).toBe(200);
+      nz = second.body;
+      expect((await api.call('PATCH', `config/users/${adm.id}`, 'ADM', ending)).status).toBe(200);
+      const lastOne = await api.call('PATCH', `config/users/${nz.id}`, 'ADM', { ...fields(nz), roles: [{ roleCode: 'AUDITOR' }] });
+      expect(lastOne.status).toBe(409);
+      expect(lastOne.body.message).toBe('Nadia Zain is the only active user who holds Administrator for good. Give the role to someone else first.');
+      expect((await api.get<User>(`config/users/${nz.id}`)).refusals.deactivate).toBe('Nadia Zain is the only active user who holds Administrator for good. Give the role to someone else first.');
+      const restored = await api.call('PATCH', `config/users/${adm.id}`, 'ADM', { ...fields((await api.call('GET', `config/users/${adm.id}`, 'ADM')).body), roles: [{ roleCode: 'ADMIN' }, { roleCode: 'MASTER_DATA_ADMIN' }] });
+      expect(restored.status).toBe(200);
+    });
+
+    it('deactivates a user, ending their sessions, and never deletes them (rule 3)', async () => {
+      await api.prisma.sysSession.create({
+        data: { tenantId: TENANT_ID, userId: nz.id, refreshTokenHash: 'test', activeBranchCode: 'PNG', lastActivityAt: new Date(), expiresAt: new Date(Date.now() + 86_400_000) },
+      });
+      const adm = await api.get<User>(`config/users/${await userId('ADM')}`);
+      const self = await api.call('POST', `config/users/${adm.id}/deactivate`, 'ADM', { version: adm.version });
+      expect(self.status).toBe(409);
+      expect(self.body.message).toBe('You cannot deactivate yourself. Ask another administrator.');
+
+      nz = (await api.get<User & Record<string, unknown>>(`config/users/${nz.id}`)) as User & Record<string, unknown>;
+      const off = await api.call('POST', `config/users/${nz.id}/deactivate`, 'ADM', { version: nz.version });
+      expect(off.status).toBe(201);
+      expect(off.body).toMatchObject({ status: 'inactive', allowedActions: ['edit', 'activate'] });
+      const session = await api.prisma.sysSession.findFirstOrThrow({ where: { userId: nz.id } });
+      expect(session.revokedReason).toBe('DEACTIVATED');
+      expect((await api.call('GET', 'me', 'NZ')).status).toBe(401);
+      const logged = await api.prisma.sysSecurityEvent.findFirstOrThrow({ where: { tenantId: TENANT_ID, userCode: 'NZ', kind: 'USER_DEACTIVATED' } });
+      expect(logged.message).toBe('Nadia Zain deactivated; 1 session ended');
+      expect((await api.get<UserList>('config/users')).statusCounts).toEqual({ all: 15, active: 14, locked: 0, inactive: 1 });
+
+      const on = await api.call('POST', `config/users/${nz.id}/activate`, 'ADM', { version: off.body.version });
+      expect(on.status).toBe(201);
+      expect((await api.get<Me>('me', 'NZ')).user.code).toBe('NZ');
+    });
+  });
 });
