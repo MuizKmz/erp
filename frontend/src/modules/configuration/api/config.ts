@@ -1,6 +1,24 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
-import type { BranchDetail, BranchInput, BranchTree, CompanyDetail, CompanyInput, CompanySummary, ConfigDashboard, UserDetail, UserInput, UserListItem, UserLookups } from '../types'
+import type {
+  BranchDetail,
+  BranchInput,
+  BranchTree,
+  CatalogueModule,
+  CompanyDetail,
+  CompanyInput,
+  CompanySummary,
+  ConfigDashboard,
+  PersonPermissions,
+  RoleComparison,
+  RoleDetail,
+  RoleInput,
+  RoleListItem,
+  UserDetail,
+  UserInput,
+  UserListItem,
+  UserLookups,
+} from '../types'
 
 /** Configuration API (/api/v1/config). Each build step adds its resources here. */
 export const configApi = {
@@ -29,4 +47,19 @@ export const configUsersApi = {
   create: (input: UserInput & { code: string }) => api<UserDetail>('/config/users', { method: 'POST', body: input }),
   update: (id: string, input: UserInput & { version: number }) => api<UserDetail>(`/config/users/${id}`, { method: 'PATCH', body: input }),
   setActive: (id: string, action: 'deactivate' | 'activate', version: number) => api<UserDetail>(`/config/users/${id}/${action}`, { method: 'POST', body: { version } }),
+}
+
+export const configRolesApi = {
+  list: () => api<{ items: RoleListItem[]; canEdit: boolean }>('/config/roles'),
+  get: (id: string) => api<RoleDetail>(`/config/roles/${id}`),
+  create: (input: RoleInput & { code: string }) => api<RoleDetail>('/config/roles', { method: 'POST', body: input }),
+  update: (id: string, input: RoleInput & { version: number }) => api<RoleDetail>(`/config/roles/${id}`, { method: 'PATCH', body: input }),
+  resetToStarter: (id: string, version: number) => api<RoleDetail>(`/config/roles/${id}/reset-to-starter`, { method: 'POST', body: { version } }),
+  remove: (id: string, version: number) => api<{ deleted: boolean; code: string }>(`/config/roles/${id}`, { method: 'DELETE', query: { version } }),
+}
+
+export const configPermissionsApi = {
+  catalogue: () => api<{ modules: CatalogueModule[]; total: number }>('/config/permissions/catalogue'),
+  person: (userId: string) => api<PersonPermissions>(`/config/permissions/user/${userId}`),
+  compare: (a: string, b: string) => api<RoleComparison>('/config/permissions/compare', { query: { a, b } }),
 }

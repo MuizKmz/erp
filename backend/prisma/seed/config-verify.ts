@@ -6,6 +6,7 @@
  */
 import { ConfigDashboardQuery } from '../../src/configuration/dashboard/dashboard.query';
 import { OrganisationQuery } from '../../src/configuration/organisation/organisation.query';
+import { RolesQuery } from '../../src/configuration/roles/roles.query';
 import { UsersQuery } from '../../src/configuration/users/users.query';
 import { CORE_ROLE_GRANTS } from '../../src/core/core.permissions';
 import { PrismaMasterDataAdapter } from '../../src/master-data/prisma-master-data.adapter';
@@ -109,5 +110,17 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
   );
   const aina = await usersQuery.detail(admin, list.items.find((u) => u.code === 'AR')!.id);
   expect('Aina Rahman (A07: roles · effective)', 'Sales agent 9, Billing 6, Sales store 5 · 16 permissions from 3 roles.', `${aina.roles.map((r) => `${r.name} ${r.permissions}`).join(', ')} · ${aina.effective.text}`);
+
+  // A09 and A10 from the screens' own query.
+  const rolesQuery = new RolesQuery(prisma as PrismaService, clock, { listFor: async () => [] } as never, { has: () => true } as never, catalogue);
+  const agentRole = await prisma.sysRole.findFirstOrThrow({ where: { tenantId, code: 'SALES_AGENT' } });
+  const agentDetail = await rolesQuery.detail(admin, agentRole.id);
+  expect('Sales agent role (A09)', '9 permissions · 3 users · own customers only · as starter', `${agentDetail.subtitle} · ${agentDetail.asStarter ? 'as starter' : 'changed'}`);
+  const compared = await rolesQuery.compare(admin, 'SALES_AGENT', 'SALES_MANAGER');
+  expect(
+    'Sales agent and Sales Manager compared (A10)',
+    'Both roles give 8 permissions. · sales.margin.view, sales.return.edit, sales.cancel_order.release',
+    `${compared.text.split('. ')[0]}. · ${compared.rows.filter((r) => r.a !== r.b).map((r) => r.key).join(', ')}`,
+  );
   return checks;
 }

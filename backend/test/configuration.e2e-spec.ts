@@ -422,4 +422,125 @@ describe('Configuration (end to end)', () => {
       expect((await api.get<Me>('me', 'NZ')).user.code).toBe('NZ');
     });
   });
+
+  describe('A4 · Roles and permissions', () => {
+    interface RoleList {
+      items: { id: string; code: string; name: string; users: number; permissionsText: string; sees: string; twoFactor: boolean; isStarter: boolean }[];
+    }
+    interface Role {
+      id: string;
+      code: string;
+      name: string;
+      description: string | null;
+      version: number;
+      subtitle: string;
+      agentScopeCustomers: boolean;
+      agentScopeDocuments: boolean;
+      permissions: string[];
+      users: { code: string; branches: string }[];
+      twoFactor: { text: string };
+      asStarter: boolean | null;
+      allowedActions: string[];
+      activity: { message: string }[];
+    }
+    const roleId = async (code: string) => (await api.get<RoleList>('config/roles')).items.find((r) => r.code === code)!.id;
+    const body = (r: Role, patch: Partial<Role> = {}) => ({
+      name: r.name,
+      description: r.description,
+      agentScopeCustomers: r.agentScopeCustomers,
+      agentScopeDocuments: r.agentScopeDocuments,
+      permissions: r.permissions,
+      version: r.version,
+      ...patch,
+    });
+
+    it('lists the 16 roles as CfgRoleList.html does', async () => {
+      const list = await api.get<RoleList>('config/roles');
+      const line = (code: string) => {
+        const r = list.items.find((x) => x.code === code)!;
+        return `${r.name} ${r.users} ${r.permissionsText} ${r.sees} ${r.twoFactor ? 'Required' : '—'} ${r.isStarter ? 'Starter' : 'Custom'}`;
+      };
+      expect(list.items).toHaveLength(16);
+      // Admin, and Nadia Zain who was given Administrator in the A3 journey above.
+      expect(line('ADMIN')).toBe('Administrator 2 All Their branches Required Starter');
+      expect(line('SALES_AGENT')).toBe('Sales agent 3 9 Own customers only — Starter');
+      expect(line('REQUESTER')).toBe('Requester 4 4 Their branches — Starter');
+    });
+
+    it('shows a role with its holders, its two-factor rule and whether it is as it started', async () => {
+      const agent = await api.get<Role>(`config/roles/${await roleId('SALES_AGENT')}`);
+      expect(agent.subtitle).toBe('9 permissions · 3 users · own customers only');
+      expect(agent.users.map((u) => `${u.code} ${u.branches}`)).toEqual(['AR HQ', 'FO HQ, PNG', 'LWJ PNG']);
+      expect(agent.twoFactor.text).toBe('Not required for this role. Required for Administrator, Master Data Admin, Finance Director and Finance Manager (Sign-in settings).');
+      expect(agent).toMatchObject({ asStarter: true, allowedActions: ['edit', 'reset'], agentScopeCustomers: true, agentScopeDocuments: true });
+      const admin = await api.get<Role>(`config/roles/${await roleId('ADMIN')}`);
+      expect(admin.permissions).toHaveLength(54);
+      expect(admin.allowedActions).toEqual([]);
+    });
+
+    it('applies a permission change on the next request, logs it, and resets a starter role (choice 5)', async () => {
+      const agent = await api.get<Role>(`config/roles/${await roleId('SALES_AGENT')}`);
+      const unknown = await api.call('PATCH', `config/roles/${agent.id}`, 'ADM', body(agent, { permissions: [...agent.permissions, 'sales.fly'] }));
+      expect(unknown.status).toBe(400);
+      expect(unknown.body.errors).toEqual([{ field: 'permissions', message: 'sales.fly is not a permission any module declares.' }]);
+      expect((await api.call('PATCH', `config/roles/${agent.id}`, 'ADM', body(agent, { name: 'Billing' }))).body.errors).toEqual([{ field: 'name', message: 'Billing is already the name of role SALES_BILLING.' }]);
+      expect((await api.call('PATCH', `config/roles/${agent.id}`, 'LMY', body(agent))).status).toBe(403);
+
+      const saved = await api.call('PATCH', `config/roles/${agent.id}`, 'ADM', body(agent, { permissions: [...agent.permissions, 'sales.margin.view'] }));
+      expect(saved.status).toBe(200);
+      expect(saved.body).toMatchObject({ subtitle: '10 permissions · 3 users · own customers only', asStarter: false });
+      expect(saved.body.activity.map((a: { message: string }) => a.message)).toEqual(['Permissions: added See margin (Sales)']);
+      expect((await api.get<Me>('me', 'AR')).permissions).toContain('sales.margin.view');
+      const logged = await api.prisma.sysSecurityEvent.findFirstOrThrow({ where: { tenantId: TENANT_ID, kind: 'ROLE_CHANGED' }, orderBy: { createdAt: 'desc' } });
+      expect(logged.message).toBe('Role Sales agent changed: Permissions: added See margin (Sales)');
+      const event = await api.prisma.sysOutbox.findFirstOrThrow({ where: { tenantId: TENANT_ID, name: 'config.role.updated' }, orderBy: { seq: 'desc' } });
+      expect(event.payload).toMatchObject({ code: 'SALES_AGENT', changedFields: ['permissions'] });
+
+      const reset = await api.call('POST', `config/roles/${agent.id}/reset-to-starter`, 'ADM', { version: saved.body.version });
+      expect(reset.status).toBe(201);
+      expect(reset.body).toMatchObject({ asStarter: true, subtitle: '9 permissions · 3 users · own customers only' });
+      expect(reset.body.activity[0].message).toBe('Reset to starter: Permissions: removed See margin (Sales)');
+      expect((await api.get<Me>('me', 'AR')).permissions).not.toContain('sales.margin.view');
+
+      const admin = await api.get<Role>(`config/roles/${await roleId('ADMIN')}`);
+      const locked = await api.call('PATCH', `config/roles/${admin.id}`, 'ADM', body(admin, { permissions: [] }));
+      expect(locked.status).toBe(409);
+      expect(locked.body.message).toBe('Administrator holds every permission and cannot be changed.');
+    });
+
+    it('adds a custom role, deletes it only while nobody holds it, and never reuses its code (rules 1 and 4)', async () => {
+      const input = { code: 'qa_lead', name: 'QA lead', description: 'Checks goods on arrival.', agentScopeCustomers: false, agentScopeDocuments: false, permissions: ['purchase.view', 'core.view'] };
+      const created = await api.call('POST', 'config/roles', 'ADM', input);
+      expect(created.status).toBe(201);
+      expect(created.body).toMatchObject({ code: 'QA_LEAD', isStarter: false, permissions: ['purchase.view', 'core.view'], allowedActions: ['edit', 'delete'], asStarter: null });
+
+      const lmy = await api.prisma.sysUser.findFirstOrThrow({ where: { tenantId: TENANT_ID, code: 'LMY' } });
+      await api.prisma.sysUserRole.create({ data: { tenantId: TENANT_ID, userId: lmy.id, roleId: created.body.id, sortOrder: 9 } });
+      const held = await api.call('DELETE', `config/roles/${created.body.id}?version=1`, 'ADM');
+      expect(held.status).toBe(409);
+      expect(held.body.message).toBe('QA lead is held by 1 user (LMY). Take it away from them first.');
+      await api.prisma.sysUserRole.deleteMany({ where: { roleId: created.body.id } });
+
+      expect((await api.call('DELETE', `config/roles/${created.body.id}?version=1`, 'ADM')).status).toBe(200);
+      const again = await api.call('POST', 'config/roles', 'ADM', input);
+      expect(again.body.errors).toEqual([{ field: 'code', message: 'QA_LEAD was used by a deleted role. A code is never used again.' }]);
+      const starter = await api.call('DELETE', `config/roles/${await roleId('STORE')}?version=1`, 'ADM');
+      expect(starter.body.message).toBe('Store is a starter role, so it stays. Take its permissions away or reset it instead.');
+    });
+
+    it('shows who can do what: a person from all their roles, and two roles side by side (A10)', async () => {
+      const aina = (await api.get<{ items: { id: string; code: string }[] }>('config/users?q=aina')).items[0]!;
+      const person = await api.get<{ text: string; rows: { key: string; roles: string[] }[] }>(`config/permissions/user/${aina.id}`);
+      expect(person.text).toBe('Aina Rahman holds 16 permissions from 3 roles. Sales agent limits them to their own customers.');
+      expect(person.rows).toHaveLength(16);
+      expect(person.rows.find((r) => r.key === 'sales.view')?.roles).toEqual(['Sales agent', 'Billing', 'Sales store']);
+
+      const compared = await api.get<{ text: string; rows: { key: string; a: boolean; b: boolean }[] }>('config/permissions/compare?a=SALES_AGENT&b=SALES_MANAGER');
+      expect(compared.text).toBe('Both roles give 8 permissions. Sales agent sees only its own customers; Sales Manager sees all customers in its branches.');
+      expect(compared.rows.filter((r) => r.a !== r.b).map((r) => r.key)).toEqual(['sales.margin.view', 'sales.return.edit', 'sales.cancel_order.release']);
+      const catalogue = await api.get<{ total: number; modules: { label: string }[] }>('config/permissions/catalogue');
+      expect(catalogue.total).toBe(54);
+      expect(catalogue.modules.map((m) => m.label)).toEqual(['Purchase', 'Sales', 'Core', 'Configuration']);
+    });
+  });
 });

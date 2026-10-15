@@ -226,3 +226,71 @@ export interface UserDetail {
   allowedActions: ('edit' | 'deactivate' | 'activate')[]
   refusals: { deactivate: string | null }
 }
+
+// ── A08 to A10 · Roles and permissions ──
+
+export interface RoleListItem {
+  id: string
+  code: string
+  name: string
+  users: number
+  permissions: number
+  /** "All" for Administrator */
+  permissionsText: string
+  /** "Their branches", "Own customers only" */
+  sees: string
+  twoFactor: boolean
+  isStarter: boolean
+}
+
+export interface CatalogueModule {
+  module: string
+  label: string
+  objects: { object: string; actions: { key: string; action: string }[] }[]
+}
+
+export interface RoleInput {
+  name: string
+  description: string | null
+  agentScopeCustomers: boolean
+  agentScopeDocuments: boolean
+  permissions: string[]
+}
+
+export interface RoleDetail extends RoleInput {
+  id: string
+  code: string
+  isStarter: boolean
+  isAdministrator: boolean
+  version: number
+  /** "9 permissions · 3 users · own customers only" */
+  subtitle: string
+  users: { id: string; code: string; name: string; branches: string }[]
+  twoFactor: { required: boolean; text: string }
+  activity: ActivityItem[]
+  /** Starter roles: true when Reset to starter would change nothing */
+  asStarter: boolean | null
+  allowedActions: ('edit' | 'reset' | 'delete')[]
+  refusals: { delete: string | null }
+}
+
+export interface PermissionRow {
+  module: string
+  object: string
+  action: string
+  key: string
+}
+
+export interface PersonPermissions {
+  user: { id: string; code: string; name: string; isActive: boolean }
+  roles: { code: string; name: string; counts: boolean }[]
+  rows: (PermissionRow & { roles: string[] })[]
+  text: string
+}
+
+export interface RoleComparison {
+  a: { code: string; name: string; permissions: number }
+  b: { code: string; name: string; permissions: number }
+  rows: (PermissionRow & { a: boolean; b: boolean })[]
+  text: string
+}

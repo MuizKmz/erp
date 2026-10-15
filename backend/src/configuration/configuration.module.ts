@@ -6,6 +6,9 @@ import { ConfigDashboardQuery } from './dashboard/dashboard.query';
 import { ConfigBranchesController, ConfigCompaniesController } from './organisation/organisation.controller';
 import { OrganisationQuery } from './organisation/organisation.query';
 import { OrganisationService } from './organisation/organisation.service';
+import { ConfigPermissionsController, ConfigRolesController } from './roles/roles.controller';
+import { RolesQuery } from './roles/roles.query';
+import { RolesService } from './roles/roles.service';
 import { ConfigRecordsService } from './shared/config-records.service';
 import { SecurityEventsService } from './shared/security-events.service';
 import { ConfigUsersController } from './users/users.controller';
@@ -18,8 +21,8 @@ import { UsersService } from './users/users.service';
  * and branches through MasterDataPort and permissions through @RequirePermission. Never imports purchase/, sales/ or core/.
  */
 @Module({
-  controllers: [ConfigDashboardController, ConfigCompaniesController, ConfigBranchesController, ConfigUsersController],
-  providers: [ConfigDashboardQuery, ConfigRecordsService, SecurityEventsService, OrganisationQuery, OrganisationService, UsersQuery, UsersService],
+  controllers: [ConfigDashboardController, ConfigCompaniesController, ConfigBranchesController, ConfigUsersController, ConfigRolesController, ConfigPermissionsController],
+  providers: [ConfigDashboardQuery, ConfigRecordsService, SecurityEventsService, OrganisationQuery, OrganisationService, UsersQuery, UsersService, RolesQuery, RolesService],
 })
 export class ConfigurationModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionCatalogue) {}
