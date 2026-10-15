@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { MdmCustomer, MdmItem, MdmSupplier, MdmUser, Prisma } from '@prisma/client';
+import type { MdmCustomer, MdmItem, MdmSupplier, Prisma } from '@prisma/client';
 import { ClockService } from '../platform/clock/clock.service';
+import { branchCodesInOrder, rolesOn } from '../platform/context/assignment.rules';
 import { PrismaService } from '../platform/prisma/prisma.service';
 import { latestValidByKey } from './master-data.rules';
 import type {
@@ -22,19 +23,23 @@ import type {
 const isoDate = (d: Date) => d.toISOString().slice(0, 10);
 const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
 
-function stringArray(value: Prisma.JsonValue): string[] {
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
-}
+/** Users and branches are kept by Configuration (sys_ tables since Phase 4); the port gives the same answers as before. */
+const USER_INCLUDE = {
+  roles: { orderBy: { sortOrder: 'asc' }, select: { validFrom: true, validUntil: true, role: { select: { code: true } } } },
+  branches: { select: { isDefault: true, branch: { select: { code: true } } } },
+} satisfies Prisma.SysUserInclude;
 
-function toUser(row: MdmUser): MdUser {
+type UserRow = Prisma.SysUserGetPayload<{ include: typeof USER_INCLUDE }>;
+
+function toUser(row: UserRow, today: Date): MdUser {
   return {
     id: row.id,
     tenantId: row.tenantId,
     code: row.code,
     name: row.name,
     email: row.email,
-    roles: stringArray(row.roles),
-    branchCodes: stringArray(row.branchCodes),
+    roles: rolesOn(row.roles.map((r) => ({ code: r.role.code, validFrom: r.validFrom, validUntil: r.validUntil })), today),
+    branchCodes: branchCodesInOrder(row.branches.map((b) => ({ code: b.branch.code, isDefault: b.isDefault }))),
     department: row.department,
     jobTitle: row.jobTitle,
     isActive: row.isActive,
@@ -104,7 +109,10 @@ function toCustomer(row: MdmCustomer): MdCustomer {
   };
 }
 
-/** Phase 1 adapter: reads the local mdm_ tables, which Core writes. Outside Core, the only class allowed to query them. */
+/**
+ * Phase 1 adapter: reads the local mdm_ tables, which Core writes, and the users and branches Configuration keeps.
+ * Outside Core and Configuration, the only class allowed to query them.
+ */
 @Injectable()
 export class PrismaMasterDataAdapter implements MasterDataPort {
   constructor(
@@ -113,17 +121,18 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
   ) {}
 
   async findUserByCode(tenantId: string, code: string): Promise<MdUser | null> {
-    const row = await this.prisma.mdmUser.findUnique({ where: { tenantId_code: { tenantId, code } } });
-    return row ? toUser(row) : null;
+    const row = await this.prisma.sysUser.findUnique({ where: { tenantId_code: { tenantId, code } }, include: USER_INCLUDE });
+    return row ? toUser(row, this.clock.todayDate()) : null;
   }
 
   async listUsers(tenantId: string): Promise<MdUser[]> {
-    const rows = await this.prisma.mdmUser.findMany({ where: { tenantId }, orderBy: { name: 'asc' } });
-    return rows.map(toUser);
+    const rows = await this.prisma.sysUser.findMany({ where: { tenantId }, orderBy: { name: 'asc' }, include: USER_INCLUDE });
+    const today = this.clock.todayDate();
+    return rows.map((row) => toUser(row, today));
   }
 
   async listBranches(tenantId: string): Promise<MdBranch[]> {
-    return this.prisma.mdmBranch.findMany({
+    return this.prisma.sysBranch.findMany({
       where: { tenantId },
       orderBy: { code: 'asc' },
       select: { code: true, name: true, isActive: true },

@@ -11,7 +11,7 @@ const MODULES = [
   { code: 'sales', name: 'Sales', tag: 'Designed · open', state: 'OPEN', route: '/sales' },
   { code: 'mes', name: 'MES', tag: 'Later', state: 'LATER', route: null },
   { code: 'wms', name: 'WMS', tag: 'Existing', state: 'EXISTING', route: null },
-  { code: 'config', name: 'Configuration', tag: 'Users · settings', state: 'EXISTING', route: null },
+  { code: 'config', name: 'Configuration', tag: 'Users · settings', state: 'OPEN', route: '/config' },
 ] as const;
 
 @Controller('me')

@@ -1,6 +1,6 @@
 /**
  * Master data for Sales (docs/design/SALES_SEED_DATA.md → Master data): customers, price lists, the items
- * Sales sells, and stock at Penang. Upserted on business codes. The Sales users are in master-data.ts.
+ * Sales sells, and stock at Penang. Upserted on business codes. The Sales users are in configuration.ts.
  *
  * Invented (not in a mockup): standard costs (for the estimated margin), barcodes, TB-RST-04 and SF-BTH-02.
  * CH-DIN-01 and TB-DIN-06 costs are set so QT-0012 shows the mockup's 28.6% margin.

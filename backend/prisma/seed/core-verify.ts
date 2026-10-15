@@ -9,6 +9,7 @@ import { ReferenceQuery } from '../../src/core/reference/reference.query';
 import { TaxCodesQuery } from '../../src/core/tax-codes/tax-codes.query';
 import { WarehousesQuery } from '../../src/core/warehouses/warehouses.query';
 import { latestValidByKey } from '../../src/master-data/master-data.rules';
+import { PrismaMasterDataAdapter } from '../../src/master-data/prisma-master-data.adapter';
 import type { ClockService } from '../../src/platform/clock/clock.service';
 import type { RequestContext } from '../../src/platform/context/request-context';
 import type { ListQueryDto } from '../../src/platform/http/list-query.dto';
@@ -27,8 +28,8 @@ export async function verifyCoreSeed(ctx: SeedCtx): Promise<Check[]> {
   const seqs = await prisma.sysNumberSequence.findMany({ where: { tenantId, module: 'core' }, orderBy: { docType: 'asc' } });
   expect('Next customer and supplier codes', 'C-0103 S-0072', seqs.map((s) => formatDocNo(s.prefix, s.digits, s.nextValue)).join(' '));
 
-  const admin = await prisma.mdmUser.findFirst({ where: { tenantId, code: 'ADM' }, select: { roles: true } });
-  expect('Admin is the Master Data Admin', 'yes', (admin?.roles as string[] | undefined)?.includes('MASTER_DATA_ADMIN') ? 'yes' : 'no');
+  const admin = await prisma.sysUserRole.count({ where: { tenantId, user: { code: 'ADM' }, role: { code: 'MASTER_DATA_ADMIN' } } });
+  expect('Admin is the Master Data Admin', 'yes', admin === 1 ? 'yes' : 'no');
 
   const [groups, categories, areas, terms] = await Promise.all([
     prisma.mdmItemGroup.count({ where: { tenantId, isActive: true } }),
@@ -94,7 +95,7 @@ export async function verifyCoreSeed(ctx: SeedCtx): Promise<Check[]> {
     '19 · 6 · 2 · 2 · 6 items · 6 customers · 10 suppliers',
     [...Object.values(reference.lists).map((l) => l.length), reference.lists['item-groups'].find((e) => e.name === 'Seating')?.usedBy, reference.lists['credit-terms'].find((e) => e.days === 30)?.usedBy].join(' · '),
   );
-  const stores = await new WarehousesQuery(prisma as PrismaService, undefined as never, undefined as never, noEdit).list(viewer);
+  const stores = await new WarehousesQuery(prisma as PrismaService, undefined as never, undefined as never, noEdit, new PrismaMasterDataAdapter(prisma as PrismaService, clock)).list(viewer);
   expect('Warehouses (locations)', 'HQ-DMG 1, HQ-MAIN 5, PNG-MAIN 2', stores.warehouses.map((w) => `${w.code} ${w.locations.length}`).join(', '));
   expect('Core home cards (items · customers · suppliers · tax codes)', '39 · 7 · 10 · 3', ['items', 'customers', 'suppliers', 'tax-codes'].map((k) => home.cards.find((c) => c.key === k)?.total).join(' · '));
   return checks;

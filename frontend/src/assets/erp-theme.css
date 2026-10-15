@@ -136,3 +136,21 @@
   --mod-chip-bg: #e6e7fd;
   --mod-chip-text: #3a3db5;
 }
+
+/* Configuration: slate, like its launcher tile (--tile-config) */
+[data-module='config'] {
+  --mod-side: #5b6170;
+  --mod-hover: #525868;
+  --mod-active: #454a59;
+  --mod-pill: #525868;
+  --mod-primary: #4b5165;
+  --mod-accent: #3d4352;
+  --mod-line: #5b6170;
+  --mod-light: #f4f5f8;
+  --mod-light-border: #d8dbe3;
+  --mod-tile-1: #3d4352;
+  --mod-tile-2: #4b5165;
+  --mod-tile-3: #5b6170;
+  --mod-chip-bg: #e7e9ee;
+  --mod-chip-text: #3d4352;
+}

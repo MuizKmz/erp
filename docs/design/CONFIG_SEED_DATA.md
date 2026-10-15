@@ -60,8 +60,8 @@ Each module's grants in code today (`purchase.permissions.ts`, `sales.permission
 | Code | Name | Users | Permissions | Sees | Two-factor |
 |---|---|---|---|---|---|
 | ADMIN | Administrator | 1 (ADM) | all 54 | Their branches | Required |
-| AUDITOR | Auditor | 0 | 6 | Their branches | — |
 | AP_CLERK | AP clerk | 1 (LMY) | 4 | Their branches | — |
+| AUDITOR | Auditor | 0 | 6 | Their branches | — |
 | SALES_BILLING | Billing | 3 (AR, FO, LWJ) | 6 | Their branches | — |
 | BRANCH_MANAGER | Branch Manager | 1 (TWL) | 2 | Their branches | — |
 | PURCHASE_BUYER | Buyer | 1 (LMY) | 16 | Their branches | — |
@@ -71,13 +71,14 @@ Each module's grants in code today (`purchase.permissions.ts`, `sales.permission
 | MASTER_DATA_ADMIN | Master Data Admin | 1 (ADM) | 11 | Their branches | Required |
 | PURCHASE_MANAGER | Purchasing Manager | 1 (AZ) | 13 | Their branches | — |
 | REQUESTER | Requester | 4 (HAF, NUR, RAH, SIT) | 4 | Their branches | — |
-| SALES_MANAGER | Sales Manager | 1 (NA) | 10 | Their branches | — |
 | SALES_AGENT | Sales agent | 3 (AR, FO, LWJ) | 9 | **Own customers only** | — |
+| SALES_MANAGER | Sales Manager | 1 (NA) | 10 | Their branches | — |
 | SALES_STORE | Sales store | 2 (AR, RAH) | 5 | Their branches | — |
 | STORE | Store | 2 (HAF, RAH) | 7 | Their branches | — |
 
 - **Auditor:** `config.view`, `config.security.view`, `config.audit.view`, `purchase.view`, `sales.view`, `core.view`. Nobody holds it yet; the home flags that.
-- **Administrator** holds every permission, as `ADMIN` does today. It cannot be edited or deleted.
+- **Administrator** holds every permission, as `ADMIN` does today, without any permission rows. It cannot be edited or deleted.
+- Roles are listed by name, ignoring capitals (Administrator before AP clerk), as the database sorts them. The A08 mockup sorted with capitals first.
 
 ## Permission catalogue (A09, A10): 54
 

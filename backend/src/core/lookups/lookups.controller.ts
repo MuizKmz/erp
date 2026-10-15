@@ -1,4 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { MASTER_DATA_PORT, type MasterDataPort } from '../../master-data/master-data.port';
 import { latestValidByKey } from '../../master-data/master-data.rules';
 import { ClockService } from '../../platform/clock/clock.service';
 import { CurrentContext, RequirePermission } from '../../platform/context/context.decorators';
@@ -16,6 +17,7 @@ export class CoreLookupsController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly clock: ClockService,
+    @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
   /** C02 filters and the C03 item form. */
@@ -37,7 +39,7 @@ export class CoreLookupsController {
     };
   }
 
-  /** C04 filters and the C05 customer form. Sales agents are the active users with the SALES_AGENT role. */
+  /** C04 filters and the C05 customer form. Sales agents are the active users with the SALES_AGENT role. Branches and users come from Configuration. */
   @Get('customer-form')
   @RequirePermission(P.VIEW)
   async customerForm(@CurrentContext() ctx: RequestContext) {
@@ -46,16 +48,16 @@ export class CoreLookupsController {
       this.prisma.mdmCustomerCategory.findMany({ where: { tenantId, isActive: true }, orderBy: { name: 'asc' }, select: { name: true } }),
       this.prisma.mdmArea.findMany({ where: { tenantId, isActive: true }, orderBy: { name: 'asc' }, select: { name: true } }),
       this.prisma.mdmCreditTerm.findMany({ where: { tenantId, isActive: true }, orderBy: { days: 'asc' }, select: { days: true, name: true } }),
-      this.prisma.mdmBranch.findMany({ where: { tenantId, isActive: true }, orderBy: { code: 'asc' }, select: { code: true, name: true } }),
-      this.prisma.mdmUser.findMany({ where: { tenantId, isActive: true }, orderBy: { name: 'asc' }, select: { code: true, name: true, roles: true } }),
+      this.masterData.listBranches(tenantId),
+      this.masterData.listUsers(tenantId),
       this.prisma.mdmPriceList.findMany({ where: { tenantId, isActive: true }, orderBy: { code: 'asc' }, select: { code: true, name: true } }),
     ]);
     return {
       categories: categories.map((c) => c.name),
       areas: areas.map((a) => a.name),
       creditTerms: terms,
-      branches,
-      agents: users.filter((u) => Array.isArray(u.roles) && (u.roles as string[]).includes('SALES_AGENT')).map((u) => ({ code: u.code, name: u.name })),
+      branches: branches.filter((b) => b.isActive).map(({ code, name }) => ({ code, name })),
+      agents: users.filter((u) => u.isActive && u.roles.includes('SALES_AGENT')).map((u) => ({ code: u.code, name: u.name })),
       priceLists,
       idTypes: ID_TYPES.map((value) => ({ value, label: ID_TYPE_LABEL[value] })),
     };

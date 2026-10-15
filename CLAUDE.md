@@ -35,7 +35,7 @@ Source Code/
 ├─ docs/                      design, integration, requirements (read-only reference)
 ├─ backend/                   NestJS API on http://localhost:3000, prefix /api/v1
 │  ├─ prisma/schema.prisma    one schema, table prefixes per module
-│  ├─ prisma/seed.ts          seeds docs/design/SEED_DATA.md, SALES_SEED_DATA.md and CORE_SEED_DATA.md
+│  ├─ prisma/seed.ts          seeds docs/design/SEED_DATA.md, SALES_SEED_DATA.md, CORE_SEED_DATA.md and CONFIG_SEED_DATA.md
 │  ├─ test/                   end-to-end journeys: npm run test:e2e (resets the demo data)
 │  └─ src/
 │     ├─ platform/            shared building blocks, no business rules
@@ -614,7 +614,7 @@ API under `/api/v1/core/...` with the usual list, detail, create, update and del
 
 # Phase 4 · Configuration
 
-**Status:** A0 is done and waiting for the user's review: this section, the Configuration mockups (A01–A14), `CONFIG_SEED_DATA.md` and the Configuration section in `SCREENS.md`, checked against the SRS and SDD. Next: A1.
+**Status:** A0 and A1 are done; A1 is waiting for the user's review. A0: this section, the Configuration mockups (A01–A14), `CONFIG_SEED_DATA.md` and the Configuration section in `SCREENS.md`, checked against the SRS and SDD. A1: the Configuration module; the new `sys_` tables, with users and branches moved out of `mdm_`; each module's permission catalogue, and roles as data seeded from the code grants (the permission registry reads them from the database); correlation ids on activity; the Configuration shell and the A01 home. Next: A2.
 
 Everything above still applies: stack, database and API conventions, the working agreement and the definition of done. This section adds what is different, and it **replaces "No login yet" and the "login/JWT" item of "Do not build yet"** from step A5 on. **Purchase, Sales and Core keep their behaviour**, with two agreed exceptions: sign-in (A5) and data scopes (A7). If any other step seems to need a change there, ask first.
 

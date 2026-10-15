@@ -27,7 +27,7 @@ Decided in Phase 3 from SRS DR-002, FR-MST-049 and SDD §5.3.1:
 
 ## Entities
 
-Owner is Master Data for all of them, except locations (WMS). “Used by” shows who reads it.
+Owner is Master Data for all of them, except locations (WMS), and the company, branches, users and roles (Configuration, since Phase 4). “Used by” shows who reads it.
 
 ### Company and branch
 | Field | Type | Notes |
@@ -36,7 +36,7 @@ Owner is Master Data for all of them, except locations (WMS). “Used by” show
 | branch.code | string ≤ 10 | `HQ`, `PNG` |
 | branch.name | string | `HQ Shah Alam`, `Penang Branch` |
 | currency | string(3) | Base currency `MYR` |
-Used by: all modules.
+Used by: all modules. Owner: Configuration (`sys_legal_entity`, `sys_branch`); read through `MasterDataPort.listBranches`.
 
 ### Warehouse and location
 | Field | Type | Notes |
@@ -107,9 +107,9 @@ Used by: Sales, WMS (outbound), Finance.
 | Field | Type | Notes |
 |---|---|---|
 | user.code / name / email | | `LMY`, `Lim Mei Ying` |
-| branchCodes | string[] | Branches the user works in |
-| roles | string[] | `PURCHASE_BUYER`, `PURCHASE_MANAGER`, `BRANCH_MANAGER`, `FINANCE_DIRECTOR`, `STORE`, `AP_CLERK`, `REQUESTER`, `ADMIN` |
-Used by: all modules for approvals and audit.
+| branchCodes | string[] | Branches the user works in, the default branch first |
+| roles | string[] | `PURCHASE_BUYER`, `PURCHASE_MANAGER`, `BRANCH_MANAGER`, `FINANCE_DIRECTOR`, `STORE`, `AP_CLERK`, `REQUESTER`, `ADMIN` …: the roles that count today, the main one first |
+Used by: all modules for approvals and audit. Owner: Configuration (`sys_user`, `sys_user_role`, `sys_user_branch`, `sys_role`); read through `MasterDataPort.findUserByCode` and `listUsers`, which give the same answers as before Phase 4.
 
 ## Checklist before connecting the existing WMS and MES
 

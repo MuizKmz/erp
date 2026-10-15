@@ -1,6 +1,6 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { SALES_DEMAND_PORT } from '../integration/integration.ports';
-import { PermissionRegistry } from '../platform/context/permission.registry';
+import { PermissionCatalogue } from '../platform/context/permission-catalogue';
 import { PurchaseApprovalsController } from './approvals/approvals.controller';
 import { ApprovalsInboxService } from './approvals/approvals-inbox.service';
 import { CashPurchasesController } from './cash-purchases/cash-purchases.controller';
@@ -24,7 +24,7 @@ import { LookupsController } from './lookups/lookups.controller';
 import { OrdersController } from './orders/orders.controller';
 import { OrdersQuery } from './orders/orders.query';
 import { OrdersService } from './orders/orders.service';
-import { PURCHASE_ROLE_GRANTS } from './purchase.permissions';
+import { PURCHASE_PERMISSION_CATALOGUE } from './purchase.permissions';
 import { ReceiptsController } from './receipts/receipts.controller';
 import { ReceiptsQuery } from './receipts/receipts.query';
 import { ReceiptsService } from './receipts/receipts.service';
@@ -92,9 +92,9 @@ import { PurchaseUsageProvider } from './usage/purchase-usage.provider';
   ],
 })
 export class PurchaseModule implements OnModuleInit {
-  constructor(private readonly permissions: PermissionRegistry) {}
+  constructor(private readonly permissions: PermissionCatalogue) {}
 
   onModuleInit(): void {
-    for (const [role, granted] of Object.entries(PURCHASE_ROLE_GRANTS)) this.permissions.grant(role, granted);
+    this.permissions.register(PURCHASE_PERMISSION_CATALOGUE);
   }
 }

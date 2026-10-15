@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { MdmWarehouse } from '@prisma/client';
+import { MASTER_DATA_PORT, type MasterDataPort } from '../../master-data/master-data.port';
 import { ActivityService } from '../../platform/activity/activity.service';
 import { PermissionRegistry } from '../../platform/context/permission.registry';
 import type { RequestContext } from '../../platform/context/request-context';
@@ -19,6 +20,7 @@ export class WarehousesQuery {
     private readonly usage: RecordUsageRegistry,
     private readonly activity: ActivityService,
     private readonly permissions: PermissionRegistry,
+    @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
   async list(ctx: RequestContext) {
@@ -78,7 +80,8 @@ export class WarehousesQuery {
     return w;
   }
 
+  /** Branches are kept by Configuration; Core reads them through the port. */
   branches(tenantId: string) {
-    return this.prisma.mdmBranch.findMany({ where: { tenantId }, orderBy: { code: 'asc' }, select: { code: true, name: true, isActive: true } });
+    return this.masterData.listBranches(tenantId);
   }
 }

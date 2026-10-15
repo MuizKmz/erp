@@ -1,5 +1,6 @@
 /**
- * Master data (mdm_) and the inv_/sal_ stubs, from docs/design/SEED_DATA.md.
+ * Master data (mdm_) and the inv_/sal_ stubs, from docs/design/SEED_DATA.md. Users and branches are Configuration's
+ * since Phase 4 (configuration.ts).
  * Upserted on business codes so ids stay stable between runs.
  *
  * Not in SEED_DATA.md, filled in for the mockups to work (marked "invented" below):
@@ -8,31 +9,6 @@
  */
 import { MdmItemType, Prisma } from '@prisma/client';
 import { AS_SEEDED, day, kl, type SeedCtx } from './util';
-
-const BRANCHES = [
-  { code: 'HQ', name: 'HQ Shah Alam' },
-  { code: 'PNG', name: 'Penang Branch' },
-];
-
-// Branch assignments are not in SEED_DATA.md: Penang manager → PNG only, requesters → HQ, the rest → both.
-// Job titles follow the mockups: "Rahim · Store", "Siti · Admin"; Nurul and Hafiz show only their department.
-const USERS: { code: string; name: string; email: string; roles: string[]; branchCodes: string[]; department?: string; jobTitle?: string }[] = [
-  { code: 'LMY', name: 'Lim Mei Ying', email: 'meiying@warehouse.com', roles: ['PURCHASE_BUYER', 'AP_CLERK'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing', jobTitle: 'Buyer' },
-  { code: 'AZ', name: 'Ahmad Zaki', email: 'zaki@warehouse.com', roles: ['PURCHASE_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Purchasing', jobTitle: 'Purchasing Manager' },
-  { code: 'TWL', name: 'Tan Wei Ling', email: 'weiling@warehouse.com', roles: ['BRANCH_MANAGER'], branchCodes: ['PNG'], department: 'Penang', jobTitle: 'Branch Manager' },
-  { code: 'RI', name: 'Rosnah Ismail', email: 'rosnah@warehouse.com', roles: ['FINANCE_DIRECTOR', 'FINANCE_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Finance', jobTitle: 'Finance Director' },
-  { code: 'RAH', name: 'Rahim', email: 'rahim@warehouse.com', roles: ['STORE', 'REQUESTER', 'SALES_STORE'], branchCodes: ['HQ', 'PNG'], department: 'Warehouse', jobTitle: 'Store' },
-  { code: 'NUR', name: 'Nurul', email: 'nurul@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Production' },
-  { code: 'HAF', name: 'Hafiz', email: 'hafiz@warehouse.com', roles: ['REQUESTER', 'STORE'], branchCodes: ['HQ'], department: 'Production' },
-  { code: 'SIT', name: 'Siti', email: 'siti@warehouse.com', roles: ['REQUESTER'], branchCodes: ['HQ'], department: 'Office', jobTitle: 'Admin' },
-  { code: 'ADM', name: 'Admin', email: 'admin@warehouse.com', roles: ['ADMIN', 'MASTER_DATA_ADMIN'], branchCodes: ['HQ', 'PNG'], jobTitle: 'Admin' },
-  // Sales (SALES_SEED_DATA.md). Aina sells, bills and delivers at HQ, as in the mockups.
-  { code: 'AR', name: 'Aina Rahman', email: 'aina@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING', 'SALES_STORE'], branchCodes: ['HQ'], department: 'Sales', jobTitle: 'Sales agent' },
-  { code: 'LWJ', name: 'Lim Wei Jie', email: 'weijie@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING'], branchCodes: ['PNG'], department: 'Sales', jobTitle: 'Sales agent' },
-  { code: 'FO', name: 'Faizal Omar', email: 'faizal@warehouse.com', roles: ['SALES_AGENT', 'SALES_BILLING'], branchCodes: ['HQ', 'PNG'], department: 'Sales', jobTitle: 'Sales agent' },
-  { code: 'NA', name: 'Nor Azlina', email: 'azlina@warehouse.com', roles: ['SALES_MANAGER'], branchCodes: ['HQ', 'PNG'], department: 'Sales', jobTitle: 'Sales Manager' },
-  { code: 'SC1', name: 'Siti Counter 1', email: 'counter1@warehouse.com', roles: ['COUNTER_STAFF'], branchCodes: ['HQ'], department: 'Showroom', jobTitle: 'Showroom counter' },
-];
 
 const WAREHOUSES = [
   { code: 'HQ-MAIN', name: 'HQ Shah Alam · main', branchCode: 'HQ' },
@@ -119,24 +95,6 @@ const ITEMS: ItemSeed[] = [
 
 export async function seedMasterData(ctx: SeedCtx): Promise<void> {
   const { prisma, tenantId } = ctx;
-
-  for (const b of BRANCHES) {
-    await prisma.mdmBranch.upsert({
-      where: { tenantId_code: { tenantId, code: b.code } },
-      update: { name: b.name, isActive: true },
-      create: { tenantId, ...b },
-    });
-  }
-
-  for (const u of USERS) {
-    const data = { name: u.name, email: u.email, roles: u.roles, branchCodes: u.branchCodes, department: u.department ?? null, jobTitle: u.jobTitle ?? null, isActive: true };
-    const row = await prisma.mdmUser.upsert({
-      where: { tenantId_code: { tenantId, code: u.code } },
-      update: data,
-      create: { tenantId, code: u.code, ...data },
-    });
-    ctx.users.set(row.code, row);
-  }
 
   for (const w of WAREHOUSES) {
     const row = await prisma.mdmWarehouse.upsert({

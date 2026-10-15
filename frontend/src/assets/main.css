@@ -525,7 +525,7 @@
 }
 
 /* Fourth home tile (Sales has four groups: Transaction, Billing, Operation Policies, Reports). Main.html #8B6CEA.
-   Core has five groups, so it also has a fifth (CoreHome.html #8285E8). */
+   Core has five groups, so it also has a fifth (CoreHome.html #8285E8). Configuration has four (CfgHome.html #6E7487). */
 [data-module='sales'] {
   --mod-tile-4: #8b6cea;
 }
@@ -535,4 +535,7 @@
 [data-module='core'] {
   --mod-tile-4: #6a6ee0;
   --mod-tile-5: #8285e8;
+}
+[data-module='config'] {
+  --mod-tile-4: #6e7487;
 }

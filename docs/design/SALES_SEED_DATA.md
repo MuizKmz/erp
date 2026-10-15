@@ -8,7 +8,7 @@ Rows marked *invented* are not in any mockup. They exist so that counts and tota
 
 ## Master data (local `mdm_` tables, read only for Sales)
 
-### New users (`mdm_user`)
+### New users (`mdm_user`, `sys_user` since Phase 4)
 
 | Code | Name | Email | Roles | Branches | Shown as |
 |---|---|---|---|---|---|

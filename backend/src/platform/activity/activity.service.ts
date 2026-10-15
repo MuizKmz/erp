@@ -49,6 +49,8 @@ export class ActivityService {
         data: entry.data,
         userCode: ctx.user.code,
         userName: ctx.user.name,
+        // Groups the rows one request wrote, for the audit trail (FR-PLT-016).
+        correlationId: ctx.correlationId,
         createdAt: new Date(this.clock.now().getTime() + (entry.afterMs ?? 0)),
       },
     });

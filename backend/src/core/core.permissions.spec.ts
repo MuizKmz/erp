@@ -1,11 +1,10 @@
-import { PermissionRegistry } from '../platform/context/permission.registry';
+import { hasPermission, permissionsOf, toRoleGrants } from '../platform/context/permission.rules';
 import { CORE_PERMISSIONS as P, CORE_ROLE_GRANTS } from './core.permissions';
 
 /** Who may change what in Core (CLAUDE.md → Phase 3, decision 2). */
 describe('Core grants', () => {
-  const registry = new PermissionRegistry();
-  for (const [role, granted] of Object.entries(CORE_ROLE_GRANTS)) registry.grant(role, granted);
-  const can = (role: string, permission: string) => registry.has([role], permission);
+  const grants = toRoleGrants(CORE_ROLE_GRANTS);
+  const can = (role: string, permission: string) => hasPermission(grants, [role], permission);
 
   it('lets the Master Data Admin do everything in Core', () => {
     for (const permission of Object.values(P)) expect(can('MASTER_DATA_ADMIN', permission)).toBe(true);
@@ -24,6 +23,6 @@ describe('Core grants', () => {
   });
 
   it('lets sales agents look but never change master data', () => {
-    expect(registry.permissionsFor(['SALES_AGENT'])).toEqual([P.VIEW]);
+    expect(permissionsOf(grants, ['SALES_AGENT'])).toEqual([P.VIEW]);
   });
 });

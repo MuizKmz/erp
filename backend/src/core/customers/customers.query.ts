@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { MdmCustomer, Prisma } from '@prisma/client';
+import { MASTER_DATA_PORT, type MasterDataPort } from '../../master-data/master-data.port';
 import { ActivityService } from '../../platform/activity/activity.service';
 import { PermissionRegistry } from '../../platform/context/permission.registry';
 import type { RequestContext } from '../../platform/context/request-context';
@@ -23,6 +24,7 @@ export class CustomersQuery {
     private readonly usage: RecordUsageRegistry,
     private readonly activity: ActivityService,
     private readonly permissions: PermissionRegistry,
+    @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
   async list(ctx: RequestContext, query: CustomerListQueryDto) {
@@ -139,12 +141,11 @@ export class CustomersQuery {
     };
   }
 
-  /** Names of the branches, agents and price lists the rows point to. */
+  /** Names of the branches, agents and price lists the rows point to. Branches and users come from Configuration, through the port. */
   private async names(tenantId: string, rows: Pick<MdmCustomer, 'branchCode' | 'defaultAgentCode' | 'priceListCode'>[]) {
-    const agentCodes = [...new Set(rows.map((r) => r.defaultAgentCode).filter((c): c is string => !!c))];
     const [branches, agents, lists] = await Promise.all([
-      this.prisma.mdmBranch.findMany({ where: { tenantId, code: { in: [...new Set(rows.map((r) => r.branchCode))] } }, select: { code: true, name: true } }),
-      this.prisma.mdmUser.findMany({ where: { tenantId, code: { in: agentCodes } }, select: { code: true, name: true } }),
+      this.masterData.listBranches(tenantId),
+      rows.some((r) => r.defaultAgentCode) ? this.masterData.listUsers(tenantId) : [],
       this.prisma.mdmPriceList.findMany({ where: { tenantId, code: { in: [...new Set(rows.map((r) => r.priceListCode))] } }, select: { code: true, name: true } }),
     ]);
     return {

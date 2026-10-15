@@ -1,4 +1,4 @@
-import type { MdmCustomer, MdmItem, MdmSupplier, MdmTaxCode, MdmUser, MdmWarehouse, PrismaClient } from '@prisma/client';
+import type { MdmCustomer, MdmItem, MdmSupplier, MdmTaxCode, MdmWarehouse, PrismaClient, SysUser } from '@prisma/client';
 import { dec, type DecimalInput } from '../../src/platform/http/decimal';
 import { documentTotals, lineTotals, type LineTotals } from '../../src/purchase/shared/totals.rules';
 
@@ -9,7 +9,7 @@ export const TENANT_ID = '00000000-0000-4000-8000-000000000001';
 export interface SeedCtx {
   prisma: PrismaClient;
   tenantId: string;
-  users: Map<string, MdmUser>;
+  users: Map<string, SysUser>;
   items: Map<string, MdmItem>;
   suppliers: Map<string, MdmSupplier>;
   taxes: Map<string, MdmTaxCode>;
@@ -20,7 +20,7 @@ export interface SeedCtx {
 }
 
 /** A calendar date (DATE column): day('2026-09-29'). */
-/** A reseed puts a seeded master-data row back as it was, whatever Core or an e2e journey changed on it. */
+/** A reseed puts a seeded master-data or Configuration row back as it was, whatever a screen or an e2e journey changed on it. */
 export const AS_SEEDED = { version: 1, updatedBy: null } as const;
 
 export function day(iso: string): Date {

@@ -23,12 +23,12 @@ const TILE_STYLE: Record<ModuleTile['code'], { icon: Component; color: string; d
 }
 
 const FALLBACK: ModuleTile[] = [
-  { code: 'core', name: 'Core', tag: '', state: 'EXISTING', route: null },
+  { code: 'core', name: 'Core', tag: '', state: 'OPEN', route: '/core' },
   { code: 'purchase', name: 'Purchase', tag: '', state: 'OPEN', route: '/purchase' },
   { code: 'sales', name: 'Sales', tag: '', state: 'OPEN', route: '/sales' },
   { code: 'mes', name: 'MES', tag: '', state: 'LATER', route: null },
   { code: 'wms', name: 'WMS', tag: '', state: 'EXISTING', route: null },
-  { code: 'config', name: 'Configuration', tag: '', state: 'EXISTING', route: null },
+  { code: 'config', name: 'Configuration', tag: '', state: 'OPEN', route: '/config' },
 ]
 
 const tiles = ref<ModuleTile[]>(FALLBACK)
@@ -63,12 +63,13 @@ onMounted(async () => {
 
 // Default module: remembered for when login exists (then the app opens straight into it).
 const DEFAULT_KEY = 'zora.defaultModule'
+const ADMIN_MODULES: string[] = ['core', 'config']
 const storedDefault = ref(readDefault())
-// Without a choice, the first module for daily work: Core is for administrators, so it is never the fallback.
+// Without a choice, the first module for daily work: Core and Configuration are for administrators, so never the fallback.
 const defaultModule = computed(() =>
   builtTiles.value.some((t) => t.code === storedDefault.value)
     ? storedDefault.value
-    : (builtTiles.value.find((t) => t.code !== 'core')?.code ?? builtTiles.value[0]?.code ?? ''),
+    : (builtTiles.value.find((t) => !ADMIN_MODULES.includes(t.code))?.code ?? builtTiles.value[0]?.code ?? ''),
 )
 function readDefault(): string {
   try {

@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { MdmCustomer } from '@prisma/client';
+import { MASTER_DATA_PORT, type MasterDataPort } from '../../../master-data/master-data.port';
 import type { RequestContext } from '../../../platform/context/request-context';
 import { PrismaService } from '../../../platform/prisma/prisma.service';
 import { CORE_DOC_TYPE } from '../../core.constants';
@@ -46,6 +47,7 @@ export class CustomerImporter implements Importer {
   constructor(
     private readonly prisma: PrismaService,
     private readonly customers: CustomersService,
+    @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
   async plan(ctx: RequestContext, rows: Record<string, string>[]): Promise<PlannedRow[]> {
@@ -54,12 +56,12 @@ export class CustomerImporter implements Importer {
     const codes = rows.map((r) => r.code!.trim().toUpperCase() || null);
     const [existing, branches, priceLists, terms, categories, areas, users] = await Promise.all([
       this.prisma.mdmCustomer.findMany({ where: { tenantId, code: { in: codes.filter((c): c is string => !!c) } } }),
-      this.prisma.mdmBranch.findMany({ where }),
+      this.masterData.listBranches(tenantId),
       this.prisma.mdmPriceList.findMany({ where }),
       this.prisma.mdmCreditTerm.findMany({ where }),
       this.prisma.mdmCustomerCategory.findMany({ where }),
       this.prisma.mdmArea.findMany({ where }),
-      this.prisma.mdmUser.findMany({ where, select: { code: true } }),
+      this.masterData.listUsers(tenantId),
     ]);
     const customer = new Map(existing.map((c) => [c.code, c]));
     const branch = finder(branches, (b) => [b.code]);

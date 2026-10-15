@@ -1,5 +1,5 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
-import { PermissionRegistry } from '../platform/context/permission.registry';
+import { PermissionCatalogue } from '../platform/context/permission-catalogue';
 import { SalesApprovalsController } from './approvals/approvals.controller';
 import { SalesApprovalsInboxService } from './approvals/approvals-inbox.service';
 import { SalesBuyToOrderListener } from './buy-to-order/buy-to-order.listener';
@@ -43,7 +43,7 @@ import { OrdersService } from './orders/orders.service';
 import { SalesQuotationsController } from './quotations/quotations.controller';
 import { QuotationsQuery } from './quotations/quotations.query';
 import { QuotationsService } from './quotations/quotations.service';
-import { SALES_ROLE_GRANTS } from './sales.permissions';
+import { SALES_PERMISSION_CATALOGUE } from './sales.permissions';
 import { SalesUsageProvider } from './usage/sales-usage.provider';
 import { SalesProspectLinkListener } from './enquiries/prospect-link.listener';
 import { CreditService } from './shared/credit.service';
@@ -99,9 +99,9 @@ import { SalesMailService } from './shared/sales-mail.service';
   ],
 })
 export class SalesModule implements OnModuleInit {
-  constructor(private readonly permissions: PermissionRegistry) {}
+  constructor(private readonly permissions: PermissionCatalogue) {}
 
   onModuleInit(): void {
-    for (const [role, granted] of Object.entries(SALES_ROLE_GRANTS)) this.permissions.grant(role, granted);
+    this.permissions.register(SALES_PERMISSION_CATALOGUE);
   }
 }

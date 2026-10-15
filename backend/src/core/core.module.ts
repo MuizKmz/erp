@@ -1,6 +1,6 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
-import { PermissionRegistry } from '../platform/context/permission.registry';
-import { CORE_ROLE_GRANTS } from './core.permissions';
+import { PermissionCatalogue } from '../platform/context/permission-catalogue';
+import { CORE_PERMISSION_CATALOGUE } from './core.permissions';
 import { CoreCustomersController } from './customers/customers.controller';
 import { CustomersQuery } from './customers/customers.query';
 import { CustomersService } from './customers/customers.service';
@@ -47,9 +47,9 @@ import { WarehousesService } from './warehouses/warehouses.service';
   providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService, CustomersQuery, CustomersService, SuppliersQuery, SuppliersService, PriceListsQuery, PriceListsService, TaxCodesQuery, TaxCodesService, ReferenceQuery, ReferenceService, WarehousesQuery, WarehousesService, ImportsService, CustomerImporter, SupplierImporter, ItemImporter, PriceImporter],
 })
 export class CoreModule implements OnModuleInit {
-  constructor(private readonly permissions: PermissionRegistry) {}
+  constructor(private readonly permissions: PermissionCatalogue) {}
 
   onModuleInit(): void {
-    for (const [role, granted] of Object.entries(CORE_ROLE_GRANTS)) this.permissions.grant(role, granted);
+    this.permissions.register(CORE_PERMISSION_CATALOGUE);
   }
 }

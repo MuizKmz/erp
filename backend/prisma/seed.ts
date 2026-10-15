@@ -1,9 +1,10 @@
 /**
- * Seeds docs/design/SEED_DATA.md (Purchase) and SALES_SEED_DATA.md (Sales): "today" in the demo is Tuesday 29 Sep 2026.
+ * Seeds docs/design/SEED_DATA.md (Purchase), SALES_SEED_DATA.md (Sales), CORE_SEED_DATA.md (Core) and CONFIG_SEED_DATA.md
+ * (Configuration): "today" in the demo is Tuesday 29 Sep 2026.
  *
  *   npx prisma db seed
  *
- * Safe to run again. Master data is upserted on business codes. Purchase documents, settings and the
+ * Safe to run again. Master data, users, branches and roles are upserted on business codes. Purchase documents, settings and the
  * platform records around them (approvals, activity, links, emails, outbox, attachments) are DELETED and
  * recreated, so the demo always starts from the same state. Do not run it on data you want to keep.
  *
@@ -21,6 +22,8 @@ import { seedSalesAttachments, seedSalesDocuments } from './seed/sales-documents
 import { seedSalesMasterData } from './seed/sales-master';
 import { seedSalesSettings } from './seed/sales-settings';
 import { verifySalesSeed } from './seed/sales-verify';
+import { verifyConfigSeed } from './seed/config-verify';
+import { seedConfiguration } from './seed/configuration';
 import { seedCoreReferenceLists, seedCoreSettings } from './seed/core-settings';
 import { verifyCoreSeed } from './seed/core-verify';
 import { seedAttachments, seedRecords } from './seed/records';
@@ -46,6 +49,11 @@ async function resetDemoData(tenantId: string): Promise<void> {
     prisma.sysApprovalRequest.deleteMany({ where }), // steps cascade
     prisma.sysDocLink.deleteMany({ where }),
     prisma.sysEmailLog.deleteMany({ where }),
+    // Sign-in records: nobody has signed in yet in the demo.
+    prisma.sysSession.deleteMany({ where }),
+    prisma.sysLoginAttempt.deleteMany({ where }),
+    prisma.sysSecurityEvent.deleteMany({ where }),
+    prisma.sysAuthToken.deleteMany({ where }),
 
     prisma.salReturn.deleteMany({ where }), // lines cascade
     prisma.salDebitNote.deleteMany({ where }),
@@ -114,8 +122,14 @@ async function printCounts(): Promise<void> {
     sys_attachment: () => prisma.sysAttachment.count(),
     sys_doc_link: () => prisma.sysDocLink.count(),
     sys_email_log: () => prisma.sysEmailLog.count(),
-    mdm_branch: () => prisma.mdmBranch.count(),
-    mdm_user: () => prisma.mdmUser.count(),
+    sys_legal_entity: () => prisma.sysLegalEntity.count(),
+    sys_branch: () => prisma.sysBranch.count(),
+    sys_user: () => prisma.sysUser.count(),
+    sys_role: () => prisma.sysRole.count(),
+    sys_role_permission: () => prisma.sysRolePermission.count(),
+    sys_user_role: () => prisma.sysUserRole.count(),
+    sys_user_branch: () => prisma.sysUserBranch.count(),
+    sys_setting: () => prisma.sysSetting.count(),
     mdm_warehouse: () => prisma.mdmWarehouse.count(),
     mdm_location: () => prisma.mdmLocation.count(),
     mdm_uom: () => prisma.mdmUom.count(),
@@ -189,6 +203,7 @@ async function main(): Promise<void> {
   };
 
   await resetDemoData(tenant.id);
+  await seedConfiguration(ctx);
   await seedMasterData(ctx);
   await seedSettings(ctx);
   await seedBuyingDocuments(ctx);
@@ -207,7 +222,7 @@ async function main(): Promise<void> {
 
   await printCounts();
 
-  const checks = [...(await verifySeed(ctx, uploadRoot)), ...(await verifySalesSeed(ctx)), ...(await verifyCoreSeed(ctx))];
+  const checks = [...(await verifySeed(ctx, uploadRoot)), ...(await verifySalesSeed(ctx)), ...(await verifyCoreSeed(ctx)), ...(await verifyConfigSeed(ctx))];
   console.log('\nChecks against the mockups');
   console.table(checks.map((c) => ({ ok: c.ok ? '✓' : '✗', check: c.check, expected: c.expected, actual: c.actual })));
   const failed = checks.filter((c) => !c.ok);

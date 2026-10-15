@@ -1,3 +1,4 @@
+import type { ModulePermissions } from '../platform/context/permission.rules';
 import { CORE_ROLE } from './core.constants';
 
 /** Core permissions (CLAUDE.md → Phase 3 · Roles and permissions). Put on actions with @RequirePermission. */
@@ -35,4 +36,25 @@ export const CORE_ROLE_GRANTS: Record<string, string[]> = {
   [CORE_ROLE.FINANCE_MANAGER]: [P.VIEW, P.CUSTOMER_CREDIT],
   [CORE_ROLE.PURCHASE_BUYER]: [P.VIEW, P.SUPPLIER_EDIT],
   [CORE_ROLE.PURCHASE_MANAGER]: [P.VIEW, P.SUPPLIER_EDIT, P.SUPPLIER_CONTRACT],
+};
+
+/** The Core catalogue: labels for the role editor (A09), and the grants above as the starter roles. */
+export const CORE_PERMISSION_CATALOGUE: ModulePermissions = {
+  module: 'core',
+  label: 'Core',
+  viewKey: P.VIEW,
+  permissions: [
+    { key: P.VIEW, object: 'Core', action: 'View' },
+    { key: P.IMPORT, object: 'Core', action: 'Import' },
+    { key: P.ITEM_EDIT, object: 'Item and unit', action: 'Edit' },
+    { key: P.CUSTOMER_EDIT, object: 'Customer', action: 'Edit' },
+    { key: P.CUSTOMER_CREDIT, object: 'Customer', action: 'Change credit' },
+    { key: P.SUPPLIER_EDIT, object: 'Supplier', action: 'Edit' },
+    { key: P.SUPPLIER_CONTRACT, object: 'Supplier', action: 'Contract prices' },
+    { key: P.PRICE_LIST_EDIT, object: 'Price list', action: 'Edit' },
+    { key: P.TAX_EDIT, object: 'Tax code', action: 'Edit' },
+    { key: P.REFERENCE_EDIT, object: 'Reference list', action: 'Edit' },
+    { key: P.WAREHOUSE_EDIT, object: 'Warehouse', action: 'Edit' },
+  ],
+  starterGrants: CORE_ROLE_GRANTS,
 };

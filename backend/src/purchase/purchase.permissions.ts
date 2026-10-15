@@ -1,8 +1,9 @@
+import type { ModulePermissions } from '../platform/context/permission.rules';
 import { PUR_ROLE } from './shared/purchase.constants';
 
 /**
- * Which role may do what in Purchase. Registered with the platform PermissionRegistry at start-up and
- * checked by @RequirePermission(...). ADMIN holds everything.
+ * Which role may do what in Purchase. Declared to the platform PermissionCatalogue at start-up and checked by
+ * @RequirePermission(...). ADMIN holds everything.
  * Approving is not a permission here: approval steps name a role or person (platform approvals).
  */
 export const PURCHASE_PERMISSIONS = {
@@ -43,4 +44,31 @@ export const PURCHASE_ROLE_GRANTS: Record<string, string[]> = {
   ],
   [PUR_ROLE.BRANCH_MANAGER]: [P.VIEW],
   [PUR_ROLE.FINANCE_DIRECTOR]: [P.VIEW],
+};
+
+/** The Purchase catalogue: labels for the role editor (A09), and the grants above as the starter roles. */
+export const PURCHASE_PERMISSION_CATALOGUE: ModulePermissions = {
+  module: 'purchase',
+  label: 'Purchase',
+  viewKey: P.VIEW,
+  permissions: [
+    { key: P.VIEW, object: 'Purchase', action: 'View' },
+    { key: P.REQUEST_CREATE, object: 'Request', action: 'Create' },
+    { key: P.REQUEST_PROCESS, object: 'Request', action: 'Convert or reject' },
+    { key: P.RFQ_MANAGE, object: 'Request for quotation', action: 'Manage' },
+    { key: P.ORDER_EDIT, object: 'Purchase order', action: 'Edit' },
+    { key: P.ORDER_RELEASE, object: 'Purchase order', action: 'Release' },
+    { key: P.RECEIPT_EDIT, object: 'Goods receipt', action: 'Edit' },
+    { key: P.RECEIPT_CONFIRM, object: 'Goods receipt', action: 'Confirm' },
+    { key: P.INVOICE_EDIT, object: 'Supplier invoice', action: 'Edit' },
+    { key: P.CANCEL_ORDER_EDIT, object: 'Cancel order', action: 'Edit' },
+    { key: P.CANCEL_ORDER_RELEASE, object: 'Cancel order', action: 'Release' },
+    { key: P.CASH_PURCHASE_EDIT, object: 'Cash purchase', action: 'Edit' },
+    { key: P.CASH_PURCHASE_RELEASE, object: 'Cash purchase', action: 'Release' },
+    { key: P.DEBIT_NOTE_EDIT, object: 'Debit note', action: 'Edit' },
+    { key: P.RETURN_EDIT, object: 'Purchase return', action: 'Edit' },
+    { key: P.RETURN_RELEASE, object: 'Purchase return', action: 'Release' },
+    { key: P.SETTINGS_MANAGE, object: 'Settings', action: 'Manage' },
+  ],
+  starterGrants: PURCHASE_ROLE_GRANTS,
 };

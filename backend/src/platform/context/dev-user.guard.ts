@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import type { Env } from '../../config/env';
 import { PrismaService } from '../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from './context.decorators';
+import { PermissionRegistry } from './permission.registry';
 import { USER_DIRECTORY, type ErpRequest, type UserDirectory } from './request-context';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,6 +31,7 @@ export class DevUserGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
     @Inject(USER_DIRECTORY) private readonly users: UserDirectory,
+    private readonly permissions: PermissionRegistry,
     config: ConfigService<Env, true>,
   ) {
     this.defaultUser = config.get('DEV_DEFAULT_USER', { infer: true });
@@ -66,6 +68,9 @@ export class DevUserGuard implements CanActivate {
         HttpStatus.FORBIDDEN,
       );
     }
+
+    // The role grants the PermissionGuard checks next, fresh after a role change.
+    await this.permissions.refresh(tenantId);
 
     const correlation = header(request, 'x-correlation-id');
     const { isActive: _isActive, ...currentUser } = user;

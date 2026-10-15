@@ -117,9 +117,9 @@ export class WarehousesService {
     return this.query.list(ctx);
   }
 
-  /** The branch comes from the seeded branches (Configuration is not in Phase 3); a warehouse keeps an inactive one it had. */
+  /** The branch comes from Configuration (read through the port); a warehouse keeps an inactive one it had. */
   private async checkBranch(ctx: RequestContext, code: string, had: string | null): Promise<void> {
-    const branch = await this.prisma.mdmBranch.findFirst({ where: { tenantId: ctx.tenantId, code } });
+    const branch = (await this.query.branches(ctx.tenantId)).find((b) => b.code === code);
     if (!branch || (!branch.isActive && had !== code)) throw ValidationFailedError.field('branchCode', 'Pick the branch from the list.');
   }
 }

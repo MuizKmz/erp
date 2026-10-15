@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { MdmCustomer } from '@prisma/client';
+import { MASTER_DATA_PORT, type MasterDataPort } from '../../master-data/master-data.port';
 import { PermissionRegistry } from '../../platform/context/permission.registry';
 import type { RequestContext } from '../../platform/context/request-context';
 import { dec } from '../../platform/http/decimal';
@@ -69,6 +70,7 @@ export class CustomersService {
     private readonly numbering: NumberingService,
     private readonly permissions: PermissionRegistry,
     private readonly query: CustomersQuery,
+    @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
   /** A new customer gets the next C-#### number. With an enquiry number, Sales links that enquiry to it (decision 7). */
@@ -243,8 +245,8 @@ export class CustomersService {
     const [category, area, branch, agent, priceList, term] = await Promise.all([
       dto.category ? this.prisma.mdmCustomerCategory.findFirst({ where: { tenantId, name: dto.category } }) : null,
       dto.area ? this.prisma.mdmArea.findFirst({ where: { tenantId, name: dto.area } }) : null,
-      this.prisma.mdmBranch.findFirst({ where: { tenantId, code: dto.branchCode } }),
-      dto.defaultAgentCode ? this.prisma.mdmUser.findFirst({ where: { tenantId, code: dto.defaultAgentCode } }) : null,
+      this.masterData.listBranches(tenantId).then((all) => all.find((b) => b.code === dto.branchCode) ?? null),
+      dto.defaultAgentCode ? this.masterData.findUserByCode(tenantId, dto.defaultAgentCode) : null,
       this.prisma.mdmPriceList.findFirst({ where: { tenantId, code: dto.priceListCode } }),
       this.prisma.mdmCreditTerm.findFirst({ where: { tenantId, days: dto.creditTermDays } }),
     ]);
@@ -253,7 +255,7 @@ export class CustomersService {
     if (dto.category && (!category || (!category.isActive && !kept('category', dto.category)))) errors.push({ field: 'category', message: 'Pick the category from the list.' });
     if (dto.area && (!area || (!area.isActive && !kept('area', dto.area)))) errors.push({ field: 'area', message: 'Pick the area from the list.' });
     if (!branch || (!branch.isActive && !kept('branchCode', dto.branchCode))) errors.push({ field: 'branchCode', message: 'Pick the branch from the list.' });
-    const roles = agent && Array.isArray(agent.roles) ? (agent.roles as string[]) : [];
+    const roles = agent?.roles ?? [];
     if (dto.defaultAgentCode && (!agent || ((!agent.isActive || !roles.includes('SALES_AGENT')) && !kept('defaultAgentCode', dto.defaultAgentCode)))) {
       errors.push({ field: 'defaultAgentCode', message: 'Pick an active sales agent.' });
     }

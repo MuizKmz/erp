@@ -1,3 +1,4 @@
+import type { ModulePermissions } from '../platform/context/permission.rules';
 import { SAL_ROLE } from './shared/sales.constants';
 
 /**
@@ -41,4 +42,33 @@ export const SALES_ROLE_GRANTS: Record<string, string[]> = {
     P.CANCEL_ORDER_RELEASE, P.MARGIN_VIEW,
   ],
   [SAL_ROLE.FINANCE_MANAGER]: [P.VIEW],
+};
+
+/** The Sales catalogue: labels for the role editor (A09), and the grants above as the starter roles. */
+export const SALES_PERMISSION_CATALOGUE: ModulePermissions = {
+  module: 'sales',
+  label: 'Sales',
+  viewKey: P.VIEW,
+  permissions: [
+    { key: P.VIEW, object: 'Sales', action: 'View' },
+    { key: P.MARGIN_VIEW, object: 'Sales', action: 'See margin' },
+    { key: P.ENQUIRY_EDIT, object: 'Enquiry', action: 'Edit' },
+    { key: P.QUOTATION_EDIT, object: 'Quotation', action: 'Edit' },
+    { key: P.QUOTATION_RELEASE, object: 'Quotation', action: 'Release' },
+    { key: P.ORDER_EDIT, object: 'Sales order', action: 'Edit' },
+    { key: P.ORDER_RELEASE, object: 'Sales order', action: 'Release' },
+    { key: P.DELIVERY_EDIT, object: 'Delivery order', action: 'Edit' },
+    { key: P.DELIVERY_CONFIRM, object: 'Delivery order', action: 'Confirm' },
+    { key: P.INVOICE_EDIT, object: 'Invoice', action: 'Edit' },
+    { key: P.INVOICE_RELEASE, object: 'Invoice', action: 'Release' },
+    { key: P.PROFORMA_EDIT, object: 'Proforma', action: 'Edit' },
+    { key: P.CASH_SALE_EDIT, object: 'Cash sale', action: 'Edit' },
+    { key: P.DEBIT_NOTE_EDIT, object: 'Debit note', action: 'Edit' },
+    { key: P.RETURN_EDIT, object: 'Sales return', action: 'Edit' },
+    { key: P.RETURN_RECEIVE, object: 'Sales return', action: 'Receive goods' },
+    { key: P.CANCEL_ORDER_EDIT, object: 'Cancel order', action: 'Edit' },
+    { key: P.CANCEL_ORDER_RELEASE, object: 'Cancel order', action: 'Release' },
+    { key: P.SETTINGS_MANAGE, object: 'Operation policies', action: 'Manage' },
+  ],
+  starterGrants: SALES_ROLE_GRANTS,
 };
