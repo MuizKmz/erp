@@ -156,8 +156,8 @@ The mockups were made in step A0 in the current shell. The top bar of every modu
 | A01 | Configuration home | `CfgHome.html` | `/config` | GET /api/v1/config/dashboard |
 | A02 | Sign in | `CfgSignIn.html` | `/sign-in` | POST /api/v1/auth/sign-in · POST /api/v1/auth/refresh · POST /api/v1/auth/sign-out · POST /api/v1/auth/forgot · POST /api/v1/auth/reset |
 | A03 | Two-factor set-up and code | `CfgTwoFactor.html` | `/sign-in/two-factor` | POST /api/v1/auth/two-factor/setup · POST /api/v1/auth/two-factor/verify |
-| A04 | Company, with its branches | `CfgCompany.html` | `/config/company` | GET, PATCH /api/v1/config/companies/:id |
-| A05 | Branches: tree and branch form | `CfgBranches.html` | `/config/branches` | GET /api/v1/config/branches · POST · PATCH /api/v1/config/branches/:id |
+| A04 | Company, with its branches | `CfgCompany.html` | `/config/company` (`?company=CODE`, `?new=1`) | GET, POST /api/v1/config/companies · GET, PATCH /api/v1/config/companies/:id · POST …/deactivate, …/activate |
+| A05 | Branches: tree and branch form | `CfgBranches.html` | `/config/branches` (`?code=PNG`, `?new=1&company=ID`) | GET, POST /api/v1/config/branches · GET, PATCH /api/v1/config/branches/:id (the Active switch is part of the form) |
 | A06 | User list | `CfgUserList.html` | `/config/users` | GET /api/v1/config/users |
 | A07 | User | `CfgUserForm.html` | `/config/users/:id` | GET, POST, PATCH /api/v1/config/users/:id · POST …/deactivate, …/activate, …/send-reset, …/revoke-sessions, …/reset-two-factor, …/unlock |
 | A08 | Role list | `CfgRoleList.html` | `/config/roles` | GET /api/v1/config/roles |

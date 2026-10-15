@@ -10,8 +10,8 @@ const DELIVERY = { ...DOC, lines: { select: { qty: true, invoicedQty: true } } }
 
 /**
  * Tells Core which Sales documents use an item, customer, unit, tax code, price list or warehouse (CLAUDE.md →
- * Phase 3 · Record-usage check). Read only: reads sal_ tables and changes nothing. Documents are matched on business
- * codes, which never change.
+ * Phase 3 · Record-usage check), and Configuration which carry a branch (Phase 4, rule 6). Read only: reads sal_
+ * tables and changes nothing. Documents are matched on business codes, which never change.
  */
 @Injectable()
 export class SalesUsageProvider implements RecordUsageProvider, OnModuleInit {
@@ -115,13 +115,40 @@ export class SalesUsageProvider implements RecordUsageProvider, OnModuleInit {
       add('CASH_SALE', cash);
       add('RETURN', returns);
     }
+
+    if (q.kind === 'BRANCH') {
+      const branch = { tenantId, branchCode: q.code };
+      const [enquiries, quotations, orders, deliveries, invoices, proformas, cash, debitNotes, returns, cancels] = await Promise.all([
+        this.prisma.salEnquiry.findMany({ where: branch, select: DOC }),
+        this.prisma.salQuotation.findMany({ where: branch, select: REVISED }),
+        this.prisma.salSalesOrder.findMany({ where: branch, select: REVISED }),
+        this.prisma.salDelivery.findMany({ where: branch, select: DELIVERY }),
+        this.prisma.salInvoice.findMany({ where: branch, select: DOC }),
+        this.prisma.salProforma.findMany({ where: branch, select: DOC }),
+        this.prisma.salCashSale.findMany({ where: branch, select: DOC }),
+        this.prisma.salDebitNote.findMany({ where: branch, select: DOC }),
+        this.prisma.salReturn.findMany({ where: branch, select: DOC }),
+        this.prisma.salCancelOrder.findMany({ where: branch, select: DOC }),
+      ]);
+      add('ENQUIRY', enquiries);
+      add('QUOTATION', quotations);
+      add('SALES_ORDER', orders);
+      addDeliveries(deliveries);
+      add('INVOICE', invoices);
+      add('PROFORMA', proformas);
+      add('CASH_SALE', cash);
+      add('DEBIT_NOTE', debitNotes);
+      add('RETURN', returns);
+      add('CANCEL_ORDER', cancels);
+    }
     return rows;
   }
 
-  /** Settings that point to the record without being documents: an item on the excluded-items list (S32). */
+  /** Settings that point to the record without being documents: the excluded-items list (S32), by item or branch. */
   private async references(q: UsageQuery): Promise<UsageReference[]> {
-    if (q.kind !== 'ITEM') return [];
-    const count = await this.prisma.salExcludedItem.count({ where: { tenantId: q.tenantId, itemCode: q.code } });
+    if (q.kind !== 'ITEM' && q.kind !== 'BRANCH') return [];
+    const where = q.kind === 'ITEM' ? { tenantId: q.tenantId, itemCode: q.code } : { tenantId: q.tenantId, branchCode: q.code };
+    const count = await this.prisma.salExcludedItem.count({ where });
     return [{ module: 'sales', label: 'Excluded items', count }];
   }
 }

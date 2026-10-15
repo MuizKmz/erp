@@ -32,3 +32,129 @@ export interface ConfigDashboard {
   attention: ConfigAttention[]
   security: ConfigSecurityEvent[]
 }
+
+// ── Activity (as every record page shows it) ──
+
+export interface ActivityItem {
+  id: string
+  action: string
+  message: string
+  comment: string | null
+  userCode: string
+  userName: string
+  at: string
+}
+
+// ── A04 · Company ──
+
+export type CompanyAction = 'edit' | 'deactivate' | 'activate' | 'addBranch'
+
+export interface CompanySummary {
+  id: string
+  code: string
+  legalName: string
+  isActive: boolean
+  branches: number
+}
+
+export interface CompanyBranchRow {
+  id: string
+  code: string
+  name: string
+  /** Parent branch code, or null at the top */
+  parent: string | null
+  docPrefix: string | null
+  users: number
+  isActive: boolean
+}
+
+export interface CompanyInput {
+  legalName: string
+  registrationNo: string | null
+  tin: string | null
+  salesTaxNo: string | null
+  serviceTaxNo: string | null
+  myinvoisName: string | null
+  address: string | null
+  phone: string | null
+  email: string | null
+}
+
+export interface CompanyDetail extends CompanyInput {
+  id: string
+  code: string
+  baseCurrency: string
+  /** "MYR · Ringgit Malaysia" */
+  currencyText: string
+  timeZone: string
+  isActive: boolean
+  version: number
+  /** "CLB Groups Sdn Bhd · MYR · 2 branches" */
+  subtitle: string
+  demoFields: string[]
+  /** "The TIN, registration and tax numbers are demo values." */
+  demoNotice: string | null
+  branches: CompanyBranchRow[]
+  activity: ActivityItem[]
+  allowedActions: CompanyAction[]
+}
+
+// ── A05 · Branches ──
+
+export interface BranchTreeRow {
+  id: string
+  code: string
+  name: string
+  legalEntityId: string
+  parentId: string | null
+  docPrefix: string | null
+  users: number
+  isActive: boolean
+  depth: number
+}
+
+export interface BranchTree {
+  companies: { id: string; code: string; legalName: string; isActive: boolean; branches: BranchTreeRow[] }[]
+  canEdit: boolean
+}
+
+export interface BranchInput {
+  name: string
+  legalEntityId: string
+  parentId: string | null
+  docPrefix: string | null
+  address: string | null
+  phone: string | null
+  email: string | null
+  myinvoisBranchName: string | null
+}
+
+export interface OpenDocument {
+  module: string
+  docType: string
+  docTypeLabel: string
+  docNo: string
+  status: string
+  statusLabel: string
+}
+
+export interface BranchDetail extends BranchInput {
+  id: string
+  code: string
+  company: { code: string; legalName: string; isActive: boolean }
+  isActive: boolean
+  version: number
+  demoNotice: string | null
+  inUse: {
+    /** "12 users work here, 2 warehouses belong to it …" */
+    text: string
+    users: number
+    onlyBranchFor: string[]
+    warehouses: string[]
+    documents: number
+    open: OpenDocument[]
+    references: { module: string; label: string; count: number }[]
+  }
+  refusals: { deactivate: string | null; activate: string | null }
+  canEdit: boolean
+}

@@ -30,6 +30,8 @@ The values marked *demo* are invented. The Configuration home flags them under *
 
 - HQ address and phone as the company; email hq@clbgroups.my.
 - PNG: No. 8, Lorong Perusahaan Maju 5, 13600 Prai, Pulau Pinang · +60 4-507 1180 · penang@clbgroups.my (*demo*).
+- *In use* (A05): HQ is on 152 Purchase and Sales documents (40 open), PNG on 44 (12 open). Neither can be made inactive: Aina Rahman, Hafiz, Nurul, Siti and Siti Counter 1 work only in HQ; Lim Wei Jie and Tan Wei Ling only in PNG.
+- A second company can be added with *Add company* on A04 (choice 2). A branch moves to another company only while no document carries it.
 
 ## Users (A06, A07): 14, all active
 

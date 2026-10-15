@@ -1,15 +1,19 @@
 /**
  * Where a master-data record is used (CLAUDE.md → Phase 3 · Record-usage check). Core asks; each module that keeps
  * documents answers from its own tables through a registered provider. The platform only collects the answers: what
- * "open" means is decided by each module, what may be deleted or blocked by Core.
+ * "open" means is decided by each module, what may be deleted or blocked by Core. Configuration asks the same about
+ * a branch (Phase 4, rule 6).
  */
 
 export const USAGE_KINDS = ['ITEM', 'CUSTOMER', 'SUPPLIER', 'UOM', 'TAX_CODE', 'PRICE_LIST', 'WAREHOUSE'] as const;
+/** Master data Core asks about. */
 export type UsageKind = (typeof USAGE_KINDS)[number];
+/** Any record a provider can be asked about: master data, or a branch for Configuration. */
+export type RecordKind = UsageKind | 'BRANCH';
 
 export interface UsageQuery {
   tenantId: string;
-  kind: UsageKind;
+  kind: RecordKind;
   /** Business code (CH-DIN-01, C-0012, SST10 …). Codes never change, so documents are matched on them. */
   code: string;
 }
@@ -51,7 +55,7 @@ export interface RecordUsageProvider {
 
 /** Every module's answer together. */
 export interface RecordUsage {
-  kind: UsageKind;
+  kind: RecordKind;
   code: string;
   documents: number;
   open: OpenDocument[];

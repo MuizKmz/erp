@@ -51,3 +51,17 @@ describe('purchaseUsage', () => {
     ]);
   });
 });
+
+describe('purchaseUsage for a branch', () => {
+  it('passes on the settings that name the branch, leaving out the ones that are empty', () => {
+    const usage = purchaseUsage(
+      [{ docType: 'PURCHASE_ORDER', docNo: 'PO-0002', status: 'RELEASED' }],
+      [
+        { module: 'purchase', label: 'Purchase approval rules', count: 1 },
+        { module: 'purchase', label: 'Cash purchase payment methods', count: 0 },
+      ],
+    );
+    expect(usage.documents).toBe(1);
+    expect(usage.references).toEqual([{ module: 'purchase', label: 'Purchase approval rules', count: 1 }]);
+  });
+});

@@ -3,6 +3,10 @@ import { PermissionCatalogue } from '../platform/context/permission-catalogue';
 import { CONFIG_PERMISSION_CATALOGUE } from './configuration.permissions';
 import { ConfigDashboardController } from './dashboard/dashboard.controller';
 import { ConfigDashboardQuery } from './dashboard/dashboard.query';
+import { ConfigBranchesController, ConfigCompaniesController } from './organisation/organisation.controller';
+import { OrganisationQuery } from './organisation/organisation.query';
+import { OrganisationService } from './organisation/organisation.service';
+import { ConfigRecordsService } from './shared/config-records.service';
 
 /**
  * The Configuration module (CLAUDE.md → Phase 4): company, branches, users, roles and sign-in. The only writer of
@@ -10,8 +14,8 @@ import { ConfigDashboardQuery } from './dashboard/dashboard.query';
  * and branches through MasterDataPort and permissions through @RequirePermission. Never imports purchase/, sales/ or core/.
  */
 @Module({
-  controllers: [ConfigDashboardController],
-  providers: [ConfigDashboardQuery],
+  controllers: [ConfigDashboardController, ConfigCompaniesController, ConfigBranchesController],
+  providers: [ConfigDashboardQuery, ConfigRecordsService, OrganisationQuery, OrganisationService],
 })
 export class ConfigurationModule implements OnModuleInit {
   constructor(private readonly permissions: PermissionCatalogue) {}

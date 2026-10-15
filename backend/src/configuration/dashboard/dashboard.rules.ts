@@ -1,4 +1,8 @@
-/** A1 · Configuration home: the cards and the *Needs attention* lines (CfgHome.html). Pure functions. */
+/** A01 · Configuration home: the cards and the *Needs attention* lines (CfgHome.html). Pure functions. */
+import { countOf, joinAnd } from '../shared/text.rules';
+
+export { joinAnd } from '../shared/text.rules';
+export { demoFieldsOf } from '../organisation/organisation.rules';
 
 export interface AttentionLine {
   key: string;
@@ -8,15 +12,6 @@ export interface AttentionLine {
   to: string;
 }
 
-/** "Purchase, Sales, Core and Configuration". */
-export function joinAnd(items: readonly string[]): string {
-  return items.length <= 2 ? items.join(' and ') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
-}
-
-/** "1 user", "2 users". */
-export function countOf(n: number, one: string, many = `${one}s`): string {
-  return `${n} ${n === 1 ? one : many}`;
-}
 
 /** Names on a card, at most three: "HQ Shah Alam · Penang Branch", "A · B · C and 2 more". */
 export function namesText(names: readonly string[]): string {
@@ -62,9 +57,4 @@ export function demoAttention(demoFields: readonly string[]): AttentionLine | nu
   const labels = Object.keys(COMPANY_FIELD).filter((f) => demoFields.includes(f)).map((f) => COMPANY_FIELD[f]!);
   if (!labels.length) return null;
   return { key: 'company-demo', lead: 'Company', text: `has demo values for its ${joinAnd(labels)}. Replace them before the first real e-Invoice.`, to: '/config/company' };
-}
-
-/** The demo fields of a company or branch row (a JSON array of field names). */
-export function demoFieldsOf(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
 }

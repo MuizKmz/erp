@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { RecordUsageRegistry } from '../../platform/usage/record-usage.registry';
-import type { ModuleUsage, RecordUsageProvider, UsageQuery } from '../../platform/usage/record-usage.types';
+import type { ModuleUsage, RecordUsageProvider, UsageQuery, UsageReference } from '../../platform/usage/record-usage.types';
 import { purchaseUsage, type PurchaseDocRow, type PurchaseDocType } from './purchase-usage.rules';
 
 const DOC = { docNo: true, status: true } as const;
@@ -9,8 +9,8 @@ const RECEIPT = { ...DOC, lines: { select: { receivedQty: true, billedQty: true,
 
 /**
  * Tells Core which Purchase documents use an item, supplier, unit, tax code or warehouse (CLAUDE.md → Phase 3 ·
- * Record-usage check). Read only: reads pur_ tables and changes nothing. Documents are matched on business codes,
- * which never change.
+ * Record-usage check), and Configuration which carry a branch (Phase 4, rule 6). Read only: reads pur_ tables and
+ * changes nothing. Documents are matched on business codes, which never change.
  */
 @Injectable()
 export class PurchaseUsageProvider implements RecordUsageProvider, OnModuleInit {
@@ -26,7 +26,8 @@ export class PurchaseUsageProvider implements RecordUsageProvider, OnModuleInit 
   }
 
   async usage(q: UsageQuery): Promise<ModuleUsage> {
-    return purchaseUsage(await this.documents(q));
+    const [rows, references] = await Promise.all([this.documents(q), this.references(q)]);
+    return purchaseUsage(rows, references);
   }
 
   private async documents(q: UsageQuery): Promise<PurchaseDocRow[]> {
@@ -95,6 +96,41 @@ export class PurchaseUsageProvider implements RecordUsageProvider, OnModuleInit 
       addReceipts(receipts);
       add('CASH_PURCHASE', cash);
     }
+
+    if (q.kind === 'BRANCH') {
+      const branch = { tenantId, branchCode: q.code };
+      const [requests, rfqs, orders, receipts, invoices, cash, cancels, debitNotes, returns] = await Promise.all([
+        this.prisma.purRequest.findMany({ where: branch, select: DOC }),
+        this.prisma.purRfq.findMany({ where: branch, select: DOC }),
+        this.prisma.purPurchaseOrder.findMany({ where: branch, select: DOC }),
+        this.prisma.purGoodsReceipt.findMany({ where: branch, select: RECEIPT }),
+        this.prisma.purInvoice.findMany({ where: branch, select: DOC }),
+        this.prisma.purCashPurchase.findMany({ where: branch, select: DOC }),
+        this.prisma.purCancelOrder.findMany({ where: branch, select: DOC }),
+        this.prisma.purDebitNote.findMany({ where: branch, select: DOC }),
+        this.prisma.purReturn.findMany({ where: branch, select: DOC }),
+      ]);
+      add('REQUEST', requests);
+      add('RFQ', rfqs);
+      add('PURCHASE_ORDER', orders);
+      addReceipts(receipts);
+      add('INVOICE', invoices);
+      add('CASH_PURCHASE', cash);
+      add('CANCEL_ORDER', cancels);
+      add('DEBIT_NOTE', debitNotes);
+      add('RETURN', returns);
+    }
     return rows;
+  }
+
+  /** Settings that name a branch without being documents: its approval rules and payment methods (P26, P18). */
+  private async references(q: UsageQuery): Promise<UsageReference[]> {
+    if (q.kind !== 'BRANCH') return [];
+    const branch = { tenantId: q.tenantId, branchCode: q.code };
+    const [rules, methods] = await Promise.all([this.prisma.purApprovalRule.count({ where: branch }), this.prisma.purPaymentMethod.count({ where: branch })]);
+    return [
+      { module: 'purchase', label: 'Purchase approval rules', count: rules },
+      { module: 'purchase', label: 'Cash purchase payment methods', count: methods },
+    ];
   }
 }

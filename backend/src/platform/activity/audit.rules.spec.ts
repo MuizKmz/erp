@@ -3,7 +3,7 @@ import { changeMessage, dayText, diffRecord, display, inSentence } from './audit
 
 const LABELS = { name: 'Name', creditLimit: 'Credit limit', overdueLimit: 'Overdue limit', isSellable: 'Sellable', validFrom: 'Valid from' };
 
-describe('Core audit rules', () => {
+describe('Audit rules', () => {
   it('keeps the capitals of TIN and ID number inside a sentence', () => {
     expect([inSentence('Credit limit'), inSentence('TIN'), inSentence('ID number'), inSentence('e-Invoice email')]).toEqual(['credit limit', 'TIN', 'ID number', 'e-Invoice email']);
     expect(changeMessage([{ field: 'tin', label: 'TIN', from: null, to: 'C24680135790' }])).toBe('Changed TIN (blank) → C24680135790');

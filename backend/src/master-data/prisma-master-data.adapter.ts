@@ -26,7 +26,8 @@ const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
 /** Users and branches are kept by Configuration (sys_ tables since Phase 4); the port gives the same answers as before. */
 const USER_INCLUDE = {
   roles: { orderBy: { sortOrder: 'asc' }, select: { validFrom: true, validUntil: true, role: { select: { code: true } } } },
-  branches: { select: { isDefault: true, branch: { select: { code: true } } } },
+  // An inactive branch is not one the user can work in, so it never becomes their default (Phase 4, rule 6).
+  branches: { where: { branch: { isActive: true } }, select: { isDefault: true, branch: { select: { code: true } } } },
 } satisfies Prisma.SysUserInclude;
 
 type UserRow = Prisma.SysUserGetPayload<{ include: typeof USER_INCLUDE }>;

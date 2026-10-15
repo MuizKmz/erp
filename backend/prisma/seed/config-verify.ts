@@ -5,6 +5,7 @@
  * the Configuration home (A01) shows, computed by the screen's own query.
  */
 import { ConfigDashboardQuery } from '../../src/configuration/dashboard/dashboard.query';
+import { OrganisationQuery } from '../../src/configuration/organisation/organisation.query';
 import { CORE_ROLE_GRANTS } from '../../src/core/core.permissions';
 import { PrismaMasterDataAdapter } from '../../src/master-data/prisma-master-data.adapter';
 import type { ClockService } from '../../src/platform/clock/clock.service';
@@ -13,6 +14,9 @@ import { permissionsOf, toRoleGrants } from '../../src/platform/context/permissi
 import type { RequestContext } from '../../src/platform/context/request-context';
 import type { PrismaService } from '../../src/platform/prisma/prisma.service';
 import { PURCHASE_ROLE_GRANTS } from '../../src/purchase/purchase.permissions';
+import { PurchaseUsageProvider } from '../../src/purchase/usage/purchase-usage.provider';
+import { RecordUsageRegistry } from '../../src/platform/usage/record-usage.registry';
+import { SalesUsageProvider } from '../../src/sales/usage/sales-usage.provider';
 import { SALES_ROLE_GRANTS } from '../../src/sales/sales.permissions';
 import { CATALOGUE, SEEDED_USERS } from './configuration';
 import { day, kl, type SeedCtx } from './util';
@@ -76,5 +80,20 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
     '2 users (Admin, Rosnah Ismail) · Auditor · Company',
     home.attention.map((a) => (a.key === 'two-factor' ? `${a.lead} (${a.text.slice(a.text.indexOf(': ') + 2, a.text.indexOf('. '))})` : a.lead)).join(' · '),
   );
+
+  // A04 and A05 from the screens' own query; documents counted by the Purchase and Sales usage providers.
+  const usage = new RecordUsageRegistry();
+  new PurchaseUsageProvider(prisma as PrismaService, usage).onModuleInit();
+  new SalesUsageProvider(prisma as PrismaService, usage).onModuleInit();
+  const admin = { tenantId, user: { roles: ['ADMIN'] } } as unknown as RequestContext;
+  const organisation = new OrganisationQuery(prisma as PrismaService, { listFor: async () => [] } as never, { has: () => true } as never, usage, adapter);
+  const company = await organisation.company(admin, (await prisma.sysLegalEntity.findFirstOrThrow({ where: { tenantId, code: 'CLB' } })).id);
+  expect('Company (A04)', 'CLB Groups Sdn Bhd · MYR · 2 branches · The TIN, registration and tax numbers are demo values.', `${company.subtitle} · ${company.demoNotice}`);
+  const inUse: string[] = [];
+  for (const b of await prisma.sysBranch.findMany({ where: { tenantId }, orderBy: { code: 'asc' } })) {
+    const detail = await organisation.branch(admin, b.id);
+    inUse.push(`${b.code} ${detail.inUse.users} users · ${detail.inUse.warehouses.join('+')} · ${detail.inUse.documents} documents (${detail.inUse.open.length} open)`);
+  }
+  expect('Branches in use (A05)', 'HQ 12 users · HQ-DMG+HQ-MAIN · 152 documents (40 open), PNG 9 users · PNG-MAIN · 44 documents (12 open)', inUse.join(', '));
   return checks;
 }

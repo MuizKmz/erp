@@ -6,7 +6,7 @@
  */
 import { dec, type DecimalInput } from '../../platform/http/decimal';
 import { statusWords, summarizeDocuments, type FoundDocument } from '../../platform/usage/record-usage.rules';
-import type { ModuleUsage } from '../../platform/usage/record-usage.types';
+import type { ModuleUsage, UsageReference } from '../../platform/usage/record-usage.types';
 
 export type PurchaseDocType =
   | 'PURCHASE_ORDER'
@@ -75,11 +75,11 @@ function statusLabel(row: PurchaseDocRow, isOpen: boolean): string {
 }
 
 /** Purchase's answer from the documents it found. */
-export function purchaseUsage(rows: PurchaseDocRow[]): ModuleUsage {
+export function purchaseUsage(rows: PurchaseDocRow[], references: UsageReference[] = []): ModuleUsage {
   const label = new Map(PURCHASE_DOC_TYPES.map((t) => [t.type, t.label]));
   const found: FoundDocument[] = rows.map((row) => {
     const isOpen = isOpenPurchaseDoc(row);
     return { docType: row.docType, docTypeLabel: label.get(row.docType) ?? row.docType, docNo: row.docNo, status: row.status, statusLabel: statusLabel(row, isOpen), isOpen };
   });
-  return summarizeDocuments('purchase', found, PURCHASE_DOC_TYPES.map((t) => t.type));
+  return summarizeDocuments('purchase', found, PURCHASE_DOC_TYPES.map((t) => t.type), references);
 }
