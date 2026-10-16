@@ -44,6 +44,22 @@ watch(
 )
 const openGroup = computed(() => module.value.menu.find((g) => g.key === openGroupKey.value) ?? null)
 
+/**
+ * The sidebar item that is "here". An item that links to a filtered list (Draft Quotation → the quotation list on its
+ * Draft tab) wins while the page shows exactly that filter; otherwise the route's own menu item.
+ */
+const activeItemKey = computed(() => {
+  for (const g of module.value.menu) {
+    for (const item of g.items) {
+      const [path, qs] = item.to.split('?')
+      if (!qs || path !== route.path) continue
+      const wanted = new URLSearchParams(qs)
+      if ([...wanted.entries()].every(([k, v]) => route.query[k] === v)) return item.key
+    }
+  }
+  return route.meta.menuItem
+})
+
 function onGroupClick(g: MenuGroup) {
   if (openGroupKey.value === g.key) {
     openGroupKey.value = null
@@ -186,15 +202,15 @@ const railActive = 'bg-erp-on-dark/20 text-erp-on-dark ring-1 ring-erp-on-dark/1
                 :to="item.to"
                 class="group flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] transition-colors duration-150"
                 :class="
-                  route.meta.menuItem === item.key
+                  activeItemKey === item.key
                     ? 'bg-mod-light font-semibold text-mod-primary'
                     : 'text-erp-subtle hover:bg-erp-head hover:text-erp-text'
                 "
-                :aria-current="route.meta.menuItem === item.key ? 'page' : undefined"
+                :aria-current="activeItemKey === item.key ? 'page' : undefined"
               >
                 <span
                   class="h-1.5 w-1.5 shrink-0 rounded-full"
-                  :class="route.meta.menuItem === item.key ? 'bg-mod-primary' : 'bg-erp-input group-hover:bg-erp-muted'"
+                  :class="activeItemKey === item.key ? 'bg-mod-primary' : 'bg-erp-input group-hover:bg-erp-muted'"
                   aria-hidden="true"
                 />
                 {{ item.label }}
