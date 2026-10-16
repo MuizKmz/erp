@@ -127,7 +127,7 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
       priceListCode: c.priceList, taxMode: 'EXCLUSIVE', isCash: false, status: 'ACTIVE' as const,
       // e-Invoice identity (CORE_SEED_DATA.md choice 3): ID type BRN, no ID number known yet.
       idType: 'BRN' as const, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null,
-      cameFromEnquiry: null, ...AS_SEEDED,
+      cameFromEnquiry: null, visibleToAllBranches: false, ...AS_SEEDED,
     };
     const row = await prisma.mdmCustomer.upsert({ where: { tenantId_code: { tenantId, code: c.code } }, update: data, create: { tenantId, code: c.code, ...data } });
     ctx.customers.set(row.code, row);
@@ -136,7 +136,7 @@ export async function seedSalesMasterData(ctx: SeedCtx): Promise<void> {
     name: 'Cash customer (walk-in)', tin: null, billingAddress: null, deliveryAddress: null, contactName: null, email: null, phone: null,
     category: 'Walk-in', area: null, branchCode: 'HQ', defaultAgentCode: null, creditTermDays: 0, creditLimit: null, overdueLimit: null,
     creditScope: null, priceListCode: 'STD-2026', taxMode: 'INCLUSIVE', isCash: true, status: 'ACTIVE' as const,
-    idType: null, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null, cameFromEnquiry: null, ...AS_SEEDED,
+    idType: null, idNumber: null, salesTaxNo: null, serviceTaxNo: null, einvoiceEmail: null, cameFromEnquiry: null, visibleToAllBranches: false, ...AS_SEEDED,
   };
   const cashRow = await prisma.mdmCustomer.upsert({ where: { tenantId_code: { tenantId, code: 'C-CASH' } }, update: cash, create: { tenantId, code: 'C-CASH', ...cash } });
   ctx.customers.set(cashRow.code, cashRow);
