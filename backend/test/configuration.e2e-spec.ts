@@ -548,4 +548,72 @@ describe('Configuration (end to end)', () => {
       expect(catalogue.modules.map((m) => m.label)).toEqual(['Purchase', 'Sales', 'Core', 'Configuration']);
     });
   });
+
+  describe('A7 · Security log and audit trail', () => {
+    interface Page<T> {
+      items: T[];
+      total: number;
+      filters: Record<string, unknown>;
+    }
+    interface SecurityRow {
+      kind: string;
+      label: string;
+      group: string;
+      who: string;
+      by: string | null;
+      detail: string;
+    }
+    interface AuditRow {
+      id: string;
+      module: string;
+      moduleLabel: string;
+      record: string;
+      message: string;
+      who: string;
+      hasChanges: boolean;
+    }
+
+    it('lists security events newest first, with their filters, and only for those allowed to see them (A12)', async () => {
+      const all = await api.get<Page<SecurityRow>>('config/security-events?period=all&pageSize=100');
+      expect(all.total).toBeGreaterThan(0);
+      const added = all.items.find((e) => e.kind === 'USER_CREATED' && e.who === 'Nadia Zain')!;
+      expect(added).toMatchObject({ label: 'User added', group: 'draft', by: 'Admin', detail: 'Nadia Zain added with Auditor' });
+      const roles = await api.get<Page<SecurityRow>>('config/security-events?period=all&kind=ROLES_CHANGED&user=NZ');
+      expect(roles.items.map((e) => e.detail)).toContain('Roles of Nadia Zain changed: added Billing');
+      expect((await api.get<Page<SecurityRow>>('config/security-events?period=all&q=nobody-like-this')).total).toBe(0);
+      expect((await api.call('GET', 'config/security-events', 'LMY')).status).toBe(403);
+      expect((await api.call('GET', 'config/security-events?period=forever', 'ADM')).status).toBe(400);
+
+      const csv = await fetch(`${(await api.app.getUrl()).replace('[::1]', '127.0.0.1')}/api/v1/config/security-events/export?period=all&kind=USER_CREATED`, { headers: { 'x-dev-user': 'ADM' } });
+      expect(csv.headers.get('content-type')).toMatch(/^text\/csv/);
+      const bytes = Buffer.from(await csv.arrayBuffer());
+      expect(bytes.subarray(0, 3)).toEqual(Buffer.from([0xef, 0xbb, 0xbf])); // a BOM, so Excel reads the names right
+      const text = bytes.subarray(3).toString('utf8');
+      expect(text.startsWith('"When","Event","Who","By","Detail","Branch"')).toBe(true);
+      expect(text).toContain('"Nadia Zain added with Auditor"');
+    });
+
+    it('lists every change in every module, and opens one with its before-and-after values (A13)', async () => {
+      const config = await api.get<Page<AuditRow>>('config/audit?period=all&module=config&q=NZ&pageSize=100');
+      expect(config.items.every((a) => a.moduleLabel === 'Configuration')).toBe(true);
+      const created = config.items.find((a) => a.message === 'User NZ created')!;
+      expect(created).toMatchObject({ record: 'NZ', who: 'Admin', hasChanges: true });
+
+      const detail = await api.get<{ changes: { label: string; from: string | null; to: string | null }[]; request: string | null }>(`config/audit/${created.id}`);
+      expect(detail.changes).toEqual(expect.arrayContaining([{ field: 'name', label: 'Name', from: null, to: 'Nadia Zain' }]));
+      expect(detail.request).toMatch(/^[0-9a-f]{4}…[0-9a-f]{3}$/);
+
+      const purchase = await api.get<Page<AuditRow>>('config/audit?period=all&module=purchase&pageSize=5');
+      expect(purchase.total).toBeGreaterThan(0);
+      expect(purchase.items.every((a) => a.module === 'purchase')).toBe(true);
+      expect((await api.call('GET', 'config/audit', 'LMY')).status).toBe(403);
+      expect((await api.call('GET', `config/audit/${created.id}`, 'LMY')).status).toBe(403);
+    });
+
+    it('has no route that changes or deletes the security log or the audit trail (rule 9)', async () => {
+      for (const route of ['config/security-events', 'config/audit']) {
+        for (const method of ['POST', 'PATCH', 'PUT', 'DELETE']) expect((await api.call(method, route, 'ADM', {})).status).toBe(404);
+      }
+    });
+  });
 });

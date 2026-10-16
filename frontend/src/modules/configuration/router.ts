@@ -10,6 +10,8 @@ const RoleForm = () => import('./views/RoleFormView.vue')
 const Permissions = () => import('./views/PermissionsView.vue')
 const SignInSettings = () => import('./views/SignInSettingsView.vue')
 const MyAccount = () => import('./views/MyAccountView.vue')
+const SecurityLog = () => import('./views/SecurityLogView.vue')
+const AuditTrail = () => import('./views/AuditTrailView.vue')
 
 type Group = 'organisation' | 'access' | 'security' | 'account'
 
@@ -43,8 +45,8 @@ const SCREENS: ScreenDef[] = [
   { code: 'A09', path: '/config/roles/:id', name: 'config-role', title: 'Role', group: 'access', item: 'roles', step: 4, mockup: 'CfgRoleForm.html', parent: doc('Roles', '/config/roles'), component: RoleForm },
   { code: 'A10', path: '/config/permissions', name: 'config-permissions', title: 'Who can do what', group: 'access', item: 'permissions', step: 4, mockup: 'CfgPermissions.html', component: Permissions },
   { code: 'A14', path: '/config/sign-in-settings', name: 'config-sign-in-settings', title: 'Sign-in settings', group: 'security', item: 'sign-in-settings', step: 6, mockup: 'CfgSignInSettings.html', component: SignInSettings },
-  { code: 'A12', path: '/config/security-log', name: 'config-security-log', title: 'Security log', group: 'security', item: 'security-log', step: 7, mockup: 'CfgSecurityLog.html' },
-  { code: 'A13', path: '/config/audit', name: 'config-audit', title: 'Audit trail', group: 'security', item: 'audit', step: 7, mockup: 'CfgAudit.html' },
+  { code: 'A12', path: '/config/security-log', name: 'config-security-log', title: 'Security log', group: 'security', item: 'security-log', step: 7, mockup: 'CfgSecurityLog.html', component: SecurityLog },
+  { code: 'A13', path: '/config/audit', name: 'config-audit', title: 'Audit trail', group: 'security', item: 'audit', step: 7, mockup: 'CfgAudit.html', component: AuditTrail },
   { code: 'A11', path: '/account', name: 'account', title: 'My account', group: 'account', item: 'account', step: 6, mockup: 'CfgMyAccount.html', component: MyAccount },
 ]
 

@@ -1,6 +1,9 @@
 import { api } from '@/api/http'
 import type { ListQuery, ListResponse } from '@/api/list'
 import type {
+  AuditDetail,
+  AuditPage,
+  SecurityEventPage,
   BranchDetail,
   BranchInput,
   BranchTree,
@@ -72,3 +75,11 @@ export const configPermissionsApi = {
   person: (userId: string) => api<PersonPermissions>(`/config/permissions/user/${userId}`),
   compare: (a: string, b: string) => api<RoleComparison>('/config/permissions/compare', { query: { a, b } }),
 }
+
+/** A12 security log and A13 audit trail: read only. Export downloads every matching row as CSV. */
+export const configLogsApi = {
+  securityEvents: (query: ListQuery) => api<SecurityEventPage>('/config/security-events', { query }),
+  audit: (query: ListQuery) => api<AuditPage>('/config/audit', { query }),
+  change: (id: string) => api<AuditDetail>(`/config/audit/${id}`),
+}
+

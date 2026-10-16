@@ -190,3 +190,26 @@ export async function openFile(path: string): Promise<void> {
   else window.location.href = url
   setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
+
+/**
+ * Saves a file the server builds (a CSV export) under the name the server gives, fetched with the access token (or
+ * the dev user), since a plain link cannot send it.
+ */
+export async function downloadFile(path: string, query?: Query, fallbackName = 'export.csv'): Promise<void> {
+  const url = buildUrl(path, query)
+  let response = await fetch(url, { headers: authHeaders(), credentials: 'include' })
+  if (response.status === 401 && accessToken && (await refreshAccess())) response = await fetch(url, { headers: authHeaders(), credentials: 'include' })
+  if (!response.ok) {
+    const error = new ApiError(response.status, await readError(response))
+    errorListener?.(error)
+    throw error
+  }
+  const name = /filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') ?? '')?.[1] ?? fallbackName
+  const href = URL.createObjectURL(await response.blob())
+  const a = document.createElement('a')
+  a.href = href
+  a.download = name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(href), 10_000)
+}
+

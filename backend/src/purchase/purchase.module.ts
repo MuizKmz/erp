@@ -1,6 +1,8 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { SALES_DEMAND_PORT } from '../integration/integration.ports';
 import { PermissionCatalogue } from '../platform/context/permission-catalogue';
+import { ScopeRegistry } from '../platform/scope/scope.registry';
+import { PURCHASE_SCOPE_RULES } from './purchase.scope';
 import { PurchaseApprovalsController } from './approvals/approvals.controller';
 import { ApprovalsInboxService } from './approvals/approvals-inbox.service';
 import { CashPurchasesController } from './cash-purchases/cash-purchases.controller';
@@ -92,9 +94,13 @@ import { PurchaseUsageProvider } from './usage/purchase-usage.provider';
   ],
 })
 export class PurchaseModule implements OnModuleInit {
-  constructor(private readonly permissions: PermissionCatalogue) {}
+  constructor(
+    private readonly permissions: PermissionCatalogue,
+    private readonly scopes: ScopeRegistry,
+  ) {}
 
   onModuleInit(): void {
     this.permissions.register(PURCHASE_PERMISSION_CATALOGUE);
+    this.scopes.register(PURCHASE_SCOPE_RULES);
   }
 }

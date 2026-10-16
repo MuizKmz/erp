@@ -45,6 +45,7 @@ export const CUSTOMER_LABELS: Record<string, string> = {
   overdueLimit: 'Overdue limit',
   creditScope: 'Credit checked',
   priceListCode: 'Price list',
+  visibleToAllBranches: 'Visible to all branches',
 };
 
 /** The credit fields: only `core.customer.credit` changes them (decision 2, rule 9). */
@@ -131,6 +132,7 @@ export interface CustomerRecord {
   overdueLimit: DecimalInput | null;
   creditScope: string | null;
   priceListCode: string;
+  visibleToAllBranches: boolean;
   isCash: boolean;
   status: string;
 }

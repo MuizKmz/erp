@@ -1,3 +1,4 @@
+import { asSystem } from '../../platform/scope/data-scope';
 import { Inject, Injectable } from '@nestjs/common';
 import { MASTER_DATA_PORT, type MasterDataPort } from '../../master-data/master-data.port';
 import { ActivityService } from '../../platform/activity/activity.service';
@@ -97,7 +98,12 @@ export class SalesApprovalsInboxService {
   }
 
   /** Exposure, overdue, last payment and payment history of the customer (Approvals.html right panel). */
-  private async creditPanel(ctx: RequestContext, request: ApprovalRequestView) {
+  /** The customer's credit position over every branch (a company fact, not limited by the approver's data scope). */
+  private creditPanel(ctx: RequestContext, request: ApprovalRequestView) {
+    return asSystem(() => this.creditPanelFacts(ctx, request));
+  }
+
+  private async creditPanelFacts(ctx: RequestContext, request: ApprovalRequestView) {
     const subject = await this.creditSubject(ctx, request);
     const order = { id: subject.orderId, customerCode: subject.customerCode, customerName: subject.customerName };
     const thisDocument = subject.thisDocument;

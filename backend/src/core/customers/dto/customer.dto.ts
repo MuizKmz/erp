@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsEmail, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEmail, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min } from 'class-validator';
 import { ListQueryDto } from '../../../platform/http/list-query.dto';
 import { CREDIT_SCOPES, ENQUIRY_NO, ID_TYPES, TAX_MODES, type IdType } from '../customers.rules';
 
@@ -147,6 +147,11 @@ class CustomerFieldsDto {
   @IsNotEmpty({ message: 'Pick the price list.' })
   @MaxLength(20)
   priceListCode!: string;
+
+  /** Seen from every branch, not only its own (A7, FR-SEC-033). */
+  @IsOptional()
+  @IsBoolean()
+  visibleToAllBranches?: boolean;
 }
 
 export class CreateCustomerDto extends CustomerFieldsDto {

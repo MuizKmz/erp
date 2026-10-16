@@ -133,6 +133,7 @@ export class CustomersQuery {
       overdueLimit: money(c.overdueLimit),
       creditScope: c.creditScope,
       priceListCode: c.priceListCode,
+      visibleToAllBranches: c.visibleToAllBranches,
       isCash: c.isCash,
       cameFromEnquiry: c.cameFromEnquiry,
       status: c.status,

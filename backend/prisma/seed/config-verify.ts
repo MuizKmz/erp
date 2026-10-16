@@ -23,6 +23,8 @@ import { SALES_ROLE_GRANTS } from '../../src/sales/sales.permissions';
 import * as argon2 from 'argon2';
 import { CATALOGUE, DEMO_PASSWORD, SEEDED_USERS } from './configuration';
 import { day, kl, type SeedCtx } from './util';
+import { CORE_SCOPE_RULES } from '../../src/core/core.scope';
+import { scopeWhere } from '../../src/platform/scope/scope.rules';
 import type { Check } from './verify';
 
 const TODAY = '2026-09-29';
@@ -128,5 +130,17 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
     'Both roles give 8 permissions. · sales.margin.view, sales.return.edit, sales.cancel_order.release',
     `${compared.text.split('. ')[0]}. · ${compared.rows.filter((r) => r.a !== r.b).map((r) => r.key).join(', ')}`,
   );
+
+  // A7: which customers each limited user sees, with the rule Core registers and the facts the API works out.
+  const seen: string[] = [];
+  for (const code of ['AR', 'FO', 'LWJ', 'HAF']) {
+    const user = (await adapter.findUserByCode(tenantId, code))!;
+    const roles = await prisma.sysRole.findMany({ where: { tenantId, code: { in: user.roles } }, select: { agentScopeCustomers: true, agentScopeDocuments: true } });
+    const facts = { branches: user.branchCodes, userCode: code, agentCustomers: roles.some((r) => r.agentScopeCustomers), agentDocuments: roles.some((r) => r.agentScopeDocuments), agentCustomerCodes: [] };
+    const where = scopeWhere(CORE_SCOPE_RULES[0]!, facts) ?? {};
+    const customers = await prisma.mdmCustomer.findMany({ where: { AND: [{ tenantId }, where] }, select: { code: true }, orderBy: { code: 'asc' } });
+    seen.push(`${code} ${customers.map((c) => c.code).join(', ')}`);
+  }
+  expect('Customers each limited user sees (A7 data scopes)', 'AR C-0012, C-0102 · FO C-0045, C-0056, C-0078 · LWJ C-0031 · HAF C-0012, C-0045, C-0078, C-0102, C-CASH', seen.join(' · '));
   return checks;
 }

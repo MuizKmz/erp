@@ -1,5 +1,7 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
 import { PermissionCatalogue } from '../platform/context/permission-catalogue';
+import { ScopeRegistry } from '../platform/scope/scope.registry';
+import { CORE_SCOPE_RULES } from './core.scope';
 import { CORE_PERMISSION_CATALOGUE } from './core.permissions';
 import { CoreCustomersController } from './customers/customers.controller';
 import { CustomersQuery } from './customers/customers.query';
@@ -47,9 +49,13 @@ import { WarehousesService } from './warehouses/warehouses.service';
   providers: [CoreDashboardQuery, CoreRecordsService, CoreUsageQuery, ItemsQuery, ItemsService, UomsQuery, UomsService, CustomersQuery, CustomersService, SuppliersQuery, SuppliersService, PriceListsQuery, PriceListsService, TaxCodesQuery, TaxCodesService, ReferenceQuery, ReferenceService, WarehousesQuery, WarehousesService, ImportsService, CustomerImporter, SupplierImporter, ItemImporter, PriceImporter],
 })
 export class CoreModule implements OnModuleInit {
-  constructor(private readonly permissions: PermissionCatalogue) {}
+  constructor(
+    private readonly permissions: PermissionCatalogue,
+    private readonly scopes: ScopeRegistry,
+  ) {}
 
   onModuleInit(): void {
     this.permissions.register(CORE_PERMISSION_CATALOGUE);
+    this.scopes.register(CORE_SCOPE_RULES);
   }
 }

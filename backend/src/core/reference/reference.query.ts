@@ -3,6 +3,7 @@ import { PermissionRegistry } from '../../platform/context/permission.registry';
 import type { RequestContext } from '../../platform/context/request-context';
 import { NotFoundError } from '../../platform/http/errors';
 import type { Tx } from '../../platform/prisma/prisma.service';
+import { asSystem } from '../../platform/scope/data-scope';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { CORE_PERMISSIONS as P } from '../core.permissions';
 import {
@@ -57,7 +58,8 @@ export class ReferenceQuery {
       this.prisma.mdmArea.findMany({ where, orderBy: { name: 'asc' } }),
       this.prisma.mdmCreditTerm.findMany({ where, orderBy: { days: 'asc' } }),
       this.prisma.mdmItem.findMany({ where, select: { code: true, itemGroup: true }, orderBy: { code: 'asc' } }),
-      this.prisma.mdmCustomer.findMany({ where, select: { category: true, area: true, creditTermDays: true } }),
+      // Which entries customers use is a fact about the shared lists, not limited by the reader's data scope.
+      asSystem(() => this.prisma.mdmCustomer.findMany({ where, select: { category: true, area: true, creditTermDays: true } })),
       this.prisma.mdmSupplier.findMany({ where, select: { paymentTermDays: true } }),
     ]);
     const same = (a: string | null, b: string) => (a ?? '').toLowerCase() === b.toLowerCase();
@@ -104,7 +106,11 @@ export class ReferenceQuery {
   }
 
   /** Who uses one entry now, for the checks on save and delete. */
-  async useOf(tenantId: string, list: ReferenceList, row: Pick<ReferenceRow, 'name' | 'days'>): Promise<ReferenceUse> {
+  useOf(tenantId: string, list: ReferenceList, row: Pick<ReferenceRow, 'name' | 'days'>): Promise<ReferenceUse> {
+    return asSystem(() => this.countUse(tenantId, list, row));
+  }
+
+  private async countUse(tenantId: string, list: ReferenceList, row: Pick<ReferenceRow, 'name' | 'days'>): Promise<ReferenceUse> {
     if (list === 'item-groups') return { items: await this.prisma.mdmItem.count({ where: { tenantId, itemGroup: row.name } }) };
     if (list === 'customer-categories') return { customers: await this.prisma.mdmCustomer.count({ where: { tenantId, category: row.name } }) };
     if (list === 'areas') return { customers: await this.prisma.mdmCustomer.count({ where: { tenantId, area: row.name } }) };

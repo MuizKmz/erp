@@ -37,7 +37,7 @@ describe('Core (end to end)', () => {
     });
 
     it('counts the master data Purchase and Sales already use', async () => {
-      const home = await api.get<{ cards: { key: string; total: number; parts: { key: string; count: number }[]; note?: string }[]; recent: unknown[] }>('core/dashboard', 'FO');
+      const home = await api.get<{ cards: { key: string; total: number; parts: { key: string; count: number }[]; note?: string }[]; recent: unknown[] }>('core/dashboard', 'RAH');
       const card = (key: string) => home.cards.find((c) => c.key === key)!;
       expect(home.cards.map((c) => c.key)).toEqual(['items', 'customers', 'suppliers', 'price-lists', 'tax-codes', 'uoms', 'warehouses']);
       expect(card('items').total).toBe(39);
@@ -49,7 +49,7 @@ describe('Core (end to end)', () => {
     });
 
     it('lists what needs attention, as the C01 mockup does', async () => {
-      const home = await api.get<{ attention: { lead: string; text: string; to: string }[] }>('core/dashboard', 'FO');
+      const home = await api.get<{ attention: { lead: string; text: string; to: string }[] }>('core/dashboard', 'RAH');
       expect(home.attention.map((a) => `${a.lead} ${a.text}`)).toEqual([
         '39 items have no e-Invoice classification code yet. LHDN needs it on every e-Invoice line.',
         '8 suppliers have no TIN or ID number (walk-in shops left out). e-Invoices with them need both.',
@@ -345,7 +345,7 @@ describe('Core (end to end)', () => {
     };
 
     it('lists the 7 customers with their filters and tabs', async () => {
-      const page = await api.get<{ total: number; statusCounts: Record<string, number> }>('core/customers', 'FO');
+      const page = await api.get<{ total: number; statusCounts: Record<string, number> }>('core/customers', 'RAH');
       expect(page.total).toBe(7);
       expect(page.statusCounts).toMatchObject({ all: 7, active: 7, prospect: 0, blocked: 0 });
       const codes = async (query: string) => (await api.get<{ items: { code: string }[] }>(`core/customers?${query}`)).items.map((c) => c.code);
@@ -363,7 +363,9 @@ describe('Core (end to end)', () => {
       expect(c.refusals.block).toBe('C-0012 is on 5 open documents (SO-0001, SO-0003, QT-0006 …). Finish or cancel them first.');
       expect(c.refusals.delete).toBe('C-0012 is used on 23 documents, so it cannot be deleted. Block it instead.');
       expect((await c0012('RI')).allowedActions).toEqual(['editCredit']);
-      expect((await c0012('FO')).allowedActions).toEqual([]);
+      expect((await c0012('RAH')).allowedActions).toEqual([]);
+      // A7: C-0012 is Aina's customer, so another agent does not find it at all (SDD 10.3.1).
+      expect((await api.call('GET', `core/customers/${c.id}`, 'FO')).status).toBe(404);
       expect(await api.call('POST', `core/customers/${c.id}/block`, 'ADM', { version: c.version })).toMatchObject({ status: 409, body: { code: 'IN_USE' } });
     });
 
@@ -376,7 +378,7 @@ describe('Core (end to end)', () => {
       expect(saved.activity.map((a) => a.message)).toContain('Changed credit limit 150000.00 → 160000.00');
       const phone = await api.call('PATCH', `core/customers/${c.id}`, 'RI', { ...fieldsOf(saved), phone: '+60 3-0000 0000', version: saved.version });
       expect(phone).toMatchObject({ status: 403, body: { message: 'Your role cannot do this. Permission needed: core.customer.edit.' } });
-      const agent = await api.call('PATCH', `core/customers/${c.id}`, 'FO', { ...fieldsOf(saved), creditLimit: '999999.00', version: saved.version });
+      const agent = await api.call('PATCH', `core/customers/${c.id}`, 'AR', { ...fieldsOf(saved), creditLimit: '999999.00', version: saved.version });
       expect(agent).toMatchObject({ status: 403, body: { message: 'Your role cannot do this. Permission needed: core.customer.credit.' } });
     });
 

@@ -152,9 +152,10 @@ describe('Core journeys (end to end)', () => {
       expect(c.allowedActions).toEqual(['editCredit']);
       expect((await api.call('PATCH', `core/customers/${c.id}`, 'RI', customerBody(c, { name: 'Delta Trading' }))).status).toBe(403);
       expect((await api.call('PATCH', `core/customers/${c.id}`, 'RI', customerBody(c, { creditLimit: '25000.00' }))).status).toBe(200);
-      expect(await api.get('sales/lookups/customer-card?q=C-0045', 'AR')).toMatchObject({ creditLimit: '25000.00' });
+      // A7: C-0045 is Faizal's customer, so he is the agent who sees the new limit (Aina no longer finds it).
+      expect(await api.get('sales/lookups/customer-card?q=C-0045', 'FO')).toMatchObject({ creditLimit: '25000.00' });
 
-      expect((await detail('customers', 'C-0045', 'AR')).allowedActions).toEqual([]);
+      expect((await detail('customers', 'C-0045', 'FO')).allowedActions).toEqual([]);
     });
   });
 
@@ -252,7 +253,7 @@ describe('Core journeys (end to end)', () => {
       const load = await post('load');
       expect(load.rows.map((r) => r.result)).toEqual(['Added C-0104', 'Updated: phone', 'Branch KL is not in Master Data']);
       expect(load.summary).toBe('2 rows saved: 1 added, 1 updated. 1 row with a problem was left out: download it, fix it and upload it again.');
-      expect(await api.get('sales/lookups/customer-card?q=C-0104', 'AR')).toMatchObject({ name: 'Taman Sari Resort', creditLimit: '40000.00', priceList: 'Standard 2026' });
+      expect(await api.get('sales/lookups/customer-card?q=C-0104', 'NA')).toMatchObject({ name: 'Taman Sari Resort', creditLimit: '40000.00', priceList: 'Standard 2026' });
     });
   });
 });

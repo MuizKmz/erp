@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import type { Env } from './config/env';
 import { AllExceptionsFilter } from './platform/http/all-exceptions.filter';
 import { buildValidationPipe } from './platform/http/validation';
+import { scopeMiddleware } from './platform/scope/data-scope';
 
 /** HTTP setup shared by main.ts and the end-to-end tests, so both run the API exactly the same way. */
 export function configureApp(app: INestApplication): void {
@@ -19,6 +20,8 @@ export function configureApp(app: INestApplication): void {
     credentials: true,
   });
   app.use(cookieParser());
+  // Data scopes (A7): each request carries who is asking, so reads of scoped tables see only that user's rows.
+  app.use(scopeMiddleware);
   app.useGlobalPipes(buildValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());
 }

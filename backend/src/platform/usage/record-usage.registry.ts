@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { asSystem } from '../scope/data-scope';
 import { mergeUsage } from './record-usage.rules';
 import type { RecordUsage, RecordUsageProvider, UsageQuery } from './record-usage.types';
 
@@ -21,7 +22,8 @@ export class RecordUsageRegistry {
   }
 
   async check(query: UsageQuery): Promise<RecordUsage> {
-    const answers = await Promise.all([...this.providers.values()].map((p) => p.usage(query)));
+    // Where a record is used is a company-wide fact: the delete and block rules count every document, in every branch.
+    const answers = await asSystem(() => Promise.all([...this.providers.values()].map((p) => p.usage(query))));
     return mergeUsage(query, answers);
   }
 }

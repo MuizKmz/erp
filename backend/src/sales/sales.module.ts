@@ -1,5 +1,7 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
 import { PermissionCatalogue } from '../platform/context/permission-catalogue';
+import { ScopeRegistry } from '../platform/scope/scope.registry';
+import { SALES_SCOPE_RULES } from './sales.scope';
 import { SalesApprovalsController } from './approvals/approvals.controller';
 import { SalesApprovalsInboxService } from './approvals/approvals-inbox.service';
 import { SalesBuyToOrderListener } from './buy-to-order/buy-to-order.listener';
@@ -99,9 +101,13 @@ import { SalesMailService } from './shared/sales-mail.service';
   ],
 })
 export class SalesModule implements OnModuleInit {
-  constructor(private readonly permissions: PermissionCatalogue) {}
+  constructor(
+    private readonly permissions: PermissionCatalogue,
+    private readonly scopes: ScopeRegistry,
+  ) {}
 
   onModuleInit(): void {
     this.permissions.register(SALES_PERMISSION_CATALOGUE);
+    this.scopes.register(SALES_SCOPE_RULES);
   }
 }

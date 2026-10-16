@@ -369,7 +369,7 @@ export class AuthService {
       });
       await tx.sysUser.update({ where: { id: user.id }, data: { failedSignIns: 0, lockedUntil: null, lastSignInAt: now } });
       await tx.sysLoginAttempt.create({ data: { tenantId: user.tenantId, identifier: typed, userId: user.id, ipAddress: meta.ipAddress ?? 'unknown', success: true, reason: null, createdAt: now } });
-      await this.security.log(tx, user.tenantId, { kind: SECURITY_EVENT.SIGNED_IN, user: { code: user.code, name: user.name }, message: `${user.name} signed in on ${device}`, data: { sessionId: s.id } }, meta);
+      await this.security.log(tx, user.tenantId, { kind: SECURITY_EVENT.SIGNED_IN, user: { code: user.code, name: user.name }, message: `${user.name} signed in on ${device}`, data: { sessionId: s.id, branchCode } }, meta);
       return s;
     });
     return { ...(await this.access(user, user.tenantId, session.id, branchCode, settings)), refreshToken: `${session.id}.${secret}`, refreshExpiresAt };

@@ -186,9 +186,10 @@ describe('Phase 2 journeys (end to end)', () => {
 
   describe('G, H, I · Return, debit note, cash sale', () => {
     it('returns goods only through the store, and lowers the invoice balance', async () => {
-      const sr = await salesDoc('returns', 'SR-0002', 'AR');
+      // A7: SR-0002 is not for one of Aina's customers, so Rahim, the other store person, receives it.
+      const sr = await salesDoc('returns', 'SR-0002', 'RAH');
       expect((await api.call('POST', `sales/returns/${sr.id}/release`, 'FO', { version: sr.version })).status).toBe(403);
-      expect((await api.call('POST', `sales/returns/${sr.id}/release`, 'AR', { version: sr.version })).body.status).toBe('RELEASED');
+      expect((await api.call('POST', `sales/returns/${sr.id}/release`, 'RAH', { version: sr.version })).body.status).toBe('RELEASED');
       expect(await salesDoc('invoices', 'INV-0002')).toMatchObject({ amounts: { balance: '5610.00' }, payment: { label: 'Unpaid · credited' } });
     });
 

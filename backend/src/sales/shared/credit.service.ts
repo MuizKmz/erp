@@ -4,6 +4,7 @@ import { ClockService } from '../../platform/clock/clock.service';
 import { dec, roundMoney } from '../../platform/http/decimal';
 import { ConfigurationError } from '../../platform/http/errors';
 import { PrismaService } from '../../platform/prisma/prisma.service';
+import { asSystem } from '../../platform/scope/data-scope';
 import { checkCredit, creditSnapshot, type CreditCheck, type CreditInput } from './credit.rules';
 import { ReceivablesService } from './receivables.service';
 import type { CREDIT_DOC } from './sales.constants';
@@ -28,7 +29,18 @@ export class CreditService {
     private readonly clock: ClockService,
   ) {}
 
-  async check(
+  /**
+   * The customer's exposure is a company fact: it counts their invoices and orders in every branch the credit scope
+   * covers, whatever the person asking may see (A7 data scopes do not shrink it).
+   */
+  check(
+    tenantId: string,
+    args: { customer: MdCustomer; docType: (typeof CREDIT_DOC)[keyof typeof CREDIT_DOC]; thisDocument: string; branchCode: string; excludeOrderId?: string },
+  ): Promise<CreditOutcome> {
+    return asSystem(() => this.run(tenantId, args));
+  }
+
+  private async run(
     tenantId: string,
     args: { customer: MdCustomer; docType: (typeof CREDIT_DOC)[keyof typeof CREDIT_DOC]; thisDocument: string; branchCode: string; excludeOrderId?: string },
   ): Promise<CreditOutcome> {

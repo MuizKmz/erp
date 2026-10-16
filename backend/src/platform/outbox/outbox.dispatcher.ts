@@ -4,6 +4,7 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { Prisma, type SysOutbox } from '@prisma/client';
 import type { Env } from '../../config/env';
 import { PrismaService } from '../prisma/prisma.service';
+import { asSystem } from '../scope/data-scope';
 import { OutboxConsumers } from './outbox.consumers';
 import { afterFailure } from './outbox.rules';
 import type { OutboxEnvelope } from './outbox.types';
@@ -72,7 +73,8 @@ export class OutboxDispatcher implements OnApplicationBootstrap, OnApplicationSh
     if (this.running) return 0;
     this.running = true;
     try {
-      return (await this.round('Outbox delivery', () => this.dispatchOne())) + (await this.round('Module listeners', () => this.listenOnce()));
+      // Listeners act for the system, never for whoever happened to be asking (SDD 10.1): no data scope.
+      return await asSystem(async () => (await this.round('Outbox delivery', () => this.dispatchOne())) + (await this.round('Module listeners', () => this.listenOnce())));
     } finally {
       this.running = false;
     }

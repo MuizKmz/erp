@@ -118,6 +118,8 @@ Each module declares its own permissions, with a label per object and action (SR
 
 Suppliers, items, price lists, tax codes and warehouses are shared master data and are not scoped. A record outside a user's scope answers **404**, never 403 (SDD 10.3.1). Event listeners and the seed run as the *system* and are not scoped; each such action is logged (SDD 10.1).
 
+Some answers are facts about the whole company and stay the same whoever asks, because rules depend on them: a customer's credit exposure (owed and open orders in every branch the credit scope covers), where a master-data record is used (the delete and block rules), and how many customers use a price list or a reference-list entry. A user who cannot see the record itself still gets 404.
+
 The journeys in the Purchase, Sales and Core handbooks are re-run in A7. A step where an agent opens another agent's customer moves to the right agent. Today that is Core journey E step 5, where Aina opens C-0045 (Faizal's customer).
 
 ## Decided by the SRS and SDD

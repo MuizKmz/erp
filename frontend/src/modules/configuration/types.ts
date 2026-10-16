@@ -1,3 +1,4 @@
+import type { ListResponse } from '@/api/list'
 /** Configuration API shapes (/api/v1/config). Each build step adds its own. */
 
 // ── A01 · Configuration home ──
@@ -332,3 +333,54 @@ export interface SignInSettingsView {
   passwordAgeChoices: (number | null)[]
   allowedActions: 'edit'[]
 }
+
+/** The period filter on A12 and A13. */
+export type LogPeriod = 'day' | 'week' | 'month' | 'year' | 'all'
+
+/** A12 · one security event */
+export interface SecurityEventRow {
+  id: string
+  at: string
+  kind: string
+  label: string
+  group: 'done' | 'pending' | 'cancelled' | 'draft'
+  userCode: string | null
+  who: string
+  /** An administrator who acted on someone else's account */
+  by: string | null
+  detail: string
+  branchCode: string | null
+}
+
+export interface SecurityEventPage extends ListResponse<SecurityEventRow> {
+  filters: { kinds: { kind: string; label: string }[]; people: { code: string; name: string }[] }
+}
+
+/** A13 · one change */
+export interface AuditRow {
+  id: string
+  at: string
+  module: 'purchase' | 'sales' | 'core' | 'config' | null
+  moduleLabel: string
+  entityType: string
+  entityId: string
+  record: string
+  message: string
+  comment: string | null
+  userCode: string
+  who: string
+  hasChanges: boolean
+}
+
+export interface AuditPage extends ListResponse<AuditRow> {
+  filters: { modules: { key: string; label: string }[]; people: { code: string; name: string }[] }
+}
+
+export interface AuditDetail extends AuditRow {
+  changes: { field: string; label: string; from: string | null; to: string | null }[]
+  jobTitle: string | null
+  /** "7f3c…e21": the request that made it */
+  request: string | null
+  sameRequest: AuditRow[]
+}
+

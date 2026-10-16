@@ -164,7 +164,7 @@ The mockups were made in step A0 in the current shell. The top bar of every modu
 | A09 | Role with its permissions | `CfgRoleForm.html` | `/config/roles/:id` | GET, POST, PATCH, DELETE /api/v1/config/roles/:id · POST …/reset-to-starter · GET /api/v1/config/permissions/catalogue |
 | A10 | Who can do what | `CfgPermissions.html` | `/config/permissions` | GET /api/v1/config/permissions/user/:id · GET /api/v1/config/permissions/compare?a=&b= |
 | A11 | My account | `CfgMyAccount.html` | `/account` | GET /api/v1/account · POST /api/v1/account/password · DELETE /api/v1/account/sessions/:id · POST /api/v1/account/sessions/sign-out-others · POST /api/v1/account/two-factor/setup, …/enable, …/disable, …/recovery-codes |
-| A12 | Security log | `CfgSecurityLog.html` | `/config/security-log` | GET /api/v1/config/security-events |
-| A13 | Audit trail | `CfgAudit.html` | `/config/audit` | GET /api/v1/config/audit · GET /api/v1/config/audit/:id |
+| A12 | Security log | `CfgSecurityLog.html` | `/config/security-log` (`?kind=`, `?user=`, `?period=day\|week\|month\|year\|all`) | GET /api/v1/config/security-events · GET …/export (CSV) |
+| A13 | Audit trail | `CfgAudit.html` | `/config/audit` (`?module=`, `?user=`, `?period=`) | GET /api/v1/config/audit · GET /api/v1/config/audit/:id · GET …/export (CSV) |
 | A14 | Sign-in settings | `CfgSignInSettings.html` | `/config/sign-in-settings` | GET, PATCH /api/v1/config/settings/sign-in |
 

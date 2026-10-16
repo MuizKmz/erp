@@ -7,6 +7,7 @@ import type { RequestContext } from '../../platform/context/request-context';
 import { NotFoundError } from '../../platform/http/errors';
 import { ListQueryDto } from '../../platform/http/list-query.dto';
 import { buildStatusCounts, pageArgs, statusFromKey, toListResponse } from '../../platform/http/list';
+import { asSystem } from '../../platform/scope/data-scope';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { RecordUsageRegistry } from '../../platform/usage/record-usage.registry';
 import { CORE_ENTITY } from '../core.constants';
@@ -53,7 +54,8 @@ export class PriceListsQuery {
     const codes = rows.map((r) => r.code);
     const [prices, customers] = await Promise.all([
       this.prisma.mdmPriceListItem.findMany({ where: { tenantId, priceListCode: { in: codes } }, select: { priceListCode: true, itemCode: true, uomCode: true } }),
-      this.prisma.mdmCustomer.groupBy({ by: ['priceListCode'], where: { tenantId, priceListCode: { in: codes } }, _count: { _all: true } }),
+      // How many customers use a price list is a fact about the shared record (and decides deactivate and delete), not limited by the reader's data scope.
+      asSystem(() => this.prisma.mdmCustomer.groupBy({ by: ['priceListCode'], where: { tenantId, priceListCode: { in: codes } }, _count: { _all: true } })),
     ]);
     const usedBy = new Map(customers.map((c) => [c.priceListCode, c._count._all]));
     const items = rows.map((l) => {
@@ -133,9 +135,9 @@ export class PriceListsQuery {
     return this.prisma.mdmPriceListItem.findMany({ where: { tenantId, priceListCode }, orderBy: [{ itemCode: 'asc' }, { uomCode: 'asc' }, { validFrom: 'asc' }] });
   }
 
-  /** The customers on this price list, by code (C09 "Used by"). */
+  /** The customers on this price list, by code (C09 "Used by"; the deactivate and delete checks): every one, whoever asks. */
   customers(tenantId: string, priceListCode: string) {
-    return this.prisma.mdmCustomer.findMany({ where: { tenantId, priceListCode }, orderBy: { code: 'asc' }, select: { id: true, code: true, name: true } });
+    return asSystem(() => this.prisma.mdmCustomer.findMany({ where: { tenantId, priceListCode }, orderBy: { code: 'asc' }, select: { id: true, code: true, name: true } }));
   }
 
   private fields(l: MdmPriceList) {

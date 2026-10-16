@@ -2,6 +2,8 @@ import { Module, type OnModuleInit } from '@nestjs/common';
 import { PermissionCatalogue } from '../platform/context/permission-catalogue';
 import { AccountController } from './account/account.controller';
 import { AccountService } from './account/account.service';
+import { ConfigAuditController } from './audit/audit.controller';
+import { AuditQuery } from './audit/audit.query';
 import { AuthGateModule } from './auth/auth-gate.module';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
@@ -15,6 +17,8 @@ import { OrganisationService } from './organisation/organisation.service';
 import { ConfigPermissionsController, ConfigRolesController } from './roles/roles.controller';
 import { RolesQuery } from './roles/roles.query';
 import { RolesService } from './roles/roles.service';
+import { ConfigSecurityLogController } from './security-log/security-log.controller';
+import { SecurityLogQuery } from './security-log/security-log.query';
 import { ConfigSettingsController } from './settings/settings.controller';
 import { SettingsService } from './settings/settings.service';
 import { ConfigRecordsService } from './shared/config-records.service';
@@ -40,6 +44,8 @@ import { UsersService } from './users/users.service';
     ConfigRolesController,
     ConfigPermissionsController,
     ConfigSettingsController,
+    ConfigSecurityLogController,
+    ConfigAuditController,
   ],
   providers: [
     AuthService,
@@ -55,6 +61,8 @@ import { UsersService } from './users/users.service';
     RolesQuery,
     RolesService,
     SettingsService,
+    SecurityLogQuery,
+    AuditQuery,
   ],
 })
 export class ConfigurationModule implements OnModuleInit {

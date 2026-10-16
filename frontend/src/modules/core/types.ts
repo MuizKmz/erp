@@ -229,6 +229,8 @@ export interface CustomerInput {
   overdueLimit: string | null
   creditScope: 'GROUP' | 'BRANCH' | null
   priceListCode: string
+  /** Seen from every branch, not only its own (A7, FR-SEC-033) */
+  visibleToAllBranches?: boolean
 }
 
 export interface CustomerDetail extends CustomerInput {

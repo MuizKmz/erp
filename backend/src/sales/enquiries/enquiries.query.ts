@@ -8,6 +8,7 @@ import type { RequestContext } from '../../platform/context/request-context';
 import { dec, toMoney, toQty } from '../../platform/http/decimal';
 import { NotFoundError } from '../../platform/http/errors';
 import { buildStatusCounts, dateRange, pageArgs, parseSort, statusFromKey, toListResponse, toOrderBy } from '../../platform/http/list';
+import { asSystem } from '../../platform/scope/data-scope';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { SALES_PERMISSIONS as P } from '../sales.permissions';
 import { SalesLinkedDocsService } from '../shared/linked-docs.service';
@@ -126,7 +127,8 @@ export class EnquiriesQuery {
     const [priceLists, users, open] = await Promise.all([
       this.masterData.listPriceLists(ctx.tenantId),
       this.masterData.listUsers(ctx.tenantId),
-      this.receivables.openInvoices(ctx.tenantId, this.clock.today(), [c.code]),
+      // What the customer owes in every branch: a company fact the card shows to whoever may see the customer.
+      asSystem(() => this.receivables.openInvoices(ctx.tenantId, this.clock.today(), [c.code])),
     ]);
     return {
       code: c.code, name: c.name, status: c.status, category: c.category, area: c.area, creditTermDays: c.creditTermDays,

@@ -56,6 +56,7 @@ const record = (c: MdmCustomer): CustomerRecord => ({
   overdueLimit: c.overdueLimit,
   creditScope: c.creditScope,
   priceListCode: c.priceListCode,
+  visibleToAllBranches: c.visibleToAllBranches,
   isCash: c.isCash,
   status: c.status,
 });
@@ -233,6 +234,8 @@ export class CustomersService {
       overdueLimit: dto.overdueLimit ? dec(dto.overdueLimit) : null,
       creditScope: dto.creditScope ?? null,
       priceListCode: dto.priceListCode,
+      // A7 (FR-SEC-033): left as it is when not sent, e.g. by an import file without the column.
+      ...(dto.visibleToAllBranches !== undefined && { visibleToAllBranches: dto.visibleToAllBranches }),
     };
   }
 

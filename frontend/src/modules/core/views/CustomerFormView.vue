@@ -8,6 +8,7 @@ import { ApiError } from '@/api/http'
 import ActivityList from '@/components/erp/ActivityList.vue'
 import FormField from '@/components/erp/FormField.vue'
 import NoticeBanner from '@/components/erp/NoticeBanner.vue'
+import SwitchToggle from '@/components/erp/SwitchToggle.vue'
 import PageHeader from '@/components/erp/PageHeader.vue'
 import SideCard from '@/components/erp/SideCard.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
@@ -59,6 +60,7 @@ const form = reactive({
   overdueLimit: '',
   creditScope: '' as '' | 'GROUP' | 'BRANCH',
   priceListCode: '',
+  visibleToAllBranches: false,
 })
 
 const saved = ref('')
@@ -78,6 +80,7 @@ function fill(c: CustomerDetail | null) {
       billingAddress: text(c.billingAddress), deliveryAddress: text(c.deliveryAddress), contactName: text(c.contactName), email: text(c.email), phone: text(c.phone),
       tin: text(c.tin), idType: c.idType ?? '', idNumber: text(c.idNumber), salesTaxNo: text(c.salesTaxNo), serviceTaxNo: text(c.serviceTaxNo), einvoiceEmail: text(c.einvoiceEmail),
       taxMode: c.taxMode, creditTermDays: c.creditTermDays, creditLimit: text(c.creditLimit), overdueLimit: text(c.overdueLimit), creditScope: c.creditScope ?? '', priceListCode: c.priceListCode,
+      visibleToAllBranches: c.visibleToAllBranches ?? false,
     })
   } else {
     Object.assign(form, {
@@ -85,6 +88,7 @@ function fill(c: CustomerDetail | null) {
       contactName: '', email: '', phone: '', tin: '', idType: 'BRN', idNumber: '', salesTaxNo: '', serviceTaxNo: '', einvoiceEmail: '', taxMode: 'EXCLUSIVE',
       creditTermDays: options.value?.creditTerms.find((t) => t.days === 30)?.days ?? options.value?.creditTerms[0]?.days ?? 0, creditLimit: '', overdueLimit: '', creditScope: '',
       priceListCode: options.value?.priceLists[0]?.code ?? '',
+      visibleToAllBranches: false,
     })
   }
   saved.value = snapshot()
@@ -135,6 +139,7 @@ function body(): CustomerInput {
     overdueLimit: blankToNull(form.overdueLimit),
     creditScope: form.creditScope || null,
     priceListCode: form.priceListCode,
+    visibleToAllBranches: form.visibleToAllBranches,
   }
 }
 
@@ -296,6 +301,11 @@ const blockWaits = 'Block comes back once these are finished or cancelled. Unpai
               <div v-else id="enquiry" class="erp-input-ro">{{ customer?.cameFromEnquiry ?? '—' }}</div>
             </FormField>
           </div>
+          <label class="flex items-center gap-2.5 text-[13px] font-medium">
+            <SwitchToggle v-model="form.visibleToAllBranches" label="Visible to all branches" :disabled="!detailsEditable" />
+            Visible to all branches
+            <span class="text-xs font-normal text-erp-muted">{{ form.visibleToAllBranches ? 'Users of every branch see this customer.' : 'Only users of its branch see this customer.' }}</span>
+          </label>
           <span class="text-xs text-erp-muted">For a new customer, type the enquiry it came from (EQ-2609-0010): Sales then links that enquiry to this customer.</span>
         </section>
 
