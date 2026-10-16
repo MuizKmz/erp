@@ -154,16 +154,16 @@ The mockups were made in step A0 in the current shell. The top bar of every modu
 | Code | Screen | Mockup | Route | Main API |
 |---|---|---|---|---|
 | A01 | Configuration home | `CfgHome.html` | `/config` | GET /api/v1/config/dashboard |
-| A02 | Sign in | `CfgSignIn.html` | `/sign-in` | POST /api/v1/auth/sign-in · POST /api/v1/auth/refresh · POST /api/v1/auth/sign-out · POST /api/v1/auth/forgot · POST /api/v1/auth/reset |
-| A03 | Two-factor set-up and code | `CfgTwoFactor.html` | `/sign-in/two-factor` | POST /api/v1/auth/two-factor/setup · POST /api/v1/auth/two-factor/verify |
+| A02 | Sign in | `CfgSignIn.html` | `/sign-in` | POST /api/v1/auth/sign-in · POST /api/v1/auth/refresh · POST /api/v1/auth/sign-out · POST /api/v1/auth/forgot · POST /api/v1/auth/link · POST /api/v1/auth/reset (`/sign-in/forgot`, `/sign-in/reset?token=`) |
+| A03 | Two-factor set-up and code | `CfgTwoFactor.html` | `/sign-in/two-factor` | POST /api/v1/auth/two-factor/setup · POST /api/v1/auth/two-factor (code from the app or a recovery code) |
 | A04 | Company, with its branches | `CfgCompany.html` | `/config/company` (`?company=CODE`, `?new=1`) | GET, POST /api/v1/config/companies · GET, PATCH /api/v1/config/companies/:id · POST …/deactivate, …/activate |
 | A05 | Branches: tree and branch form | `CfgBranches.html` | `/config/branches` (`?code=PNG`, `?new=1&company=ID`) | GET, POST /api/v1/config/branches · GET, PATCH /api/v1/config/branches/:id (the Active switch is part of the form) |
 | A06 | User list | `CfgUserList.html` | `/config/users` (`?role=`, `?branch=`, `?twoFactor=missing`) | GET /api/v1/config/users · GET /api/v1/config/users/lookups |
-| A07 | User | `CfgUserForm.html` | `/config/users/:id` | GET, POST, PATCH /api/v1/config/users/:id · POST …/deactivate, …/activate · from A5/A6: …/send-reset, …/revoke-sessions, …/reset-two-factor, …/unlock |
+| A07 | User | `CfgUserForm.html` | `/config/users/:id` | GET, POST, PATCH /api/v1/config/users/:id · POST …/deactivate, …/activate · …/send-link (reset, or set-password when there is no password yet), …/revoke-sessions, …/reset-two-factor, …/unlock |
 | A08 | Role list | `CfgRoleList.html` | `/config/roles` | GET /api/v1/config/roles |
 | A09 | Role with its permissions | `CfgRoleForm.html` | `/config/roles/:id` | GET, POST, PATCH, DELETE /api/v1/config/roles/:id · POST …/reset-to-starter · GET /api/v1/config/permissions/catalogue |
 | A10 | Who can do what | `CfgPermissions.html` | `/config/permissions` | GET /api/v1/config/permissions/user/:id · GET /api/v1/config/permissions/compare?a=&b= |
-| A11 | My account | `CfgMyAccount.html` | `/account` | GET /api/v1/account · POST /api/v1/account/password · GET, DELETE /api/v1/account/sessions/:id · two-factor set-up as A03 |
+| A11 | My account | `CfgMyAccount.html` | `/account` | GET /api/v1/account · POST /api/v1/account/password · DELETE /api/v1/account/sessions/:id · POST /api/v1/account/sessions/sign-out-others · POST /api/v1/account/two-factor/setup, …/enable, …/disable, …/recovery-codes |
 | A12 | Security log | `CfgSecurityLog.html` | `/config/security-log` | GET /api/v1/config/security-events |
 | A13 | Audit trail | `CfgAudit.html` | `/config/audit` | GET /api/v1/config/audit · GET /api/v1/config/audit/:id |
 | A14 | Sign-in settings | `CfgSignInSettings.html` | `/config/sign-in-settings` | GET, PATCH /api/v1/config/settings/sign-in |

@@ -53,7 +53,7 @@ The values marked *demo* are invented. The Configuration home flags them under *
 | TWL | Tan Wei Ling | weiling@warehouse.com | Branch Manager | PNG | Not required |
 
 - No role assignment has an end date. Nobody has signed in, so *Last sign-in* is *Never* and the security log is empty.
-- **Demo password** (only with `AUTH_MODE=jwt`): every seeded user signs in with **`Zora-demo-2026`**. ADM and RI are then asked to set up two-factor. With `AUTH_MODE=dev` nobody needs a password: the user switcher stays, as today.
+- **Demo password** (only with `AUTH_MODE=jwt`): every seeded user signs in with **`Zora-demo-2026`**. ADM and RI are then asked to set up two-factor. For a local demo, `DEMO_ADMIN_2FA_BYPASS_CODE=123456` in `backend/.env` lets ADM (only) type 123456 instead of a code from an authenticator; it is empty in `.env.example`, ignored when `NODE_ENV=production`, and every use is in the security log. With `AUTH_MODE=dev` nobody needs a password: the user switcher stays, as today.
 
 ## Roles (A08, A09): 16 starter roles
 
@@ -100,7 +100,7 @@ Each module declares its own permissions, with a label per object and action (SR
 | Shortest password | 10 characters | SRS FR-SEC-060, SDD 10.2 |
 | Common passwords | Refused (a local list) | SDD 10.2 |
 | Ask to change regularly | Never | SDD 10.2 (no forced rotation) |
-| Lock after | 5 wrong passwords, for 15 minutes, counted per account and per network address | SRS FR-SEC-062, SDD 10.2 |
+| Lock after | 5 wrong passwords, for 15 minutes, counted per account and per network address (*Count per* can drop the address count, for a shared office address) | SRS FR-SEC-062, SDD 10.2; choice 22 |
 | Sign out after no activity | 30 minutes | SRS FR-SEC-065 |
 | A device stays signed in | 30 days (rotating refresh token) | SDD 10.2 |
 | Access token | 15 minutes | SDD 10.2 |

@@ -296,6 +296,7 @@ describe('Sign-in (end to end, AUTH_MODE=jwt)', () => {
       const other = await signIn('RI');
       expect(other.body.step).toBe('TWO_FACTOR_SETUP');
       expect((await call('POST', 'auth/two-factor/setup', { body: { ticket: other.body.ticket, code: '123456' } })).status).toBe(401);
+      expect(await api.prisma.sysSecurityEvent.count({ where: { tenantId: TENANT_ID, kind: 'DEMO_CODE_USED', userCode: 'ADM' } })).toBe(2);
     });
 
     it('asks a finance role to set up two-factor first, then for a code; a recovery code works once (FR-SEC-061)', async () => {
