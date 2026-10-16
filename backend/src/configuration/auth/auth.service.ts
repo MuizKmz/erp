@@ -151,8 +151,7 @@ export class AuthService {
   /** A03 · the code from the app, or one of the recovery codes (each works once). */
   async verifyTwoFactor(ticket: string, typed: string, meta: RequestMeta): Promise<Issued & { recoveryCodesLeft?: number }> {
     const { user, settings } = await this.fromTicket(ticket, 'code');
-    if (this.isDemoBypass(user, typed)) await this.logDemoCode(user, meta);
-    if (this.isDemoBypass(user, typed) || this.credentials.checkTotp(user.twoFactorSecret, typed)) return this.openSession(user, await this.branchOf(user), settings, user.code, meta);
+    if (await this.codePasses(user, typed, meta)) return this.openSession(user, await this.branchOf(user), settings, user.code, meta);
     const left = this.credentials.useRecoveryCode(user.recoveryCodes, typed);
     if (left) {
       await this.prisma.sysUser.update({ where: { id: user.id }, data: { recoveryCodes: left } });
@@ -166,11 +165,10 @@ export class AuthService {
   /** A03 · confirms the new secret with a code from the app, turns two-factor on and gives the recovery codes once. */
   async completeSetup(ticket: string, typed: string, meta: RequestMeta): Promise<Issued & { recoveryCodes: string[] }> {
     const { user, settings } = await this.fromTicket(ticket, 'setup');
-    if (!this.isDemoBypass(user, typed) && !this.credentials.checkTotp(user.twoFactorSecret, typed)) {
+    if (!(await this.codePasses(user, typed, meta))) {
       await this.wrongSecret(user, settings, user.code, meta, 'WRONG_CODE', `Wrong code while ${user.name} set up two-factor`);
       throw fail(HttpStatus.UNAUTHORIZED, 'WRONG_CODE', 'That code is not right. Check the app shows Zora Pro ERP, and type the code it shows now.');
     }
-    if (this.isDemoBypass(user, typed)) await this.logDemoCode(user, meta);
     const codes = this.credentials.newRecoveryCodes();
     await this.prisma.sysUser.update({ where: { id: user.id }, data: { twoFactorEnabledAt: new Date(), recoveryCodes: codes.hashes } });
     await this.security.log(this.prisma, user.tenantId, { kind: SECURITY_EVENT.TWO_FACTOR_ON, user: { code: user.code, name: user.name }, message: `${user.name} turned on two-factor sign-in` }, meta);
@@ -181,9 +179,14 @@ export class AuthService {
     return user.code === 'ADM' && this.demoAdminBypassCode ? { demoBypassCode: this.demoAdminBypassCode } : {};
   }
 
-  /** Every use of the demo code is in the security log: a sign-in that skipped the authenticator is never silent. */
-  private async logDemoCode(user: Pick<SysUser, 'code' | 'name' | 'tenantId'>, meta: RequestMeta): Promise<void> {
+  /**
+   * A code from the authenticator app, or the local demo's fixed code for ADM. Every use of the demo code is in the
+   * security log: a sign-in that skipped the authenticator is never silent.
+   */
+  private async codePasses(user: Pick<SysUser, 'code' | 'name' | 'tenantId' | 'twoFactorSecret'>, typed: string, meta: RequestMeta): Promise<boolean> {
+    if (!this.isDemoBypass(user, typed)) return this.credentials.checkTotp(user.twoFactorSecret, typed);
     await this.security.log(this.prisma, user.tenantId, { kind: SECURITY_EVENT.DEMO_CODE_USED, user: { code: user.code, name: user.name }, message: `${user.name} passed two-factor with the demo code (DEMO_ADMIN_2FA_BYPASS_CODE)` }, meta);
+    return true;
   }
 
   private isDemoBypass(user: Pick<SysUser, 'code'>, typed: string): boolean {
