@@ -29,7 +29,7 @@ Sidebar groups: **Purchase Transaction**, **Supplier Billing**, **Operation Poli
 
 | Code | Screen | Mockup | Route | Main API |
 |---|---|---|---|---|
-| P01 | Purchase home (tiles + dashboard) | `PurHome.html` | `/purchase` | `GET /purchase/dashboard` |
+| P01 | Purchase home (tiles + dashboard) | `PurHome.html` | `/purchase` | `GET /purchase/dashboard` (KPI cards), `GET` · `PUT` · `DELETE /purchase/dashboard/board` (the person's charts) |
 | P02 | Approvals inbox | `PurApprovals.html` | `/purchase/approvals` | `GET /purchase/approvals?status=waiting`, `POST /purchase/approvals/:id/approve` · `/reject` |
 | P03 | Document flow of a PO | `PurDocFlow.html` | `/purchase/orders/:id/flow` | `GET /purchase/orders/:id/flow` |
 | P04 | Demand · what to buy | `PurDemand.html` | `/purchase/demand` | `GET /purchase/demand`, `POST /purchase/requests/from-demand` |
@@ -82,7 +82,7 @@ Theme: purple. Sidebar groups: **Sales Transaction**, **Billing**, **Operation P
 
 | Code | Screen | Mockup | Route |
 |---|---|---|---|
-| S01 | Sales home | `Main.html` | `/sales` |
+| S01 | Sales home (tiles + dashboard: KPI cards from `GET /sales/dashboard`, the person's charts from `GET` · `PUT` · `DELETE /sales/dashboard/board`) | `Main.html` | `/sales` |
 | S02 | Approvals inbox | `Approvals.html` | `/sales/approvals` |
 | S03 | Document flow | `DocFlow.html` | `/sales/orders/:id/flow` |
 | S04 | Add item from Master Data (dialog) | `ItemPicker.html` | dialog |

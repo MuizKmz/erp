@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import { dec } from '../../platform/http/decimal';
+import { dec, roundMoney } from '../../platform/http/decimal';
 import { SAL_ENTITY, SAL_ROLE } from '../shared/sales.constants';
 
 /** Sales home (S01) rules. Pure functions. */
@@ -38,6 +38,19 @@ export function toInvoice(l: { deliveredQty: Prisma.Decimal; invoicedQty: Prisma
   const open = l.deliveredQty.sub(l.invoicedQty);
   return open.gt(0) ? open : dec(0);
 }
+
+/** A sales order line's value for a quantity: price less the line discount, plus tax, as order totals add up. */
+export function lineValue(l: { unitPrice: Prisma.Decimal; discountPct: Prisma.Decimal; taxRate: Prisma.Decimal }, qty: Prisma.Decimal): Prisma.Decimal {
+  const net = roundMoney(qty.mul(l.unitPrice).mul(dec(100).sub(l.discountPct)).div(100));
+  return net.add(roundMoney(net.mul(l.taxRate)));
+}
+
+/** The chip on the approvals card: what kind of approval it is. */
+export const KIND_CHIP: Record<ApprovalKind, { label: string; group: 'pending' | 'partial' }> = {
+  CREDIT: { label: 'Credit', group: 'pending' },
+  PRICE: { label: 'Price', group: 'partial' },
+  DISCOUNT: { label: 'Discount', group: 'partial' },
+};
 
 /** Whole days between two YYYY-MM-DD dates. */
 export function daysBetween(from: string, to: string): number {

@@ -1,5 +1,5 @@
 import { dec } from '../../platform/http/decimal';
-import { approvalKind, daysBetween, shortReason, toDeliver, toInvoice, waitingSummary } from './dashboard.rules';
+import { approvalKind, daysBetween, lineValue, shortReason, toDeliver, toInvoice, waitingSummary } from './dashboard.rules';
 
 describe('sales dashboard.rules', () => {
   it('names why a document waits for approval', () => {
@@ -27,4 +27,12 @@ describe('sales dashboard.rules', () => {
     expect(shortReason('PRICE', 'Unit price 12% below the price list on 1 line')).toBe('Price 12% below price list');
     expect(shortReason('DISCOUNT', 'Discount 18%, above 15% rule')).toBe('Discount 18%, above the limit');
   });
+
+  it('values a line as order totals add up: price less discount, plus tax, each rounded to the sen', () => {
+    // 6 × 190.00, no discount, SST 10%: 1,140.00 + 114.00
+    expect(lineValue({ unitPrice: dec('190.0000'), discountPct: dec('0'), taxRate: dec('0.10') }, dec('6')).toFixed(2)).toBe('1254.00');
+    // 3 × 33.33 less 5%: 94.99 (94.9905), tax 8% 7.60 (7.5992)
+    expect(lineValue({ unitPrice: dec('33.3300'), discountPct: dec('5'), taxRate: dec('0.08') }, dec('3')).toFixed(2)).toBe('102.59');
+  });
 });
+

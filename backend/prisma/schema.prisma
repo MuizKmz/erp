@@ -458,6 +458,21 @@ model SysSecurityEvent {
   @@map("sys_security_event")
 }
 
+/// A person's home dashboard for one module (SRS RPT-039): the columns and the charts, in order. No row = the module's default.
+model SysUserDashboard {
+  id        String   @id @default(uuid()) @db.Char(36)
+  tenantId  String   @db.Char(36)
+  userId    String   @db.Char(36)
+  board     String   @db.VarChar(40) // purchase, sales …
+  cols      Int      @default(2)
+  cards     Json // ["sales.recent_orders", …]
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  @@unique([tenantId, userId, board])
+  @@map("sys_user_dashboard")
+}
+
 /// Platform settings, one row per key (sign-in settings: sign_in.lockout_attempts …).
 model SysSetting {
   id        String   @id @default(uuid()) @db.Char(36)

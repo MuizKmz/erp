@@ -1,6 +1,7 @@
 export type ApprovalKind = 'CREDIT' | 'PRICE' | 'DISCOUNT'
 export type ChipGroup = 'draft' | 'pending' | 'released' | 'partial' | 'done' | 'cancelled'
 
+/** S01 · the four KPI cards (the charts below them come from the board, api/boards.ts). */
 export interface SalesDashboard {
   today: string
   kpis: {
@@ -9,20 +10,6 @@ export interface SalesDashboard {
     waitingForMe: { count: number; summary: string }
     customersOverdue: { count: number; amount: string }
   }
-  recentOrders: {
-    id: string
-    docNo: string
-    customerName: string
-    isBuyToOrder: boolean
-    isMigrated: boolean
-    total: string
-    orderedQty: string
-    deliveredQty: string
-    status: string
-    balanceCancelled: boolean
-  }[]
-  waiting: { id: string; entityType: string; entityId: string; docNo: string; customerName: string; reason: string; kind: ApprovalKind; amount: string | null }[]
-  orderedByAgent: { month: string; rows: { agentCode: string; agentName: string; orders: number; total: string }[] }
 }
 
 export interface LinkedDoc {

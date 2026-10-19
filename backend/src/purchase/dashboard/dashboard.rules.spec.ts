@@ -1,4 +1,4 @@
-import { nextDueDate, pickBuySoon } from './dashboard.rules';
+import { buySoonNote, nextDueDate, pickBuySoon, supplierLine } from './dashboard.rules';
 
 describe('nextDueDate — "163 units · next due 30 Sep" on 29 Sep', () => {
   const waiting = [
@@ -31,5 +31,15 @@ describe('pickBuySoon', () => {
       { itemCode: 'SC-WOD-08', reason: 'BELOW_REORDER' as const },
     ];
     expect(pickBuySoon(lines).map((l) => l.itemCode)).toEqual(['SC-WOD-08', 'VR-LAC-01', 'CH-DIN-01']);
+  });
+
+  it('says why an item is on the buy-soon card', () => {
+    expect(buySoonNote({ onHand: '5.0000', reorderLevel: '20.0000', reason: 'BELOW_REORDER', salesOrders: [] })).toBe('5 left · reorder 20');
+    expect(buySoonNote({ onHand: '0', reorderLevel: '10', reason: 'SALES_ORDER', salesOrders: [{ soNo: 'SO-0001', qty: '40.0000' }] })).toBe('0 left · SO-0001 needs 40');
+  });
+
+  it('names the supplier line on the recent orders card', () => {
+    expect(supplierLine({ supplierName: 'Perabot Kayu Timur', salesOrderNo: 'SO-0003', isMigrated: false })).toBe('Perabot Kayu Timur · for SO-0003');
+    expect(supplierLine({ supplierName: 'Cat Warna Sdn Bhd', salesOrderNo: null, isMigrated: true })).toBe('Cat Warna Sdn Bhd · migrated');
   });
 });

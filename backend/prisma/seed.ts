@@ -54,6 +54,8 @@ async function resetDemoData(tenantId: string): Promise<void> {
     prisma.sysLoginAttempt.deleteMany({ where }),
     prisma.sysSecurityEvent.deleteMany({ where }),
     prisma.sysAuthToken.deleteMany({ where }),
+    // Home dashboards: everyone starts from the module defaults.
+    prisma.sysUserDashboard.deleteMany({ where }),
 
     prisma.salReturn.deleteMany({ where }), // lines cascade
     prisma.salDebitNote.deleteMany({ where }),

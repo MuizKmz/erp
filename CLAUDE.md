@@ -778,3 +778,17 @@ Payloads carry the code, the snapshot after the change and the changed fields. N
 **A8 · Configuration journeys.** End-to-end tests for the Configuration journeys, the Configuration handbook, and a final review.
 
 **Definition of done for every Configuration step:** as for Core, plus: the Purchase, Sales and Core journeys pass in dev mode (and, from A7, with the scopes on); from A5, the every-endpoint test passes.
+
+---
+
+# Home dashboards (D1, after Phase 4)
+
+**Status:** D1 is done (19 Oct 2026, asked for by the user). The Purchase and Sales homes keep their four KPI cards; below them each person picks their own charts (*Add chart*, move, remove, *Clear*, 2 or 3 columns, *Put back the default charts*), saved on the server so they follow the person to any computer. SRS RPT-035 to RPT-039.
+
+- **Platform, no business rules:** `platform/indicators/` holds the `IndicatorRegistry` (each module registers one board of indicators at start-up, the way listeners register with `OutboxConsumers`), the layout rules (`dashboard.rules.ts`: 2 or 3 columns, at most 12 charts, each once, only the board's own) and `DashboardBoardsService` (view, save, reset). Layouts live in `sys_user_dashboard`, one row per person and board; no row means the module's default charts. A layout is a personal preference: no activity line and no event.
+- **Modules own their charts:** `purchase/dashboard/purchase.indicators.ts` and `sales/dashboard/sales.indicators.ts`. An indicator reads only its own module's tables and is calculated inside the request, so the data scopes apply (an agent's charts show only their own customers). A chart that fails shows its own message; the others still load.
+- **API:** `GET`, `PUT { cols, cards }` and `DELETE /api/v1/{purchase|sales}/dashboard/board`, under the module's view permission. Every answer carries the cards already calculated, plus the catalogue for *Add chart*.
+- **Frontend:** `components/erp/DashboardBoard.vue` (toolbar, KPI slot, grid, *Add chart* dialog) and `IndicatorCard.vue` (table, list, bars, monthly columns), drawn with plain HTML and CSS: no chart library.
+- **Defaults:** each home opens as it did before D1. Sales: recent orders, waiting for your approval, ordered by agent. Purchase: recent orders, buy soon, committed spend by supplier.
+- **Tests:** `test/dashboards.e2e-spec.ts` checks the charts against the screens and reports (September RM 274,098.00 ordered, balance due RM 84,640.00), the layout rules and the scopes.
+- **Later (proposed, not started):** the five Sales report tabs that still show a placeholder, and Purchase reports; a launcher *My dashboard* across modules once Finance exists. The Core and Configuration homes keep their fixed cards.

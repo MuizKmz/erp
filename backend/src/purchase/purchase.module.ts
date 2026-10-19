@@ -13,6 +13,7 @@ import { CancelOrdersQuery } from './cancel-orders/cancel-orders.query';
 import { CancelOrdersService } from './cancel-orders/cancel-orders.service';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardService } from './dashboard/dashboard.service';
+import { PurchaseIndicators } from './dashboard/purchase.indicators';
 import { DebitNotesController } from './debit-notes/debit-notes.controller';
 import { DebitNotesQuery } from './debit-notes/debit-notes.query';
 import { DebitNotesService } from './debit-notes/debit-notes.service';
@@ -60,6 +61,7 @@ import { PurchaseUsageProvider } from './usage/purchase-usage.provider';
   providers: [
     DemandService,
     DashboardService,
+    PurchaseIndicators,
     PurchaseSettingsService,
     PurchaseMailService,
     LinkedDocsService,

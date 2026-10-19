@@ -37,6 +37,7 @@ import { SalesEnquiriesController } from './enquiries/enquiries.controller';
 import { EnquiriesQuery } from './enquiries/enquiries.query';
 import { EnquiriesService } from './enquiries/enquiries.service';
 import { SalesDashboardService } from './dashboard/dashboard.service';
+import { SalesIndicators } from './dashboard/sales.indicators';
 import { SalesLookupsController } from './lookups/lookups.controller';
 import { SalesOrdersController } from './orders/orders.controller';
 import { SalesOrderFlowQuery } from './orders/order-flow.query';
@@ -63,6 +64,7 @@ import { SalesMailService } from './shared/sales-mail.service';
   providers: [
     SalesBuyToOrderListener,
     SalesDashboardService,
+    SalesIndicators,
     SalesApprovalsInboxService,
     ReceivablesService,
     CreditService,
