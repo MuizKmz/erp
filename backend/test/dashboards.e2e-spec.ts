@@ -125,13 +125,21 @@ describe('Home dashboards (end to end)', () => {
     const b = await api.get<Board>('purchase/dashboard/board', 'LMY');
     expect(b.cards.map((c) => c.key)).toEqual(['purchase.recent_orders', 'purchase.buy_soon', 'purchase.committed_by_supplier']);
     const spend = card(b, 'purchase.committed_by_supplier');
-    // Released, partly received and done orders this month, migrated ones included (as the Purchase home always counted;
-    // the PurHome mockup left the migrated orders out).
-    expect(bars(spend)).toEqual(['Mesin Jahit Pro 25872.00', 'Cat Warna 13654.00', 'Kilang Kain Jaya 7040.00', 'Tekstil Utara 1100.00', 'Hardware Mart Klang 648.00']);
+    // As PurHome: orders released this month (PO-0002; PO-0001 and PO-0004), the migrated ones left out.
+    expect(bars(spend)).toEqual(['Mesin Jahit Pro 25000.00', 'Kilang Kain Jaya 7040.00']);
     expect(spend.note).toBe('Released orders only. PO-0003 (RM 46,200.00) counts once approved.');
     const buy = card(b, 'purchase.buy_soon').data.items as { title: string; aside: string }[];
-    // Below reorder level first, by code (pickBuySoon), as the Purchase home has always listed them.
-    expect(buy.map((i) => `${i.title.split(' · ')[0]} ${i.aside}`)).toEqual(['SC-WOD-08 5 left · reorder 20', 'TB-DIN-06 4 left · reorder 5', 'VR-LAC-01 3 left · reorder 10']);
+    // As PurHome: the three closest to running out, below reorder level first. TB-DIN-06 (4 of 5) can wait.
+    expect(buy.map((i) => `${i.title.split(' · ')[0]} ${i.aside}`)).toEqual(['SC-WOD-08 5 left · reorder 20', 'VR-LAC-01 3 left · reorder 10', 'CH-DIN-01 0 left · SO-0001 needs 40']);
+
+    // PurHome's third bar is PO-0005, a draft in the seed: released (Purchase handbook, journey C step 2a), it joins.
+    const po5 = await api.get<{ id: string; version: number }>(`purchase/orders/${await api.idOf('purchase/orders', 'PO-0005', 'LMY')}`, 'LMY');
+    expect((await api.call<{ status: string }>('POST', `purchase/orders/${po5.id}/release`, 'LMY', { version: po5.version })).body.status).toBe('RELEASED');
+    expect(bars(card(await api.get<Board>('purchase/dashboard/board', 'LMY'), 'purchase.committed_by_supplier'))).toEqual([
+      'Mesin Jahit Pro 25000.00',
+      'Kilang Kain Jaya 7040.00',
+      'Tekstil Utara 1540.00',
+    ]);
 
     const more = await api.call<Board>('PUT', 'purchase/dashboard/board', 'LMY', { cols: 2, cards: ['purchase.payables_aging', 'purchase.orders_by_status'] });
     const owed = card(more.body, 'purchase.payables_aging');

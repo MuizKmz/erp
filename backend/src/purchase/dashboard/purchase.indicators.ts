@@ -68,7 +68,7 @@ export class PurchaseIndicators implements OnModuleInit {
           compute: (ctx) => this.buySoon(ctx),
         },
         {
-          key: 'purchase.committed_by_supplier', title: 'Committed spend by supplier', description: 'Released purchase orders this month, by supplier.',
+          key: 'purchase.committed_by_supplier', title: 'Committed spend by supplier', description: 'Purchase orders released this month, by supplier.',
           kind: 'bars', permission: view, empty: 'No orders released this month yet.',
           compute: (ctx) => this.committedBySupplier(ctx),
         },
@@ -101,10 +101,13 @@ export class PurchaseIndicators implements OnModuleInit {
     };
   }
 
-  /** Released orders dated this month. */
+  /**
+   * Released orders dated this month, as PurHome counts committed spend: orders brought over from the old system are
+   * left out, like Sales' charts of the month (the six-month chart shows them, and says so).
+   */
   private committedThisMonth(ctx: RequestContext) {
     const month = monthRange(this.clock.today());
-    return { month, where: { tenantId: ctx.tenantId, status: { in: [...COMMITTED] }, docDate: { gte: month.from, lte: month.to } } };
+    return { month, where: { tenantId: ctx.tenantId, isMigrated: false, status: { in: [...COMMITTED] }, docDate: { gte: month.from, lte: month.to } } };
   }
 
   private async recentOrders(ctx: RequestContext): Promise<IndicatorResult> {

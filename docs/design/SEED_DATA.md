@@ -118,6 +118,10 @@ Stock on hand comes from a read-only stub (`inv_stock_snapshot`) until the Inven
 | PO-L-0870 | 15 Sep | S-0034 | FB-GRY-02 × 25 @ 40.00 | 1,100.00 | 25/25 | Done |
 | PO-L-0861 | 10 Sep | S-0009 | HW-HNG-02 × 30 @ 21.60 (EXEMPT) | 648.00 | 20/30 | Partially received; balance being cancelled |
 
+**Purchase home on 29 Sep (P01)**, as `PurHome.html` (aligned 19 Oct 2026):
+- *Buy soon*: SC-WOD-08 (5 left · reorder 20), VR-LAC-01 (3 left · reorder 10), CH-DIN-01 (0 left · SO-0001 needs 40). The card takes the three items closest to running out (on hand against the reorder level plus open sales orders) and lists the ones below reorder level first. TB-DIN-06 (4 left · reorder 5) needs buying too, but can wait.
+- *Committed spend by supplier · September*: Mesin Jahit Pro RM 25,000 (PO-0002) and Kilang Kain Jaya RM 7,040 (PO-0001, PO-0004): orders released this month, without the migrated ones. The mockup's third bar, Tekstil Utara RM 1,540, is PO-0005, a draft in this seed; it appears once PO-0005 is released (Purchase handbook, journey C step 2a). The *Spend by month* chart still counts the migrated orders and says so in its note, like Sales by month.
+
 **Goods receipts**: GRN-0003 draft (29 Sep, PO-L-0879, DO CW-DO-2241) · GRN-0002 (26 Sep, PO-0002, MJP-DO-0930, Hafiz) · GRN-0001 (main case) · GRN-L-0410 (20 Sep, PO-L-0877, 12/12) · GRN-L-0406 (17 Sep, PO-L-0861, 20/30) · GRN-L-0398 (15 Sep, PO-L-0870, 25/25).
 
 **Purchase invoices**: PI-0003 (29 Sep, TUE-INV-3310, PO-L-0870, 1,100.00, To match) · PI-0002 (28 Sep, MJP-INV-2291, PO-0002, 25,800.00 = price +3.2% because freight added; Pending approval with Ahmad Zaki) · PI-0001 (main case) · PI-L-0321 (22 Sep, HMK-INV-7702, PO-L-0861, 648.00, Rejected: billed 30 received 20) · PI-L-0318 (20 Sep, CW-INV-8812, PO-L-0877, 1,254.00, Approved).

@@ -1,6 +1,7 @@
 /**
  * Small decisions behind the Purchase home cards (PurHome.html).
  */
+import type { Prisma } from '@prisma/client';
 import { dec } from '../../platform/http/decimal';
 
 export interface WaitingOrder {
@@ -26,12 +27,33 @@ export function nextDueDate(orders: WaitingOrder[], today: string): string | nul
 export interface BuySoonCandidate {
   itemCode: string;
   reason: 'BELOW_REORDER' | 'SALES_ORDER';
+  onHand: string;
+  reorderLevel: string | null;
+  /** Open sales-order quantity waiting for the item. */
+  salesNeed: string;
 }
 
-/** "Buy soon": items below reorder first (they run out on their own), then sales-order needs; by code. */
+/**
+ * How much of what is needed is on the shelf: on hand ÷ (reorder level + open sales orders). 0 means nothing is left
+ * for it; the lower, the sooner it runs out.
+ */
+export function stockCover(c: BuySoonCandidate): Prisma.Decimal {
+  const need = dec(c.reorderLevel ?? 0).add(dec(c.salesNeed));
+  return need.lte(0) ? dec(0) : dec(c.onHand).div(need);
+}
+
+/**
+ * "Buy soon" (PurHome): the three items closest to running out, so a sales order waiting on an empty shelf is never
+ * pushed off the card by an item one below its reorder level. Listed as the card reads: below reorder level first,
+ * then sales-order needs, by code.
+ */
 export function pickBuySoon<T extends BuySoonCandidate>(lines: T[], limit = 3): T[] {
+  const byCode = (a: T, b: T) => a.itemCode.localeCompare(b.itemCode);
   const rank = (l: T) => (l.reason === 'BELOW_REORDER' ? 0 : 1);
-  return [...lines].sort((a, b) => rank(a) - rank(b) || a.itemCode.localeCompare(b.itemCode)).slice(0, limit);
+  return [...lines]
+    .sort((a, b) => stockCover(a).cmp(stockCover(b)) || byCode(a, b))
+    .slice(0, limit)
+    .sort((a, b) => rank(a) - rank(b) || byCode(a, b));
 }
 
 /** A quantity as people read it: "5", "12.5". */
