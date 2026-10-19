@@ -633,6 +633,15 @@ Everything above still applies: stack, database and API conventions, the working
 - Branch statutory numbers for payroll (employer, EPF, SOCSO), with payroll.
 - Masking sensitive personal fields (FR-SEC-042) and payroll data rules (FR-SEC-040, 041), with payroll.
 
+## Noted for later: showing branch and company (user, 19 Oct 2026)
+
+Today the Purchase, Sales and Core homes and lists count **every branch the user works in, added together** (the data scope, A7). The top-bar branch only stamps new documents; it filters nothing. Shared master data (items, suppliers, price lists, tax codes, units, warehouses) is the same for every branch on purpose. Left for later, by the user's choice:
+
+1. **Home pages:** say which branches the numbers cover ("Showing: HQ, Penang") and offer a branch picker limited to the user's own branches.
+2. **Lists:** the same Branch filter and column on every document list (some lack it today, e.g. goods receipts, purchase invoices, returns, deliveries).
+3. **Documents:** show the issuing branch on the form header and the A4 printout.
+4. **Company:** only once there is a second company or Finance: books per company (ADR-19), the seller's legal name, TIN and SST numbers on printed invoices and e-Invoices, and reports grouped by company. Not on Purchase, Sales or Core screens while there is one company.
+
 ## Must-read for Configuration
 
 - SRS §5 *User Roles, Permissions and Access Control*, §6.1 *Platform and Administration*, §13.4 *Security*, §13.5 *Auditability*.
