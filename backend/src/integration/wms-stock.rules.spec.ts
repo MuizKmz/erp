@@ -10,9 +10,9 @@ const AS_OF = '2026-11-05T00:00:00.000Z';
 describe('levelsFromTags', () => {
   it('counts one unit per tag, by item and warehouse', () => {
     expect(levelsFromTags([tag('ITEM-A', 'WH-002'), tag('ITEM-A', 'WH-001'), tag('ITEM-A', 'WH-001'), tag('ITEM-B', 'WH-001')], AS_OF)).toEqual([
-      { itemCode: 'ITEM-B', warehouseCode: 'WH-001', onHand: '1.0000', usedLast30Days: '0.0000', asOf: AS_OF },
       { itemCode: 'ITEM-A', warehouseCode: 'WH-001', onHand: '2.0000', usedLast30Days: '0.0000', asOf: AS_OF },
       { itemCode: 'ITEM-A', warehouseCode: 'WH-002', onHand: '1.0000', usedLast30Days: '0.0000', asOf: AS_OF },
+      { itemCode: 'ITEM-B', warehouseCode: 'WH-001', onHand: '1.0000', usedLast30Days: '0.0000', asOf: AS_OF },
     ]);
   });
 
