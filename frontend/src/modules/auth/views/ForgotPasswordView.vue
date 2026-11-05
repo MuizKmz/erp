@@ -9,7 +9,7 @@ import AuthShell from '../AuthShell.vue'
 
 /** Forgot password (FR-SEC-063): a single-use link by email. The answer is the same whether or not the account exists. */
 const session = useSession()
-const tenantName = computed(() => session.state.tenantName || 'CLB Groups')
+const tenantName = computed(() => session.state.tenantName)
 
 const identifier = ref('')
 const sent = ref('')
@@ -33,7 +33,7 @@ async function submit() {
   <AuthShell>
     <div>
       <h1 class="m-0 text-xl font-bold">Forgot password</h1>
-      <p class="mt-1 mb-0 text-[13px] text-erp-muted">{{ tenantName }} · Zora Pro ERP</p>
+      <p class="mt-1 mb-0 text-[13px] text-erp-muted"><template v-if="tenantName">{{ tenantName }} · </template>Zora Pro ERP</p>
     </div>
     <template v-if="sent">
       <NoticeBanner kind="info">{{ sent }}</NoticeBanner>

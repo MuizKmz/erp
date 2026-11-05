@@ -70,7 +70,7 @@ const year = computed(() => (today.value ? today.value.slice(0, 4) : ''))
 
     <div class="px-4 pb-3 md:px-6">
       <footer class="flex h-11 items-center justify-between rounded-2xl border border-erp-border bg-erp-card px-5 text-xs text-erp-muted shadow-sm">
-        <span class="font-semibold text-erp-text">Zora Pro ERP · {{ state.tenantName || 'CLB Groups' }}</span>
+        <span class="font-semibold text-erp-text">Zora Pro ERP<template v-if="state.tenantName"> · {{ state.tenantName }}</template></span>
         <span>© {{ year }} All rights reserved.</span>
       </footer>
     </div>

@@ -9,6 +9,9 @@ coverage/
 .env.*
 !.env.example
 
+# a real client's install file (prisma/client.example.json shows the shape)
+backend/prisma/client.json
+
 # uploaded files (local attachment storage)
 backend/uploads/
 

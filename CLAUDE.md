@@ -811,3 +811,21 @@ Payloads carry the code, the snapshot after the change and the changed fields. N
 - **Backend:** `sales/reports/`: one query and one pure rules file per report (+ specs), and `report-filters.ts` for the shared filter row. `GET /api/v1/sales/reports/{by-customer|by-item|open-orders|quotation-conversion|customer-aging|invoice-register|e-invoice-status}` under `sales.view`. Reports read inside the person's request, so the data scopes apply (RPT-020).
 - **Frontend:** one view per tab, built from shared pieces: `components/erp/FilterSelect`, `ReportActions` and `BarRows`, `composables/useReport.ts` (filters in the URL) and `utils/csv.ts` (Export to Excel with numbers kept as numbers, RPT-025). Sales by customer uses them too; its chart rows are back to the mockup's 190px label, bar, 110px value.
 - **Tests:** `test/sales-reports.e2e-spec.ts` pins every tab's seed numbers (and, once CO-0002 is released, Sales by customer matches its mockup); `test/scope.e2e-spec.ts` checks all seven reports against two agents (RPT-020). The Sales handbook walks them as journey L. The seed's answers are in `SALES_SEED_DATA.md` → *Reports (S05) on 29 Sep*.
+
+---
+
+# Installing a client
+
+**Status:** built on 5 Nov 2026 (the user chose system items only). `prisma db seed` is the demo only: it wipes documents and creates users with a known password, so it refuses to run with `NODE_ENV=production` or on a database that holds a tenant other than `CLB`.
+
+```powershell
+npx prisma migrate deploy
+npm run client:install -- path\to\client.json   # prisma/client.example.json shows the file
+```
+
+- **Creates:** the tenant, company, first branch, starter roles, one administrator, document numbers from 1, sign-in, Purchase and Sales settings at the standard defaults, email templates, one enquiry type (General), and the walk-in customer C-CASH with its price list.
+- **Does not create:** items, suppliers, other customers, units, tax codes or warehouses. The client adds or imports them in Core. Approvers on Approval Rules start empty.
+- **Administrator:** has no password. The command prints a single-use set-password link (valid 72 hours), and two-factor is set up at first sign-in.
+- **Safe to run by mistake:** it deletes nothing and refuses a tenant code that already exists.
+- **Server settings:** `AUTH_MODE` has no default. With `NODE_ENV=production` the server only starts with `AUTH_MODE=jwt`, `COOKIE_SECURE=on`, its own `DEV_TENANT_CODE`, and `DEV_TODAY` and `DEMO_ADMIN_2FA_BYPASS_CODE` empty.
+- **Tests:** `test/install.e2e-spec.ts`, `src/config/env.spec.ts`.

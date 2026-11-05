@@ -21,7 +21,7 @@ export class TenantService {
     if (this.tenantId) return this.tenantId;
     const tenant = await this.prisma.sysTenant.findUnique({ where: { code: this.code }, select: { id: true, name: true } });
     if (!tenant) {
-      throw new HttpException({ code: 'NO_TENANT', message: `Tenant "${this.code}" is not set up. Run: npx prisma db seed` }, HttpStatus.SERVICE_UNAVAILABLE);
+      throw new HttpException({ code: 'NO_TENANT', message: `Tenant "${this.code}" is not set up. For a client run: npm run client:install. For the demo run: npx prisma db seed` }, HttpStatus.SERVICE_UNAVAILABLE);
     }
     this.tenantId = tenant.id;
     this.tenantName = tenant.name;

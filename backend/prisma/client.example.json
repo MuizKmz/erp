@@ -1,0 +1,6 @@
+{
+  "tenant": { "code": "ACME", "name": "Acme Trading" },
+  "company": { "code": "ACME", "legalName": "Acme Trading Sdn Bhd" },
+  "branch": { "code": "HQ", "name": "Head Office" },
+  "admin": { "code": "ADMIN1", "name": "First Administrator", "email": "admin@example.com" }
+}

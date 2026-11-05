@@ -7,7 +7,7 @@ import { Prisma } from '@prisma/client';
 import { day, kl, nameOf, type SeedCtx } from './util';
 
 /** Next numbers after seeding (SEED_DATA.md → Numbering). */
-const SEQUENCES = [
+export const SEQUENCES = [
   { docType: 'PRQ', name: 'Purchase request', next: 7 },
   { docType: 'RFQ', name: 'Request for quotation', next: 5 },
   { docType: 'PO', name: 'Purchase order', next: 7 },
@@ -19,7 +19,7 @@ const SEQUENCES = [
   { docType: 'PCO', name: 'Cancel order', next: 2 },
 ];
 
-const PO_TYPES = [
+export const PO_TYPES: { code: string; name: string; description: string; needsGoodsReceipt: boolean; linkedToSalesOrder?: boolean; sendsToAssetRegister?: boolean }[] = [
   { code: 'STD', name: 'Standard', description: 'Goods for stock or use. Needs a goods receipt before the invoice.', needsGoodsReceipt: true },
   { code: 'BTO', name: 'Buy to order', description: 'Raised from a sales order line. Keeps the link to the customer order.', needsGoodsReceipt: true, linkedToSalesOrder: true },
   { code: 'SVC', name: 'Service', description: 'Repairs, installation, transport. Billed against the PO with no goods receipt.', needsGoodsReceipt: false },

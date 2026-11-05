@@ -92,12 +92,14 @@ export class SettingsService {
 
     const people = [
       { role: PUR_ROLE.MANAGER, label: 'Purchasing Manager' },
-      { role: PUR_ROLE.BRANCH_MANAGER, label: 'Penang manager' },
+      { role: PUR_ROLE.BRANCH_MANAGER, label: 'Branch manager' },
       { role: PUR_ROLE.FINANCE_DIRECTOR, label: 'Finance Director' },
     ].map((p) => {
       const rule = rules.find((r) => r.approverRole === p.role) ?? rules.find((r) => r.secondApproverRole === p.role);
       const code = rule?.approverRole === p.role ? rule.approverCode : rule?.secondApproverCode;
-      return { label: p.label, name: userName(code ?? null) ?? '—' };
+      // "Penang manager": a branch manager is named after the branch their rule covers.
+      const label = p.role === PUR_ROLE.BRANCH_MANAGER && rule?.branchCode ? `${branchName(rule.branchCode)} manager` : p.label;
+      return { label, name: userName(code ?? null) ?? '—' };
     });
 
     return {
