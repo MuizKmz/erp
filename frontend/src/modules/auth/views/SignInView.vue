@@ -17,7 +17,7 @@ const errors = ref<Record<string, string>>({})
 const problem = ref('')
 const busy = ref(false)
 
-const tenantName = computed(() => session.state.tenantName || 'CLB Groups')
+const tenantName = computed(() => session.state.tenantName)
 const rules = computed(() => session.state.info?.signIn ?? { lockoutAttempts: 5, lockoutMinutes: 15, refreshDays: 30, idleMinutes: 30 })
 const next = computed(() => (typeof route.query.next === 'string' && route.query.next.startsWith('/') && !route.query.next.startsWith('/sign-in') ? route.query.next : '/'))
 
@@ -46,7 +46,7 @@ async function submit() {
   <AuthShell>
     <div>
       <h1 class="m-0 text-xl font-bold">Sign in</h1>
-      <p class="mt-1 mb-0 text-[13px] text-erp-muted">{{ tenantName }} · Zora Pro ERP</p>
+      <p class="mt-1 mb-0 text-[13px] text-erp-muted"><template v-if="tenantName">{{ tenantName }} · </template>Zora Pro ERP</p>
     </div>
 
     <template v-if="!session.isJwt.value">

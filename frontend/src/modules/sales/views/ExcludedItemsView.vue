@@ -44,7 +44,7 @@ const form = reactive({ item: null as ItemOption | null, branchCode: '', reason:
 const errors = ref<Record<string, string>>({})
 const saving = ref(false)
 onMounted(() => {
-  form.branchCode = user.value?.branchCodes.includes('PNG') ? 'PNG' : (user.value?.branchCodes[0] ?? '')
+  form.branchCode = user.value?.branchCodes[0] ?? ''
   form.fromDate = today.value
 })
 const searchItems = async (q: string): Promise<ItemOption[]> => (await salesLookupsApi.items({ q, sellableOnly: 'true' })).items.map((i) => ({ code: i.code, name: i.name }))

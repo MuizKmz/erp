@@ -47,8 +47,9 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     return '';
   };
 
-  const authMode = str('AUTH_MODE', 'dev');
-  if (authMode !== 'dev' && authMode !== 'jwt') {
+  // No default: a server missing this setting must not fall back to dev mode, where no password is needed.
+  const authMode = str('AUTH_MODE');
+  if (authMode && authMode !== 'dev' && authMode !== 'jwt') {
     problems.push(`AUTH_MODE must be "dev" or "jwt" (got "${authMode}")`);
   }
   const jwtSecret = typeof raw.JWT_SECRET === 'string' && raw.JWT_SECRET.trim() !== '' ? raw.JWT_SECRET.trim() : null;
@@ -72,6 +73,15 @@ export function validateEnv(raw: Record<string, unknown>): Env {
   const devToday = typeof raw.DEV_TODAY === 'string' && raw.DEV_TODAY.trim() !== '' ? raw.DEV_TODAY.trim() : null;
   if (devToday && !/^\d{4}-\d{2}-\d{2}$/.test(devToday)) {
     problems.push(`DEV_TODAY must look like 2026-09-29 (got "${devToday}")`);
+  }
+
+  // A live server: sign-in on, HTTPS cookies, the real date, its own tenant, and no demo shortcuts.
+  if (raw.NODE_ENV === 'production') {
+    if (authMode !== 'jwt') problems.push('AUTH_MODE must be "jwt" when NODE_ENV=production');
+    if (cookieSecure !== 'on') problems.push('COOKIE_SECURE must be "on" when NODE_ENV=production');
+    if (devToday) problems.push('DEV_TODAY must be empty when NODE_ENV=production');
+    if (demoAdminBypassCode) problems.push('DEMO_ADMIN_2FA_BYPASS_CODE must be empty when NODE_ENV=production');
+    if (typeof raw.DEV_TENANT_CODE !== 'string' || !raw.DEV_TENANT_CODE.trim()) problems.push('DEV_TENANT_CODE must be set to the client\'s tenant when NODE_ENV=production');
   }
 
   const env: Env = {

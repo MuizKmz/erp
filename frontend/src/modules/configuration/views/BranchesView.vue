@@ -120,7 +120,7 @@ async function save() {
 }
 
 const addBranch = () => router.replace({ query: { new: '1', company: form.legalEntityId || undefined } })
-const tenantName = computed(() => session.state.tenantName || 'CLB Groups')
+const tenantName = computed(() => session.state.tenantName || 'the company')
 </script>
 
 <template>

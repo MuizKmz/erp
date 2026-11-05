@@ -6,7 +6,7 @@
 import { Prisma } from '@prisma/client';
 import { day, kl, nameOf, type SeedCtx } from './util';
 
-const SEQUENCES = [
+export const SEQUENCES = [
   { docType: 'EQ', name: 'Enquiry', prefix: 'EQ-', format: 'EQ-{YYMM}-{####}', resetEvery: 'MONTH', periodKey: '2609', next: 11, perBranch: false, print: 'Standard' },
   { docType: 'QT', name: 'Quotation', prefix: 'QT-', format: null, resetEvery: 'NEVER', periodKey: null, next: 13, perBranch: false, print: 'With photos' },
   { docType: 'SO', name: 'Sales order', prefix: 'SO-', format: null, resetEvery: 'NEVER', periodKey: null, next: 9, perBranch: false, print: 'Standard' },
@@ -19,7 +19,7 @@ const SEQUENCES = [
   { docType: 'CO', name: 'Cancel order', prefix: 'CO-', format: null, resetEvery: 'NEVER', periodKey: null, next: 3, perBranch: false, print: 'Standard' },
 ];
 
-const CREDIT_RULES = [
+export const CREDIT_RULES = [
   { docType: 'QUOTATION', overCredit: 'WARN', overOverdue: 'WARN', approver: null },
   { docType: 'SALES_ORDER', overCredit: 'APPROVAL', overOverdue: 'APPROVAL', approver: 'SALES_MANAGER' },
   { docType: 'DELIVERY', overCredit: 'WARN', overOverdue: 'APPROVAL', approver: 'SALES_MANAGER' },

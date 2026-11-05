@@ -185,7 +185,19 @@ async function printCounts(): Promise<void> {
   console.table(counts);
 }
 
+/** The demo seed wipes documents and creates users with a known password, so it never runs on a client's database. */
+async function refuseOnClientDatabase(): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('The demo seed does not run with NODE_ENV=production. To set up a client: npm run client:install');
+  }
+  const others = await prisma.sysTenant.findMany({ where: { code: { not: 'CLB' } }, select: { code: true } });
+  if (others.length) {
+    throw new Error(`This database holds a client (${others.map((t) => t.code).join(', ')}), so the demo seed does not run here. Nothing was changed.`);
+  }
+}
+
 async function main(): Promise<void> {
+  await refuseOnClientDatabase();
   const tenant = await prisma.sysTenant.upsert({
     where: { code: 'CLB' },
     update: { name: 'CLB Groups' },
