@@ -160,7 +160,7 @@ export class ReturnsQuery {
         byCreditNote: decided.filter((r) => r.status === 'SETTLED' && r.settleBy === 'CREDIT_NOTE').length,
         of: decided.length,
       },
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
     };
   }
 
@@ -215,7 +215,7 @@ export class ReturnsQuery {
         })),
       originals: await this.originals(ctx, grn.id, grn.poId),
       taxNames: Object.fromEntries((await this.masterData.listTaxCodes(ctx.tenantId)).map((t) => [t.code, t.name])),
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
     };
   }
 
@@ -304,7 +304,7 @@ export class ReturnsQuery {
       taxNames: Object.fromEntries(taxes.map((t) => [t.code, t.name])),
       attachments: files.map((f) => ({ id: f.id, fileName: f.fileName, mimeType: f.mimeType, kind: f.kind, downloadUrl: f.downloadUrl })),
       originals,
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
       links,
       activity,
       allowedActions: this.actions(ctx, row),

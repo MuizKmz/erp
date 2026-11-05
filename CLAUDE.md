@@ -549,6 +549,7 @@ What the contract and SRS need that the `mdm_` tables lack today:
     - *Check* saves nothing.
     - *Load* saves each passing row in its own transaction, through the same service as the screen.
     - A known code updates that record; an empty code adds one with the next number.
+    - *Keep the codes in this file* (customers and suppliers, approved by the user on 5 Nov 2026): a new code adds a record with that code, for records coming from another system. A code that looks like a Core number (`C-0005`, `S-0005`) is refused. Records added on screen still get the next number.
     - Rows with a problem are returned as a CSV.
 13. **Audit:** every save writes `sys_activity` with the changed fields, old and new values.
 
@@ -829,3 +830,14 @@ npm run client:install -- path\to\client.json   # prisma/client.example.json sho
 - **Safe to run by mistake:** it deletes nothing and refuses a tenant code that already exists.
 - **Server settings:** `AUTH_MODE` has no default. With `NODE_ENV=production` the server only starts with `AUTH_MODE=jwt`, `COOKIE_SECURE=on`, its own `DEV_TENANT_CODE`, and `DEV_TODAY` and `DEMO_ADMIN_2FA_BYPASS_CODE` empty.
 - **Tests:** `test/install.e2e-spec.ts`, `src/config/env.spec.ts`.
+
+---
+
+# Live stock from a WMS
+
+**Status:** read-only stock figures, built on 5 Nov 2026. Goods in and out are not connected yet. Client data never goes in this repo.
+
+- **Switch:** set `WMS_URL`, `WMS_EMAIL` and `WMS_PASSWORD`. Without them the server keeps the `inv_stock_snapshot` stub, so other clients and the demo are unchanged.
+- **How:** `integration/wms-stock.adapter.ts` implements `StockPort`. One tag with status `INBOUND` is one unit on hand, and a WMS SKU is the ERP item code. Tags are counted because the WMS `inventory` table is per product only and can count more than is on the shelves. Answers are reused for 15 seconds. If the WMS cannot be reached, screens get the last figures and nobody is blocked.
+- **Banners:** `StockPort.connected` means the figures are live. `movementsConnected` means stock moves reach the warehouse, and it stays false, so the amber "queued" banners on receipts, deliveries, returns and cash documents stay true.
+- **Not yet:** `usedLast30Days` is 0, `mdm_location` is not filled from the WMS, and the WMS login is an ordinary user until service accounts exist (FR-SEC-016).

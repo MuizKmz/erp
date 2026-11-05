@@ -88,15 +88,16 @@ export const coreWarehousesApi = {
 }
 
 /** C14: Check saves nothing; Load saves the rows that pass. The file goes up again with each, so nothing waits on the server. */
-function importForm(kind: ImportKind, file: File): FormData {
+function importForm(kind: ImportKind, file: File, keepCodes: boolean): FormData {
   const form = new FormData()
   form.append('kind', kind)
+  form.append('keepCodes', String(keepCodes))
   form.append('file', file)
   return form
 }
 
 export const coreImportsApi = {
   kinds: () => api<{ kinds: ImportKindInfo[] }>('/core/imports/kinds'),
-  check: (kind: ImportKind, file: File) => api<ImportAnswer>('/core/imports/check', { method: 'POST', body: importForm(kind, file) }),
-  load: (kind: ImportKind, file: File) => api<ImportAnswer>('/core/imports/load', { method: 'POST', body: importForm(kind, file) }),
+  check: (kind: ImportKind, file: File, keepCodes = false) => api<ImportAnswer>('/core/imports/check', { method: 'POST', body: importForm(kind, file, keepCodes) }),
+  load: (kind: ImportKind, file: File, keepCodes = false) => api<ImportAnswer>('/core/imports/load', { method: 'POST', body: importForm(kind, file, keepCodes) }),
 }

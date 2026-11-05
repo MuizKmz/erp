@@ -1,6 +1,15 @@
-import { checkSummary, duplicateOf, loadSummary, matchColumns, parseAmount, parseCsv, parseDate, parseYesNo, updateText } from './imports.rules';
+import { checkSummary, duplicateOf, keptCodeProblem, loadSummary, matchColumns, parseAmount, parseCsv, parseDate, parseYesNo, updateText } from './imports.rules';
 
 describe('import rules', () => {
+  it('keeps a code from another system, but never one that looks like a Core number', () => {
+    expect(keptCodeProblem('SUP-001', 'S-')).toBeNull();
+    expect(keptCodeProblem('CUS-001', 'C-')).toBeNull();
+    expect(keptCodeProblem('C-CASH2', 'C-')).toBeNull();
+    expect(keptCodeProblem('S-0005', 'S-')).toContain('numbers are given out by Core');
+    expect(keptCodeProblem('BAD CODE', 'C-')).toContain('capitals, digits and dashes');
+    expect(keptCodeProblem('A'.repeat(21), 'C-')).toContain('up to 20');
+  });
+
   it('reads CSV with quotes, commas, line breaks, CRLF and a byte-order mark', () => {
     const text = '﻿Code,Name,Address\r\nC-0012,"Hotel Seri Bayu Sdn Bhd","Jalan 1, Shah Alam"\r\n,"Kedai ""Baru""","Line one\nline two"\r\n\r\n';
     expect(parseCsv(text)).toEqual([

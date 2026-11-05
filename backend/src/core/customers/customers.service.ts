@@ -74,8 +74,11 @@ export class CustomersService {
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
-  /** A new customer gets the next C-#### number. With an enquiry number, Sales links that enquiry to it (decision 7). */
-  async create(ctx: RequestContext, dto: CreateCustomerDto) {
+  /**
+   * A new customer gets the next C-#### number, or `keptCode` when the import brings it from another system.
+   * With an enquiry number, Sales links that enquiry to it (decision 7).
+   */
+  async create(ctx: RequestContext, dto: CreateCustomerDto, keptCode?: string) {
     const tenantId = ctx.tenantId;
     const preview = await this.preview(ctx, dto, null);
     if (preview.errors.length) throw new ValidationFailedError(preview.errors);
@@ -83,7 +86,7 @@ export class CustomersService {
     const data = this.data(dto);
     const status = dto.status ?? 'ACTIVE';
     const id = await this.prisma.$transaction(async (tx) => {
-      const code = await this.numbering.next(tx, tenantId, CORE_DOC_TYPE.CUSTOMER);
+      const code = keptCode ?? (await this.numbering.next(tx, tenantId, CORE_DOC_TYPE.CUSTOMER));
       const row = await tx.mdmCustomer.create({
         data: { tenantId, code, ...data, cameFromEnquiry: dto.cameFromEnquiry ?? null, status, createdBy: ctx.user.code, updatedBy: ctx.user.code },
       });

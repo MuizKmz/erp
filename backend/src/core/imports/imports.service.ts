@@ -6,7 +6,7 @@ import { formatDocNo } from '../../platform/numbering/numbering.rules';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { IMPORT_KIND_DEFINITIONS } from './import-kinds';
 import { CustomerImporter } from './importers/customer.importer';
-import { problemOf, type Importer, type PlannedRow } from './importers/importer';
+import { problemOf, type Importer, type ImportOptions, type PlannedRow } from './importers/importer';
 import { ItemImporter } from './importers/item.importer';
 import { PriceImporter } from './importers/price.importer';
 import { SupplierImporter } from './importers/supplier.importer';
@@ -43,16 +43,16 @@ export class ImportsService {
     return Object.values(IMPORT_KIND_DEFINITIONS).map((d) => ({ kind: d.kind, label: d.label, columns: d.columns.map((c) => c.header), display: d.display, note: d.note }));
   }
 
-  async check(ctx: RequestContext, kind: ImportKind, file: ImportFile | undefined) {
-    const read = await this.plan(ctx, kind, file);
+  async check(ctx: RequestContext, kind: ImportKind, file: ImportFile | undefined, options: ImportOptions = { keepCodes: false }) {
+    const read = await this.plan(ctx, kind, file, options);
     const counts = { ready: 0, unchanged: 0, problem: 0 };
     for (const p of read.planned) counts[p.status === 'problem' ? 'problem' : p.status === 'unchanged' ? 'unchanged' : 'ready']++;
     await this.previewCodes(ctx, read.importer, read.planned);
     return { ...this.answer(kind, file!, read), counts, summary: checkSummary(counts) };
   }
 
-  async load(ctx: RequestContext, kind: ImportKind, file: ImportFile | undefined) {
-    const read = await this.plan(ctx, kind, file);
+  async load(ctx: RequestContext, kind: ImportKind, file: ImportFile | undefined, options: ImportOptions = { keepCodes: false }) {
+    const read = await this.plan(ctx, kind, file, options);
     const counts = { added: 0, updated: 0, unchanged: 0, problem: 0 };
     const statuses: string[] = [];
     for (const p of read.planned) {
@@ -82,7 +82,7 @@ export class ImportsService {
   }
 
   /** Reads and checks the file; every row is planned against Core's records as they are now. */
-  private async plan(ctx: RequestContext, kind: ImportKind, file: ImportFile | undefined) {
+  private async plan(ctx: RequestContext, kind: ImportKind, file: ImportFile | undefined, options: ImportOptions) {
     const def = IMPORT_KIND_DEFINITIONS[kind];
     const importer = this.importers[kind];
     if (!this.permissions.has(ctx.user.roles, importer.permission)) throw new PermissionDeniedError(importer.permission);
@@ -97,7 +97,7 @@ export class ImportsService {
     if (!index.size) throw ValidationFailedError.field('file', `None of the columns are ones a ${def.label.toLowerCase()} import reads. Download the template to see them.`);
     if (missing.length) throw ValidationFailedError.field('file', `The file has no ${missing.join(', ')} column. Download the template to see the columns.`);
     const rows = lines.map((cells) => Object.fromEntries(def.columns.map((c) => [c.key, index.has(c.key) ? (cells[index.get(c.key)!] ?? '') : ''])));
-    const planned = await importer.plan(ctx, rows);
+    const planned = await importer.plan(ctx, rows, options);
     const notices = unused.length ? [`Columns a ${def.label.toLowerCase()} import does not read are left out: ${unused.join(', ')}.`] : [];
     return { def, importer, headers, lines, planned, notices };
   }

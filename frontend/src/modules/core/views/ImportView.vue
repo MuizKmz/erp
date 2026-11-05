@@ -15,6 +15,7 @@ const session = useSession()
 
 const kinds = ref<ImportKindInfo[]>([])
 const kind = ref<ImportKind>('customers')
+const keepCodes = ref(false)
 const file = ref<File | null>(null)
 const answer = ref<ImportAnswer | null>(null)
 const loaded = ref(false)
@@ -28,6 +29,7 @@ onMounted(async () => {
 
 const canImport = computed(() => session.can('core.import'))
 const current = computed(() => kinds.value.find((k) => k.kind === kind.value))
+const isParty = computed(() => kind.value === 'customers' || kind.value === 'suppliers')
 const ready = computed(() => (answer.value && !loaded.value ? (answer.value.counts.ready ?? 0) : 0))
 const problemRows = computed(() => answer.value?.problems.rows.length ?? 0)
 /** Step reached: 1 choose what, 2 file uploaded, 3 rows checked, 4 loaded. */
@@ -41,6 +43,10 @@ function reset() {
   fileError.value = ''
   if (input.value) input.value.value = ''
 }
+function changeKind() {
+  keepCodes.value = false
+  reset()
+}
 
 async function check(f: File) {
   file.value = f
@@ -49,7 +55,7 @@ async function check(f: File) {
   fileError.value = ''
   busy.value = 'check'
   try {
-    answer.value = await coreImportsApi.check(kind.value, f)
+    answer.value = await coreImportsApi.check(kind.value, f, keepCodes.value)
   } catch (error) {
     if (error instanceof ApiError) fileError.value = error.fieldErrors.file ?? error.message
   } finally {
@@ -66,7 +72,7 @@ async function load() {
   if (!file.value) return
   busy.value = 'load'
   try {
-    answer.value = await coreImportsApi.load(kind.value, file.value)
+    answer.value = await coreImportsApi.load(kind.value, file.value, keepCodes.value)
     loaded.value = true
     const saved = (answer.value.counts.added ?? 0) + (answer.value.counts.updated ?? 0)
     toast.add({ severity: saved ? 'success' : 'warn', summary: saved ? `${saved} row${saved === 1 ? '' : 's'} saved` : 'Nothing was saved', life: 3000 })
@@ -96,9 +102,12 @@ const summaryParts = computed(() => {
   return at < 0 ? { before: s, bold: '', after: '' } : { before: s.slice(0, at), bold: 'Load', after: s.slice(at + 4) }
 })
 /** Under the table: C14's words for customers and suppliers; items and prices say how their rows are matched. */
-const footNote = computed(() =>
-  kind.value === 'customers' || kind.value === 'suppliers' ? 'Codes decide: a known code updates that record, an empty code adds a new one with the next number.' : (current.value?.note ?? ''),
-)
+const footNote = computed(() => {
+  if (!isParty.value) return current.value?.note ?? ''
+  return keepCodes.value
+    ? 'Codes decide: a known code updates that record, a new code adds a record with that code, an empty code adds one with the next number.'
+    : 'Codes decide: a known code updates that record, an empty code adds a new one with the next number.'
+})
 const bannerKind = computed(() => (problemRows.value ? 'warning' : 'info'))
 const OK: ImportRowStatus[] = ['new', 'update', 'added', 'updated']
 const resultClass = (s: ImportRowStatus) =>
@@ -121,7 +130,7 @@ const resultClass = (s: ImportRowStatus) =>
     <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-[18px]">
       <label class="flex min-w-0 flex-col gap-1.5 text-xs font-medium text-erp-muted">
         What to import
-        <select v-model="kind" class="erp-input" :disabled="busy !== null" @change="reset">
+        <select v-model="kind" class="erp-input" :disabled="busy !== null" @change="changeKind">
           <option v-for="k in kinds" :key="k.kind" :value="k.kind">{{ k.label }}</option>
         </select>
       </label>
@@ -138,6 +147,10 @@ const resultClass = (s: ImportRowStatus) =>
       </div>
       <button type="button" class="erp-btn erp-btn-secondary" :disabled="!current" @click="downloadTemplate">Download the template</button>
     </div>
+    <label v-if="isParty && canImport" class="inline-flex items-center gap-2 text-[13px] text-erp-text">
+      <input v-model="keepCodes" type="checkbox" :disabled="busy !== null" @change="reset" />
+      Keep the codes in this file, for records coming from another system
+    </label>
     <span v-if="fileError" class="-mt-2 text-xs font-medium text-note-error-text" role="alert">{{ fileError }}</span>
     <span v-else-if="current && !answer" class="-mt-2 text-xs text-erp-muted">{{ current.note }}</span>
 

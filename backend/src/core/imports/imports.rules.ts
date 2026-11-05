@@ -74,6 +74,16 @@ export function matchColumns(headers: string[], columns: ImportColumn[], require
   return { index, unused, missing };
 }
 
+/**
+ * What is wrong with a code kept from another system, or null. It must not look like a number Core gives out itself
+ * (C-0005, S-0005), or a later new record would run into it.
+ */
+export function keptCodeProblem(code: string, numberPrefix: string): string | null {
+  if (!/^[A-Z0-9][A-Z0-9-]{0,19}$/.test(code)) return `${code} cannot be kept: use capitals, digits and dashes, up to 20 characters.`;
+  if (code.startsWith(numberPrefix) && /^\d+$/.test(code.slice(numberPrefix.length))) return `${code} cannot be kept: ${numberPrefix}numbers are given out by Core. Leave the code empty to get the next number.`;
+  return null;
+}
+
 /** Yes / No, as the template writes them; also true/false, y/n and 1/0. Empty → null; anything else → undefined. */
 export function parseYesNo(value: string): boolean | null | undefined {
   const v = value.trim().toLowerCase();
