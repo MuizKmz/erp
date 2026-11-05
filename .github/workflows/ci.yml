@@ -1,0 +1,75 @@
+# Checks every pushed branch. Require these two jobs on main (GitHub > Settings > Branches)
+# so a change can only reach main once they pass.
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only
+          MYSQL_DATABASE: zora_erp
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-only"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    env:
+      # A throwaway database inside this job. The end-to-end tests reset it with the demo seed.
+      DATABASE_URL: mysql://root:ci-only@127.0.0.1:3306/zora_erp
+      AUTH_MODE: dev
+      DEV_TODAY: '2026-09-29'
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run build
+      # Two workers: more than that can run out of memory on the larger suites.
+      - name: Unit tests
+        run: npx jest --maxWorkers=2 --workerIdleMemoryLimit=800MB
+      - run: npx prisma migrate deploy
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run type-check
+      - name: Lint
+        run: npx eslint . --max-warnings=0
+      - run: npm run build-only
