@@ -31,7 +31,16 @@ const DocumentTypes = () => import('./views/DocumentTypesView.vue')
 const EnquiryTypes = () => import('./views/EnquiryTypesView.vue')
 const ExcludedItems = () => import('./views/ExcludedItemsView.vue')
 const EmailTemplates = () => import('./views/EmailTemplatesView.vue')
-const SalesByCustomer = () => import('./views/SalesByCustomerView.vue')
+/** S05 · one view per report tab, keyed as SALES_REPORTS. */
+const REPORT_VIEWS: Record<(typeof SALES_REPORTS)[number]['key'], ScreenDef['component']> = {
+  'by-customer': () => import('./views/SalesByCustomerView.vue'),
+  'by-item': () => import('./views/SalesByItemView.vue'),
+  'open-orders': () => import('./views/OpenOrdersReportView.vue'),
+  'quotation-conversion': () => import('./views/QuotationConversionView.vue'),
+  'customer-aging': () => import('./views/CustomerAgingView.vue'),
+  'invoice-register': () => import('./views/InvoiceRegisterView.vue'),
+  'e-invoice-status': () => import('./views/EInvoiceStatusView.vue'),
+}
 
 type Group = 'transaction' | 'billing' | 'policies' | 'reports'
 
@@ -96,7 +105,7 @@ const SCREENS: ScreenDef[] = [
       item: `report-${r.key}`,
       step: 9,
       mockup: 'SalesReports.html',
-      ...(r.key === 'by-customer' && { component: SalesByCustomer }),
+      component: REPORT_VIEWS[r.key],
     }),
   ),
 ]

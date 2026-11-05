@@ -52,8 +52,14 @@ import type {
   QuotationInput,
   QuotationListItem,
   SalesByCustomerReport,
+  SalesByItemReport,
   SalesDashboard,
   SalesOrderFlow,
+  OpenOrdersReport,
+  QuotationConversionReport,
+  CustomerAgingReport,
+  InvoiceRegisterReport,
+  EInvoiceStatusReport,
 } from '../types'
 
 export const salesApi = {
@@ -234,8 +240,16 @@ export const salesSettingsApi = {
   sendTest: (key: string) => api<{ sentTo: string }>(`/sales/settings/email-templates/${key}/test`, { method: 'POST' }),
 }
 
+type ReportQuery = Record<string, string | undefined>
+
 export const salesReportsApi = {
   byCustomer: (query: { period?: string; branch?: string; agent?: string; group?: string }) => api<SalesByCustomerReport>('/sales/reports/by-customer', { query }),
+  byItem: (query: ReportQuery) => api<SalesByItemReport>('/sales/reports/by-item', { query }),
+  openOrders: (query: ReportQuery) => api<OpenOrdersReport>('/sales/reports/open-orders', { query }),
+  quotationConversion: (query: ReportQuery) => api<QuotationConversionReport>('/sales/reports/quotation-conversion', { query }),
+  customerAging: (query: ReportQuery) => api<CustomerAgingReport>('/sales/reports/customer-aging', { query }),
+  invoiceRegister: (query: ReportQuery) => api<InvoiceRegisterReport>('/sales/reports/invoice-register', { query }),
+  eInvoiceStatus: (query: ReportQuery) => api<EInvoiceStatusReport>('/sales/reports/e-invoice-status', { query }),
 }
 
 /** Dev only: stands in for Finance recording a receipt (fin_receipt_stub), so deposit flows can be tried. */

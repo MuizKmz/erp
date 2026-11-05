@@ -501,6 +501,16 @@ The SO-0002 panel shows:
 
 All are PENDING.
 
+### Reports (S05) on 29 Sep
+
+Only Sales by customer has a mockup. The other tabs show these answers from the seed (`test/sales-reports.e2e-spec.ts`):
+- **Sales by item:** RM 274,098.00 on 7 items in 8 orders, invoiced RM 32,890.00. Best seller CH-DIN-01, RM 102,135.00 (37.3%). Item groups: Seating 110,385.00, Sofas 76,945.00, Tables 49,808.00, Beds 36,960.00.
+- **Open orders:** 7 orders, RM 261,008.00 ordered (as S01); still to deliver RM 241,208.00 on 425 units; due within 14 days: SO-0001; waiting for approval: SO-0002 and SO-0008, RM 96,778.00. SO-0006's 15 chairs show as being cancelled by CO-0002 (draft).
+- **Quotation conversion, September:** 10 sent (RM 196,955.00); 5 turned into orders (50%; RM 152,350.00, 77% of value); 2 lost (QT-L-0099, QT-L-0101); 1 expired (QT-0005); 2 still open (QT-0004, which expires 2 Oct, and QT-0010 rev 1); on average 2.2 days to order. The 4 drafts are not counted.
+- **Customer aging:** RM 84,640.00 due on 14 invoices: not yet due 47,740.00, 1–30 days overdue 31,900.00, 61–90 days 5,000.00 (Delta's INV-L-0376). Overdue RM 36,900.00 across 5 customers.
+- **Invoice register, September:** 8 invoices RM 55,660.00 (6 from the old system), 1 debit note RM 180.00 (DN-L-0033), 2 credit notes RM 1,969.00 (SR-0001, SR-L-0019); net billed RM 53,871.00.
+- **e-Invoice status:** 4 waiting for LHDN (INV-0001, INV-0002, SR-0001, CS-0003; RM 32,285.00); September's consolidated e-Invoice: 37 cash sales, RM 17,600.00, due 7 Oct.
+
 ## Mockup conflicts (choice made; please confirm)
 
 | # | Where | Conflict | Choice |

@@ -98,6 +98,11 @@ export function formatMonthName(isoMonth: string): string {
   return new Intl.DateTimeFormat('en-GB', { month: 'long', timeZone: 'UTC' }).format(calendarDay(`${isoMonth.slice(0, 7)}-15`))
 }
 
+/** "2026-09" → "September 2026" (a report's period) */
+export function formatMonthYear(isoMonth: string): string {
+  return new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(calendarDay(`${isoMonth.slice(0, 7)}-15`))
+}
+
 /** A moment → "10:01 AM" in Malaysia time */
 export function formatTime(moment: Date | string): string {
   return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: BUSINESS_TIMEZONE })

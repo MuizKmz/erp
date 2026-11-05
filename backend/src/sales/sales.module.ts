@@ -18,6 +18,12 @@ import { SalesPoliciesService } from './settings/policies.service';
 import { SalesListsService } from './settings/lists.service';
 import { SalesReportsController } from './reports/reports.controller';
 import { SalesReportsQuery } from './reports/reports.query';
+import { CustomerAgingQuery } from './reports/aging.query';
+import { QuotationConversionQuery } from './reports/conversion.query';
+import { EInvoiceStatusQuery } from './reports/einvoice.query';
+import { OpenOrdersQuery } from './reports/open-orders.query';
+import { InvoiceRegisterQuery } from './reports/register.query';
+import { ReportFilters } from './reports/report-filters';
 import { CashSalesQuery } from './cash-sales/cash-sales.query';
 import { CashSalesService } from './cash-sales/cash-sales.service';
 import { DebitNotesQuery } from './debit-notes/debit-notes.query';
@@ -96,6 +102,12 @@ import { SalesMailService } from './shared/sales-mail.service';
     SalesPoliciesService,
     SalesListsService,
     SalesReportsQuery,
+    ReportFilters,
+    OpenOrdersQuery,
+    QuotationConversionQuery,
+    CustomerAgingQuery,
+    InvoiceRegisterQuery,
+    EInvoiceStatusQuery,
     // Tells Core where an item, customer, unit, tax code, price list or warehouse is used. Read only.
     SalesUsageProvider,
     // Links an enquiry's prospect to the customer Core creates from it (mdm.customer.created).

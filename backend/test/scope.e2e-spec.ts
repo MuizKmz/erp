@@ -145,4 +145,23 @@ describe('Data scopes (end to end)', () => {
     const mine = await api.get<{ kpis?: unknown }>('sales/dashboard', 'LWJ');
     expect(JSON.stringify(mine)).not.toEqual(JSON.stringify(all));
   });
+
+  it('keeps every Sales report to the person’s data scope (SRS RPT-020)', async () => {
+    const REPORTS = ['by-customer', 'by-item', 'open-orders', 'quotation-conversion', 'customer-aging', 'invoice-register', 'e-invoice-status'];
+    // Each agent's customers (C-0012 and C-0102 are Aina's, C-0031 is Lim Wei Jie's, the rest Faizal's).
+    const AINA = ['Hotel Seri Bayu', 'Villa Damai'];
+    const LIM = ['Kedai Perabot Maju'];
+    const FAIZAL = ['Syarikat Delta', 'Restoran Selera', 'Klinik Sihat'];
+    const leaks: string[] = [];
+    for (const report of REPORTS) {
+      const [fo, lwj, na] = await Promise.all(['FO', 'LWJ', 'NA'].map(async (u) => JSON.stringify(await api.get(`sales/reports/${report}`, u))));
+      for (const name of [...AINA, ...LIM]) if (fo.includes(name)) leaks.push(`${report}: Faizal sees ${name}`);
+      for (const name of [...AINA, ...FAIZAL]) if (lwj.includes(name)) leaks.push(`${report}: Lim Wei Jie sees ${name}`);
+      if (report !== 'by-item' && !AINA.some((n) => na.includes(n))) leaks.push(`${report}: the Sales Manager does not see Aina’s customers`);
+    }
+    expect(leaks).toEqual([]);
+    // Sales by item lists items, not customers: its totals are each agent's own orders.
+    const ordered = async (u: string) => (await api.get<{ kpis: { ordered: { amount: string } } }>('sales/reports/by-item', u)).kpis.ordered.amount;
+    expect([await ordered('NA'), await ordered('AR'), await ordered('LWJ'), await ordered('FO')]).toEqual(['274098.00', '134860.00', '113498.00', '25740.00']);
+  }, 120_000);
 });

@@ -26,17 +26,22 @@ export class ReceivablesService {
     const invoices = await this.prisma.salInvoice.findMany({
       where: { tenantId, status: 'RELEASED', ...(customerCodes && { customerCode: { in: customerCodes } }) },
     });
-    const receipts = await this.prisma.finReceiptStub.groupBy({
-      by: ['appliesToNo'],
-      where: { tenantId, appliesToType: 'INVOICE', appliesToNo: { in: invoices.map((v) => v.docNo) } },
-      _sum: { amount: true },
+    return (await this.withBalances(tenantId, invoices, today)).filter((x) => x.balance.gt(0));
+  }
+
+  /** The balance of each of these released invoices, paid ones included. */
+  async withBalances(tenantId: string, invoices: SalInvoice[], today: string): Promise<OpenInvoice[]> {
+    const receipts = invoices.length
+      ? await this.prisma.finReceiptStub.groupBy({
+          by: ['appliesToNo'],
+          where: { tenantId, appliesToType: 'INVOICE', appliesToNo: { in: invoices.map((v) => v.docNo) } },
+          _sum: { amount: true },
+        })
+      : [];
+    return invoices.map((invoice) => {
+      const paid = receipts.find((r) => r.appliesToNo === invoice.docNo)?._sum.amount ?? dec(0);
+      const balance = invoiceBalance({ total: invoice.total, debited: invoice.debitedAmount, credited: invoice.creditedAmount, deposit: invoice.depositApplied, paid });
+      return { invoice, paid: dec(paid), balance, overdue: Boolean(invoice.dueDate && iso(invoice.dueDate)! < today) };
     });
-    return invoices
-      .map((invoice) => {
-        const paid = receipts.find((r) => r.appliesToNo === invoice.docNo)?._sum.amount ?? dec(0);
-        const balance = invoiceBalance({ total: invoice.total, debited: invoice.debitedAmount, credited: invoice.creditedAmount, deposit: invoice.depositApplied, paid });
-        return { invoice, paid: dec(paid), balance, overdue: Boolean(invoice.dueDate && iso(invoice.dueDate)! < today) };
-      })
-      .filter((x) => x.balance.gt(0));
   }
 }

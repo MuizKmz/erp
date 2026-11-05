@@ -347,7 +347,7 @@ Purchase and Sales react to each other as **module listeners** (`OutboxConsumers
 - **Routes** carry `meta: { code: 'S11', title: 'Sales order', menuGroup: 'transaction' }` like Purchase.
 - **S04 Add item** is one dialog reused by quotation, sales order, invoice and cash sale. It shows the price list price, last price sold to this customer, stock at the branch, and greys out excluded and not-for-sale items with the reason.
 - **S20 Print preview** is an HTML A4 page. The browser's own print is fine; no PDF library.
-- **S05 Reports:** build *Sales by customer*. The other six report tabs show a placeholder until asked.
+- **S05 Reports:** all seven tabs are built: *Sales by customer* (S9) and, since 19 Oct 2026, the other six (see *Sales reports* at the end of this file).
 - **Banners:**
   - Inventory, Finance and LHDN not connected: amber, as in the mockups.
   - LHDN shows "e-Invoice: pending". Nothing is ever submitted in this phase.
@@ -791,4 +791,23 @@ Payloads carry the code, the snapshot after the change and the changed fields. N
 - **Frontend:** `components/erp/DashboardBoard.vue` (toolbar, KPI slot, grid, *Add chart* dialog) and `IndicatorCard.vue` (table, list, bars, monthly columns), drawn with plain HTML and CSS: no chart library.
 - **Defaults:** each home opens with the cards it had before D1. Sales: recent orders, waiting for your approval, ordered by agent. Purchase: recent orders, buy soon, committed spend by supplier; since 19 Oct the last two count as `PurHome.html` does (`SEED_DATA.md`, *Purchase home on 29 Sep*).
 - **Tests:** `test/dashboards.e2e-spec.ts` checks the charts against the screens and reports (September RM 274,098.00 ordered, balance due RM 84,640.00), the layout rules and the scopes.
-- **Later (proposed, not started):** the five Sales report tabs that still show a placeholder, and Purchase reports; a launcher *My dashboard* across modules once Finance exists. The Core and Configuration homes keep their fixed cards.
+- **Later (proposed, not started):** Purchase reports (the Sales reports are built, below); a launcher *My dashboard* across modules once Finance exists. The Core and Configuration homes keep their fixed cards.
+
+---
+
+# Sales reports (S05, after Phase 4)
+
+**Status:** done (19 Oct 2026, asked for by the user). The six S05 tabs that showed a placeholder are built beside *Sales by customer*. The mockup designs only Sales by customer, so the others follow its layout (title with Schedule email, PDF and Export to Excel; a filter row kept in the URL; four KPI cards; a chart and tables) and take their content from the SRS.
+
+| Tab | What it answers | Source |
+|---|---|---|
+| Sales by item | The orders behind Sales by customer, per item and unit (quantities only add up within one unit) and per item group | Legacy *Sales Summary By Item / Item Group* |
+| Open orders | Every order not finished, line by line: what is left to deliver and to invoice, its value, and what it waits for (approval, a draft cancel order, deposit, purchase, stock, ready, invoice), using the delivery waiting list's rules | RPT-024 |
+| Quotation conversion | Quotations sent in a month (latest revision; drafts left out; migrated ones in, as the Quotation list counts them) and how they ended: turned into order, still open, expired, lost; rates by count and value, by agent, reasons, days to order | Legacy *Quotation Summary* |
+| Customer aging | What each customer owes today (the Invoices list's balances) in 4, 6 or 12 steps of 30 days, by due date or by invoice date; overdue always counts from the due date | RPT-023 |
+| Invoice register | Invoices, debit notes and credit notes (sales returns, shown negative) released in a month, with balance, payment and e-Invoice state; migrated ones marked | Legacy *Invoice Summary* |
+| e-Invoice status | Every document released in Zora that needs its own LHDN e-Invoice, its state from the release event, days waiting and a missing-TIN warning; each month's consolidated e-Invoice, counted as the Cash Sales list counts it | FR-EIV-010 |
+
+- **Backend:** `sales/reports/`: one query and one pure rules file per report (+ specs), and `report-filters.ts` for the shared filter row. `GET /api/v1/sales/reports/{by-customer|by-item|open-orders|quotation-conversion|customer-aging|invoice-register|e-invoice-status}` under `sales.view`. Reports read inside the person's request, so the data scopes apply (RPT-020).
+- **Frontend:** one view per tab, built from shared pieces: `components/erp/FilterSelect`, `ReportActions` and `BarRows`, `composables/useReport.ts` (filters in the URL) and `utils/csv.ts` (Export to Excel with numbers kept as numbers, RPT-025). Sales by customer uses them too; its chart rows are back to the mockup's 190px label, bar, 110px value.
+- **Tests:** `test/sales-reports.e2e-spec.ts` pins every tab's seed numbers (and, once CO-0002 is released, Sales by customer matches its mockup); `test/scope.e2e-spec.ts` checks all seven reports against two agents (RPT-020). The Sales handbook walks them as journey L. The seed's answers are in `SALES_SEED_DATA.md` → *Reports (S05) on 29 Sep*.

@@ -1228,3 +1228,220 @@ export interface SalesByCustomerReport {
   footnote: string
   filters: { branches: { code: string; name: string }[]; agents: { code: string; name: string }[]; groups: string[] }
 }
+
+export interface ReportFilterOptions {
+  branches: { code: string; name: string }[]
+  agents: { code: string; name: string }[]
+  groups: string[]
+}
+
+export interface SalesByItemReport {
+  period: string
+  periods: string[]
+  kpis: {
+    ordered: { amount: string; items: number; orders: number }
+    invoiced: { amount: string; pct: number }
+    best: { itemCode: string; itemName: string; amount: string; sharePct: string } | null
+    open: { amount: string }
+  }
+  rows: {
+    itemCode: string
+    itemName: string
+    itemGroup: string | null
+    uomCode: string
+    orders: number
+    orderedQty: string
+    deliveredQty: string
+    invoicedQty: string
+    ordered: string
+    invoiced: string
+    open: string
+    sharePct: string
+  }[]
+  totals: { orders: number; ordered: string; invoiced: string; open: string }
+  groups: { group: string; items: number; ordered: string; sharePct: string }[]
+  notes: string[]
+  footnote: string
+  filters: ReportFilterOptions & { itemGroups: string[] }
+}
+
+export type OpenReason = 'READY' | 'NO_STOCK' | 'PURCHASE' | 'DEPOSIT' | 'CANCELLING' | 'APPROVAL' | 'DRAFT' | 'TO_INVOICE'
+
+export interface OpenOrdersReport {
+  today: string
+  kpis: {
+    open: { orders: number; ordered: string; released: number; partial: number; approval: number; draft: number }
+    toDeliver: { amount: string; units: string; toInvoice: string }
+    dueSoon: { orders: number; orderNos: string[]; late: string[] }
+    approval: { orders: number; amount: string }
+  }
+  byReason: { key: OpenReason; label: string; amount: string; lines: number }[]
+  byCustomer: { customerCode: string; customerName: string; orders: number; openValue: string }[]
+  orders: {
+    id: string
+    docNo: string
+    docDate: string
+    status: string
+    balanceCancelled: boolean
+    isMigrated: boolean
+    customerCode: string
+    customerName: string
+    agentName: string
+    branchCode: string
+    wantedBy: string | null
+    promisedDate: string | null
+    late: boolean
+    dueSoon: boolean
+    total: string
+    openValue: string
+    lines: {
+      lineNo: number
+      itemCode: string
+      itemName: string
+      uomCode: string
+      ordered: string
+      delivered: string
+      invoiced: string
+      cancelled: string
+      open: string
+      toInvoice: string
+      openValue: string
+      reason: OpenReason
+      reasonLabel: string
+      detail: string | null
+    }[]
+  }[]
+  totals: { ordered: string; openValue: string }
+  inventoryConnected: boolean
+  filters: ReportFilterOptions
+}
+
+export type QuoteOutcome = 'WON' | 'OPEN' | 'EXPIRED' | 'LOST'
+
+export interface QuotationConversionReport {
+  period: string
+  periods: string[]
+  kpis: {
+    sent: { count: number; amount: string }
+    won: { count: number; amount: string; pct: number; valuePct: number; avgDays: string | null }
+    lost: { count: number; amount: string; topReason: string | null }
+    open: { count: number; amount: string; expiringSoon: string[]; expired: number }
+  }
+  outcomes: { key: QuoteOutcome; label: string; count: number; amount: string }[]
+  agents: { agentCode: string; agentName: string; sent: number; won: number; open: number; expired: number; lost: number; wonAmount: string; pct: number }[]
+  reasons: { reason: string; count: number; amount: string }[]
+  rows: {
+    id: string
+    docNo: string
+    revision: number
+    docDate: string
+    validUntil: string | null
+    customerName: string
+    agentName: string
+    total: string
+    outcome: QuoteOutcome
+    outcomeLabel: string
+    salesOrderNo: string | null
+    daysToOrder: number | null
+    lostReason: string | null
+    expiresSoon: boolean
+    isMigrated: boolean
+  }[]
+  footnote: string
+  filters: ReportFilterOptions
+}
+
+export interface CustomerAgingReport {
+  today: string
+  steps: 4 | 6 | 12
+  basis: 'due' | 'invoice'
+  columns: { key: string; label: string }[]
+  kpis: {
+    due: { amount: string; invoices: number }
+    overdue: { amount: string; customers: number }
+    over60: { amount: string; customers: string[] }
+    notDue: { amount: string }
+  }
+  rows: {
+    customerCode: string
+    customerName: string
+    invoices: number
+    balance: string
+    overdue: string
+    cells: Record<string, string>
+    oldestDays: number
+    creditLimit: string | null
+    overLimit: boolean
+  }[]
+  totals: { balance: string; overdue: string; cells: Record<string, string> }
+  invoices: { id: string; docNo: string; docDate: string; dueDate: string | null; customerName: string; total: string; balance: string; days: number; column: string; isMigrated: boolean }[]
+  footnote: string
+  filters: ReportFilterOptions
+}
+
+export type EInvoiceState = 'WAITING' | 'SUBMITTED' | 'FAILED' | 'OLD_SYSTEM'
+
+export interface InvoiceRegisterReport {
+  period: string
+  periods: string[]
+  kpis: {
+    invoiced: { amount: string; count: number }
+    debitNotes: { amount: string; count: number }
+    credited: { amount: string; count: number }
+    net: { amount: string }
+  }
+  rows: {
+    id: string
+    type: 'INVOICE' | 'DEBIT_NOTE' | 'CREDIT_NOTE'
+    typeLabel: string
+    docNo: string
+    docDate: string
+    customerName: string
+    reference: string | null
+    beforeTax: string
+    tax: string
+    total: string
+    balance: string | null
+    dueDate: string | null
+    payment: { key: PaymentKey; label: string } | null
+    eInvoice: { state: EInvoiceState; label: string } | null
+    isMigrated: boolean
+    to: string | null
+  }[]
+  totals: { beforeTax: string; tax: string; total: string }
+  notes: string[]
+  footnote: string
+  filters: ReportFilterOptions
+}
+
+export interface EInvoiceStatusReport {
+  today: string
+  period: string
+  periods: string[]
+  connected: boolean
+  kpis: {
+    waiting: { count: number; amount: string; oldestDays: number }
+    submitted: { count: number }
+    problems: { count: number }
+    consolidated: { month: string; count: number; amount: string; due: string; late: boolean } | null
+  }
+  rows: {
+    id: string
+    type: 'INVOICE' | 'DEBIT_NOTE' | 'CREDIT_NOTE' | 'CASH_SALE'
+    typeLabel: string
+    docNo: string
+    docDate: string
+    customerName: string
+    tin: string | null
+    total: string
+    state: EInvoiceState
+    stateLabel: string
+    since: string
+    days: number
+    problem: string | null
+    to: string
+  }[]
+  consolidated: { month: string; count: number; amount: string; due: string; late: boolean }[]
+  footnote: string
+  filters: { branches: { code: string; name: string }[] }
+}

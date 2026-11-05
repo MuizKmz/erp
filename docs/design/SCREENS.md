@@ -86,7 +86,7 @@ Theme: purple. Sidebar groups: **Sales Transaction**, **Billing**, **Operation P
 | S02 | Approvals inbox | `Approvals.html` | `/sales/approvals` |
 | S03 | Document flow | `DocFlow.html` | `/sales/orders/:id/flow` |
 | S04 | Add item from Master Data (dialog) | `ItemPicker.html` | dialog |
-| S05 | Reports · sales by customer | `SalesReports.html` | `/sales/reports/:report` |
+| S05 | Reports: Sales by customer (the mockup), Sales by item, Open orders, Quotation conversion, Customer aging, Invoice register, e-Invoice status (`GET /sales/reports/:report`) | `SalesReports.html` | `/sales/reports/:report` |
 | S06 | Enquiry list | `EnquiryList.html` | `/sales/enquiries` |
 | S07 | New enquiry | `EnquiryForm.html` | `/sales/enquiries/:id` |
 | S08 | Quotation list | `QuotationList.html` | `/sales/quotations` |
