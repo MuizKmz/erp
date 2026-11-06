@@ -844,11 +844,11 @@ npm run client:install -- path\to\client.json   # prisma/client.example.json sho
 
 ---
 
-# WMS read-only view (W01–W05)
+# WMS read-only view (W00–W05)
 
-**Status:** built on 6 Nov 2026, approved by the user. Five screens that show a client's WMS inside the ERP: Inventory, Stock Location, EPC Lookup, Receiving, Shipping. This is stage 1 of `docs/integration/WMS_DATA_OWNERSHIP.md`, which says which system owns what. Stage 2 (master data sync, goods in and out) is not built.
+**Status:** built on 6 Nov 2026, approved by the user. A home and five screens that show a client's WMS inside the ERP: Inventory, Stock Location, EPC Lookup, Receiving, Shipping. The home works like the Purchase and Sales homes: tiles, KPI cards and each person's charts. This is stage 1 of `docs/integration/WMS_DATA_OWNERSHIP.md`, which says which system owns what. Stage 2 (master data sync, goods in and out) is not built.
 
-- **Read only by construction:** `integration/wms-client.ts` can sign in and send GET, nothing else. `wms/wms.controller.ts` has GET routes only. `test/wms.e2e-spec.ts` checks both against a fake WMS. The ERP never generates tags, prints stickers or changes a tag.
+- **Read only by construction:** `integration/wms-client.ts` can sign in and send GET, nothing else. `wms/wms.controller.ts` has GET routes only. The one thing the module saves is a person's chart layout, in the ERP (`sys_user_dashboard`). `test/wms.e2e-spec.ts` checks both against a fake WMS. The ERP never generates tags, prints stickers or changes a tag.
 - **Stores nothing:** no tables. Lists are reused for 15 seconds, so a scan shows within that time. If the WMS goes down, a list shows the last answer with a warning; a tag lookup gets 503 `WMS_UNAVAILABLE`.
 - **Counting:** one RFID tag is one unit. Inventory and Stock Location count tags on the shelf (INBOUND and ALLOCATED). Tags not scanned in, shipped, quarantined or disposed do not count. The `StockPort` figures other screens read count INBOUND only, so a reserved unit shows here but not as free stock there.
 - **Core adds** an item's group and reorder level. A WMS SKU Core does not know shows as *Not in ERP*.

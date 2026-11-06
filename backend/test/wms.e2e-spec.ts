@@ -169,6 +169,30 @@ describe('WMS read-only view (end to end, fake WMS)', () => {
     }
   }, 40_000);
 
+  it('W00 shows the home cards and charts, and saving a layout never reaches the WMS', async () => {
+    const d = await api.get<any>('wms/dashboard', 'ADM');
+    expect(d.kpis).toEqual({
+      units: { count: 4, warehouses: 2, items: 3 },
+      reorder: expect.objectContaining({ outOfStock: 1 }),
+      toScan: { count: 1, units: 5 },
+      toShip: { count: 1, units: 2 },
+    });
+
+    const board = await api.get<any>('wms/dashboard/board', 'ADM');
+    expect(board.cards.map((c: any) => c.key)).toEqual(['wms.recent_receiving', 'wms.needs_attention', 'wms.units_by_warehouse']);
+    const card = (b: any, key: string) => b.cards.find((c: any) => c.key === key);
+    expect(card(board, 'wms.units_by_warehouse').data.rows).toEqual([expect.objectContaining({ key: 'WH-A', value: '2.0000' }), expect.objectContaining({ key: 'WH-B', value: '2.0000' })]);
+    expect(card(board, 'wms.needs_attention').data.items[0].title).toContain('WMS-EMPTY');
+
+    const before = seen.length;
+    const saved = await api.call('PUT', 'wms/dashboard/board', 'ADM', { cols: 3, cards: ['wms.top_items', 'wms.waiting_to_ship'] });
+    expect(saved.status).toBe(200);
+    expect((saved.body as any).cards.map((c: any) => c.key)).toEqual(['wms.top_items', 'wms.waiting_to_ship']);
+    expect(seen.slice(before).every((r) => r.method === 'GET')).toBe(true);
+    expect((await api.call('DELETE', 'wms/dashboard/board', 'ADM')).status).toBe(200);
+    expect((await api.call('GET', 'wms/dashboard', 'AR')).status).toBe(403);
+  });
+
   it('never changes anything: only GET routes, and only a sign-in and GETs reach the WMS', () => {
     const routes = Object.getOwnPropertyNames(WmsController.prototype).filter((n) => n !== 'constructor');
     expect(routes.length).toBe(5);

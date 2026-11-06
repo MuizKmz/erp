@@ -52,7 +52,7 @@ export const MODULES: Record<ModuleKey, ModuleDef> = {
   wms: {
     key: 'wms',
     label: 'WMS',
-    home: '/wms/inventory',
+    home: '/wms',
     menu: WMS_MENU,
   },
 }

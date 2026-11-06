@@ -114,6 +114,22 @@ export class WmsQuery {
     };
   }
 
+  /** W00 · The home's cards. */
+  async dashboard(ctx: RequestContext) {
+    const all = { page: 1, pageSize: 100_000 };
+    const [inventory, receiving, shipping] = await Promise.all([this.inventory(ctx, all), this.receiving(all), this.shipping({ ...all, status: 'pending' })]);
+    const toScan = receiving.items.filter((r) => r.received > r.scannedIn);
+    return {
+      kpis: {
+        units: { count: inventory.summary.units, warehouses: inventory.warehouses.length, items: inventory.summary.items },
+        reorder: { count: inventory.summary.belowReorder, outOfStock: inventory.summary.outOfStock },
+        toScan: { count: toScan.length, units: toScan.reduce((sum, r) => sum + r.received - r.scannedIn, 0) },
+        toShip: { count: shipping.items.length, units: shipping.items.reduce((sum, r) => sum + r.units, 0) },
+      },
+      source: { asOf: inventory.source.asOf, stale: inventory.source.stale || receiving.source.stale || shipping.source.stale, webUrl: inventory.source.webUrl },
+    };
+  }
+
   /** One tag, by EPC or serial number. */
   async epc(code: string) {
     const history = await this.wms.find<WmsEpcHistory>(`epc/history/${encodeURIComponent(code.trim())}`);
