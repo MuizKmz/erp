@@ -168,3 +168,14 @@ The mockups were made in step A0 in the current shell. The top bar of every modu
 | A13 | Audit trail | `CfgAudit.html` | `/config/audit` (`?module=`, `?user=`, `?period=`) | GET /api/v1/config/audit · GET /api/v1/config/audit/:id · GET …/export (CSV) |
 | A14 | Sign-in settings | `CfgSignInSettings.html` | `/config/sign-in-settings` | GET, PATCH /api/v1/config/settings/sign-in |
 
+## WMS module (read-only view)
+
+Opens from the launcher's WMS tile where a client's WMS is connected (`WMS_URL`). Everything is read only and comes live from the WMS; who owns what is in `docs/integration/WMS_DATA_OWNERSHIP.md`. All routes need `wms.view`.
+
+| Code | Screen | Mockup | Route | API |
+|---|---|---|---|---|
+| W01 | Inventory | `WmsInventory.html` | `/wms/inventory` | GET /api/v1/wms/inventory |
+| W02 | Stock Location | `WmsStockLocation.html` | `/wms/stock-location` | GET /api/v1/wms/stock-locations |
+| W03 | EPC Lookup | `WmsEpcLookup.html` | `/wms/epc-lookup` (`?code=`) | GET /api/v1/wms/epc/:code (EPC or serial number) |
+| W04 | Receiving | `WmsReceiving.html` | `/wms/receiving` | GET /api/v1/wms/receiving |
+| W05 | Shipping | `WmsShipping.html` | `/wms/shipping` | GET /api/v1/wms/shipping |

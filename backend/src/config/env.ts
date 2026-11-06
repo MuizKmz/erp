@@ -25,8 +25,8 @@ export interface Env {
   OUTBOX_INTERVAL_MS: number;
   /** Dev only: pretend today is this date (YYYY-MM-DD) so screens match the mockups (29 Sep 2026). */
   DEV_TODAY: string | null;
-  /** A client's WMS, for live stock figures (WMS_URL, WMS_EMAIL, WMS_PASSWORD). Null: the stock snapshot. */
-  WMS: { url: string; email: string; password: string } | null;
+  /** A client's WMS, for live stock figures and the WMS module (WMS_URL, WMS_EMAIL, WMS_PASSWORD, WMS_WEB_URL). Null: the stock snapshot. */
+  WMS: { url: string; email: string; password: string; webUrl: string | null } | null;
 }
 
 function toInt(name: string, value: unknown, fallback: number, problems: string[]): number {
@@ -107,7 +107,7 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     OUTBOX_DISPATCH: dispatch === 'on',
     OUTBOX_INTERVAL_MS: toInt('OUTBOX_INTERVAL_MS', raw.OUTBOX_INTERVAL_MS, 5000, problems),
     DEV_TODAY: devToday,
-    WMS: wmsUrl ? { url: wmsUrl, email: wmsEmail, password: wmsPassword } : null,
+    WMS: wmsUrl ? { url: wmsUrl, email: wmsEmail, password: wmsPassword, webUrl: typeof raw.WMS_WEB_URL === 'string' && raw.WMS_WEB_URL.trim() ? raw.WMS_WEB_URL.trim() : null } : null,
   };
 
   if (problems.length) {

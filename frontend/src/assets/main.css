@@ -302,6 +302,12 @@
   .erp-datalist .p-datatable-tbody > tr:not(.p-datatable-row-selected):hover {
     background: var(--erp-head-bg);
   }
+  .erp-datalist .p-datatable-tfoot > tr > td {
+    padding: 11px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--erp-head-bg);
+  }
   .erp-datalist .erp-col-num {
     text-align: right;
   }

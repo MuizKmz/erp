@@ -158,7 +158,7 @@ Source Code/
 
 - Before each step, write a short plan (files, tables, endpoints). After it, list what changed and how to check it.
 - **Ask first** before: adding a dependency not listed here (pre-approved: `@nestjs/config`, `@nestjs/schedule`, `@nestjs/event-emitter`, `prisma`, `@prisma/client`, `class-validator`, `class-transformer`, `pinia`), changing the design or a rule in this file, deleting files, or touching anything outside `Source Code`.
-- Do **not** build yet: login/JWT (until Phase 4 · A5), real email sending, LHDN e-Invoice submission, Inventory/Finance/WMS/MES integrations (only their events and stubs).
+- Do **not** build yet: login/JWT (until Phase 4 · A5), real email sending, LHDN e-Invoice submission, Inventory/Finance/MES integrations (only their events and stubs), and a WMS beyond the read-only view (*WMS read-only view*, end of this file).
 - Code, identifiers and comments in English. UI text exactly as in the mockups.
 - Keep secrets out of git (`.env` in `.gitignore`).
 
@@ -841,3 +841,18 @@ npm run client:install -- path\to\client.json   # prisma/client.example.json sho
 - **How:** `integration/wms-stock.adapter.ts` implements `StockPort`. One tag with status `INBOUND` is one unit on hand, and a WMS SKU is the ERP item code. Tags are counted because the WMS `inventory` table is per product only and can count more than is on the shelves. Answers are reused for 15 seconds. If the WMS cannot be reached, screens get the last figures and nobody is blocked.
 - **Banners:** `StockPort.connected` means the figures are live. `movementsConnected` means stock moves reach the warehouse, and it stays false, so the amber "queued" banners on receipts, deliveries, returns and cash documents stay true.
 - **Not yet:** `usedLast30Days` is 0, `mdm_location` is not filled from the WMS, and the WMS login is an ordinary user until service accounts exist (FR-SEC-016).
+
+---
+
+# WMS read-only view (W01–W05)
+
+**Status:** built on 6 Nov 2026, approved by the user. Five screens that show a client's WMS inside the ERP: Inventory, Stock Location, EPC Lookup, Receiving, Shipping. This is stage 1 of `docs/integration/WMS_DATA_OWNERSHIP.md`, which says which system owns what. Stage 2 (master data sync, goods in and out) is not built.
+
+- **Read only by construction:** `integration/wms-client.ts` can sign in and send GET, nothing else. `wms/wms.controller.ts` has GET routes only. `test/wms.e2e-spec.ts` checks both against a fake WMS. The ERP never generates tags, prints stickers or changes a tag.
+- **Stores nothing:** no tables. Lists are reused for 15 seconds, so a scan shows within that time. If the WMS goes down, a list shows the last answer with a warning; a tag lookup gets 503 `WMS_UNAVAILABLE`.
+- **Counting:** one RFID tag is one unit. Inventory and Stock Location count tags on the shelf (INBOUND and ALLOCATED). Tags not scanned in, shipped, quarantined or disposed do not count. The `StockPort` figures other screens read count INBOUND only, so a reserved unit shows here but not as free stock there.
+- **Core adds** an item's group and reorder level. A WMS SKU Core does not know shows as *Not in ERP*.
+- **Permission `wms.view`:** Administrator, Auditor, Buyer, Purchasing Manager, Branch Manager, Store, Sales Manager, Finance Director, Finance Manager and Master Data Admin. Sales agents and Sales store are left out, because Shipping names every customer and agents see only their own. The data scopes do not reach WMS data, so do not grant this to an agent-scoped role.
+- **Settings:** `WMS_URL`, `WMS_EMAIL`, `WMS_PASSWORD`, and `WMS_WEB_URL` for the *Open in WMS* button. Without `WMS_URL` the tile stays *Coming soon*.
+- **Limits:** the WMS lists tags, receivings and shipments whole, so these screens filter and page in memory. That is fine for now; paging in the WMS is needed at real volumes. Tag history is the WMS's summary dates, not every scan. A shipment names no warehouse, so Shipping has no warehouse filter (the mockup was changed to match).
+- **Client data never goes in this repo:** tests and mockups use neutral codes. A client's demo data lives outside the repo.
