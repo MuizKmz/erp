@@ -10,7 +10,7 @@ import { BusinessRuleError, StaleVersionError, ValidationFailedError, type Field
 import { NumberingService } from '../../platform/numbering/numbering.service';
 import { OutboxWriter } from '../../platform/outbox/outbox.writer';
 import { PrismaService, type Tx } from '../../platform/prisma/prisma.service';
-import { DOC_LINK, PUR_DOC_TYPE, PUR_ENTITY } from '../shared/purchase.constants';
+import { approverLabel, DOC_LINK, PUR_DOC_TYPE, PUR_ENTITY } from '../shared/purchase.constants';
 import { PurchaseMailService } from '../shared/purchase-mail.service';
 import { PurchaseSettingsService } from '../shared/purchase-settings.service';
 import { documentTotals, lineTotals } from '../shared/totals.rules';
@@ -284,7 +284,7 @@ export class OrdersService {
       });
       await this.activity.log(tx, ctx, {
         entityType: PUR_ENTITY.ORDER, entityId: order.id, docNo: order.docNo, action: 'submitted',
-        message: `Sent for approval to ${first.approverName ?? first.approverRole}`, comment: dto.note?.trim() || null,
+        message: `Sent for approval to ${approverLabel(first)}`, comment: dto.note?.trim() || null,
       });
       await this.notifyApprover(tx, ctx, order, first, need.reason, dto.note ?? null);
     });
@@ -300,7 +300,7 @@ export class OrdersService {
     if (result.outcome === 'NEXT_STEP') {
       const request = await tx.sysApprovalRequest.findUniqueOrThrow({ where: { id: result.requestId }, include: { steps: true } });
       const next = request.steps.find((s) => s.status === 'WAITING');
-      await log('approved_step', `Approved by ${ctx.user.name} · now waiting for ${next?.approverName ?? next?.approverRole ?? 'the next approver'}`);
+      await log('approved_step', `Approved by ${ctx.user.name} · now waiting for ${next ? approverLabel(next) : 'the next approver'}`);
       if (next) {
         const need = await this.query.approvalNeed(ctx.tenantId, order);
         await this.notifyApprover(tx, ctx, order, next, need.reason, request.requesterNote);
