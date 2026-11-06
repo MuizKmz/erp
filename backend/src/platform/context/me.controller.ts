@@ -48,7 +48,9 @@ export class MeController {
 
   /** Modules the user can open from the launcher. */
   @Get('modules')
-  modules() {
-    return { items: MODULES };
+  modules(@CurrentContext() ctx: RequestContext) {
+    // The WMS tile opens the read-only view only where a WMS is connected and the user may see it.
+    const wmsOpen = !!this.config.get('WMS', { infer: true }) && this.registry.has(ctx.user.roles, 'wms.view');
+    return { items: MODULES.map((m) => (m.code === 'wms' && wmsOpen ? { ...m, tag: 'Read only', state: 'OPEN', route: '/wms' } : m)) };
   }
 }

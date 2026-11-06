@@ -9,6 +9,7 @@ export interface MenuItem {
 }
 
 export type MenuGroupKey =
+  | 'wms'
   | 'transaction'
   | 'billing'
   | 'policies'

@@ -10,6 +10,7 @@ import { MasterDataModule } from './master-data/master-data.module';
 import { PlatformModule } from './platform/platform.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { SalesModule } from './sales/sales.module';
+import { WmsModule } from './wms/wms.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SalesModule } from './sales/sales.module';
     SalesModule,
     CoreModule,
     ConfigurationModule,
+    WmsModule,
   ],
   controllers: [HealthController],
 })

@@ -137,6 +137,24 @@
   --mod-chip-text: #3a3db5;
 }
 
+/* WMS: teal, like its launcher tile (--tile-wms). */
+[data-module='wms'] {
+  --mod-side: #0e7490;
+  --mod-hover: #0c6a82;
+  --mod-active: #0b5e70;
+  --mod-pill: #0c6a82;
+  --mod-primary: #0b6577;
+  --mod-accent: #0b5e70;
+  --mod-line: #0e7490;
+  --mod-light: #ecfeff;
+  --mod-light-border: #bae6f0;
+  --mod-tile-1: #0b5e70;
+  --mod-tile-2: #0b6577;
+  --mod-tile-3: #0e7490;
+  --mod-chip-bg: #cff3f9;
+  --mod-chip-text: #0b5e70;
+}
+
 /* Configuration: slate, like its launcher tile (--tile-config) */
 [data-module='config'] {
   --mod-side: #5b6170;

@@ -15,10 +15,11 @@ import { CORE_PERMISSION_CATALOGUE } from '../../src/core/core.permissions';
 import type { ModulePermissions } from '../../src/platform/context/permission.rules';
 import { PURCHASE_PERMISSION_CATALOGUE } from '../../src/purchase/purchase.permissions';
 import { SALES_PERMISSION_CATALOGUE } from '../../src/sales/sales.permissions';
+import { WMS_PERMISSION_CATALOGUE } from '../../src/wms/wms.permissions';
 import { AS_SEEDED, type SeedCtx } from './util';
 
 /** Every module's permissions, in the order the app registers them. */
-export const CATALOGUE: readonly ModulePermissions[] = [PURCHASE_PERMISSION_CATALOGUE, SALES_PERMISSION_CATALOGUE, CORE_PERMISSION_CATALOGUE, CONFIG_PERMISSION_CATALOGUE];
+export const CATALOGUE: readonly ModulePermissions[] = [PURCHASE_PERMISSION_CATALOGUE, SALES_PERMISSION_CATALOGUE, CORE_PERMISSION_CATALOGUE, CONFIG_PERMISSION_CATALOGUE, WMS_PERMISSION_CATALOGUE];
 
 const ADDRESS_HQ = 'Lot 12, Jalan Perusahaan 3, Seksyen 15, 40200 Shah Alam, Selangor';
 

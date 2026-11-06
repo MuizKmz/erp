@@ -8,6 +8,8 @@
 
 export const STOCK_PORT = Symbol('STOCK_PORT');
 export const SALES_DEMAND_PORT = Symbol('SALES_DEMAND_PORT');
+/** The client's WMS connection (WmsClient), or null where no WMS is connected. */
+export const WMS_CLIENT = Symbol('WMS_CLIENT');
 
 export interface StockLevel {
   itemCode: string;

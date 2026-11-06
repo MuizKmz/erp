@@ -20,6 +20,7 @@ import { PurchaseUsageProvider } from '../../src/purchase/usage/purchase-usage.p
 import { RecordUsageRegistry } from '../../src/platform/usage/record-usage.registry';
 import { SalesUsageProvider } from '../../src/sales/usage/sales-usage.provider';
 import { SALES_ROLE_GRANTS } from '../../src/sales/sales.permissions';
+import { WMS_ROLE_GRANTS } from '../../src/wms/wms.permissions';
 import * as argon2 from 'argon2';
 import { CATALOGUE, DEMO_PASSWORD, SEEDED_USERS } from './configuration';
 import { day, kl, type SeedCtx } from './util';
@@ -36,7 +37,7 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
 
   expect(
     'Permission catalogue (per module · total)',
-    'Purchase 17 · Sales 19 · Core 11 · Configuration 7 · 54',
+    'Purchase 17 · Sales 19 · Core 11 · Configuration 7 · WMS 1 · 55',
     [...CATALOGUE.map((m) => `${m.label} ${m.permissions.length}`), String(CATALOGUE.reduce((n, m) => n + m.permissions.length, 0))].join(' · '),
   );
 
@@ -46,9 +47,9 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
     select: { code: true, name: true, agentScopeCustomers: true, _count: { select: { users: true, permissions: true } } },
   });
   expect(
-    'Starter roles (users / permissions; ADMIN holds all 54 without rows)',
-    'Administrator 1/0, AP clerk 1/4, Auditor 0/6, Billing 3/6, Branch Manager 1/2, Buyer 1/16, Counter staff 1/3, Finance Director 1/2, Finance Manager 1/3, ' +
-      'Master Data Admin 1/11, Purchasing Manager 1/13, Requester 4/4, Sales agent 3/9, Sales Manager 1/10, Sales store 2/5, Store 2/7',
+    'Starter roles (users / permissions; ADMIN holds all 55 without rows)',
+    'Administrator 1/0, AP clerk 1/4, Auditor 0/7, Billing 3/6, Branch Manager 1/3, Buyer 1/17, Counter staff 1/3, Finance Director 1/3, Finance Manager 1/4, ' +
+      'Master Data Admin 1/12, Purchasing Manager 1/14, Requester 4/4, Sales agent 3/9, Sales Manager 1/11, Sales store 2/5, Store 2/8',
     roles.map((r) => `${r.name} ${r._count.users}/${r._count.permissions}`).join(', '),
   );
   expect('Agent-scoped roles', 'SALES_AGENT', roles.filter((r) => r.agentScopeCustomers).map((r) => r.code).join(', '));
@@ -58,7 +59,7 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
   const users = await adapter.listUsers(tenantId);
   const rows = await prisma.sysRolePermission.findMany({ where: { tenantId }, select: { permission: true, role: { select: { code: true } } } });
   const fromDb = toRoleGrants(Object.fromEntries(roles.map((r) => [r.code, rows.filter((x) => x.role.code === r.code).map((x) => x.permission)])));
-  const fromCode = toRoleGrants(PURCHASE_ROLE_GRANTS, SALES_ROLE_GRANTS, CORE_ROLE_GRANTS);
+  const fromCode = toRoleGrants(PURCHASE_ROLE_GRANTS, SALES_ROLE_GRANTS, CORE_ROLE_GRANTS, WMS_ROLE_GRANTS);
   const same = users.filter((u) => permissionsOf(fromDb, u.roles).join() === permissionsOf(fromCode, u.roles).join());
   expect('Users who can do exactly what the code grants gave them', '14 of 14', `${same.length} of ${users.length}`);
 
@@ -77,7 +78,7 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
   const home = await new ConfigDashboardQuery(prisma as PrismaService, clock, catalogue).summary({ tenantId } as RequestContext);
   expect(
     'Configuration home cards',
-    'Companies 1 · Branches 2 · Users 14 · Roles 16 · Signed in now 0 · Two-factor 0 of 2 · Failed sign-ins 0 · Permissions 54',
+    'Companies 1 · Branches 2 · Users 14 · Roles 16 · Signed in now 0 · Two-factor 0 of 2 · Failed sign-ins 0 · Permissions 55',
     home.cards.map((c) => `${c.label} ${c.value}`).join(' · '),
   );
   expect(
@@ -127,7 +128,7 @@ export async function verifyConfigSeed(ctx: SeedCtx): Promise<Check[]> {
   const compared = await rolesQuery.compare(admin, 'SALES_AGENT', 'SALES_MANAGER');
   expect(
     'Sales agent and Sales Manager compared (A10)',
-    'Both roles give 8 permissions. · sales.margin.view, sales.return.edit, sales.cancel_order.release',
+    'Both roles give 8 permissions. · sales.margin.view, sales.return.edit, sales.cancel_order.release, wms.view',
     `${compared.text.split('. ')[0]}. · ${compared.rows.filter((r) => r.a !== r.b).map((r) => r.key).join(', ')}`,
   );
 

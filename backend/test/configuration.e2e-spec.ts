@@ -3,6 +3,7 @@ import { PermissionRegistry } from '../src/platform/context/permission.registry'
 import { permissionsOf, toRoleGrants } from '../src/platform/context/permission.rules';
 import { PURCHASE_ROLE_GRANTS } from '../src/purchase/purchase.permissions';
 import { SALES_ROLE_GRANTS } from '../src/sales/sales.permissions';
+import { WMS_ROLE_GRANTS } from '../src/wms/wms.permissions';
 import { TENANT_ID } from '../prisma/seed/util';
 import { reseed, startApi, type Api } from './e2e-helpers';
 
@@ -49,7 +50,7 @@ describe('Configuration (end to end)', () => {
         'sessions 0 · Sessions on any device',
         'two-factor 0 of 2 · users who must use it have set it up',
         'failed 0 · in the last 24 hours',
-        'permissions 54 · declared by Purchase, Sales, Core and Configuration',
+        'permissions 55 · declared by Purchase, Sales, Core, Configuration and WMS',
       ]);
       expect(home.attention.map((a) => a.lead)).toEqual(['2 users', 'Auditor', 'Company']);
       expect(home.attention[0]!.text).toContain(': Admin, Rosnah Ismail.');
@@ -61,7 +62,7 @@ describe('Configuration (end to end)', () => {
     });
 
     it('leaves every user able to do exactly what the code grants allowed before', async () => {
-      const fromCode = toRoleGrants(PURCHASE_ROLE_GRANTS, SALES_ROLE_GRANTS, CORE_ROLE_GRANTS);
+      const fromCode = toRoleGrants(PURCHASE_ROLE_GRANTS, SALES_ROLE_GRANTS, CORE_ROLE_GRANTS, WMS_ROLE_GRANTS);
       for (const code of USERS) {
         const me = await api.get<Me>('me', code);
         expect({ code, permissions: me.permissions }).toEqual({ code, permissions: permissionsOf(fromCode, me.user.roles) });
@@ -347,10 +348,10 @@ describe('Configuration (end to end)', () => {
       const created = await api.call('POST', 'config/users', 'ADM', input);
       expect(created.status).toBe(201);
       nz = created.body;
-      expect(nz).toMatchObject({ code: 'NZ', email: 'nadia@warehouse.com', subtitle: 'Nadia Zain · Internal auditor · HQ', effective: { text: '6 permissions from 1 role.' } });
+      expect(nz).toMatchObject({ code: 'NZ', email: 'nadia@warehouse.com', subtitle: 'Nadia Zain · Internal auditor · HQ', effective: { text: '7 permissions from 1 role.' } });
       expect(nz.activity.map((a) => a.message)).toEqual(['User NZ created']);
       const me = await api.get<Me>('me', 'NZ');
-      expect(me.permissions).toEqual(['config.audit.view', 'config.security.view', 'config.view', 'core.view', 'purchase.view', 'sales.view']);
+      expect(me.permissions).toEqual(['config.audit.view', 'config.security.view', 'config.view', 'core.view', 'purchase.view', 'sales.view', 'wms.view']);
       expect(me.branchCode).toBe('HQ');
       const home = await api.get<{ attention: { key: string }[] }>('config/dashboard');
       expect(home.attention.map((a) => a.key)).not.toContain('auditor');
@@ -479,7 +480,7 @@ describe('Configuration (end to end)', () => {
       expect(agent.twoFactor.text).toBe('Not required for this role. Required for Administrator, Master Data Admin, Finance Director and Finance Manager (Sign-in settings).');
       expect(agent).toMatchObject({ asStarter: true, allowedActions: ['edit', 'reset'], agentScopeCustomers: true, agentScopeDocuments: true });
       const admin = await api.get<Role>(`config/roles/${await roleId('ADMIN')}`);
-      expect(admin.permissions).toHaveLength(54);
+      expect(admin.permissions).toHaveLength(55);
       expect(admin.allowedActions).toEqual([]);
     });
 
@@ -542,10 +543,10 @@ describe('Configuration (end to end)', () => {
 
       const compared = await api.get<{ text: string; rows: { key: string; a: boolean; b: boolean }[] }>('config/permissions/compare?a=SALES_AGENT&b=SALES_MANAGER');
       expect(compared.text).toBe('Both roles give 8 permissions. Sales agent sees only its own customers; Sales Manager sees all customers in its branches.');
-      expect(compared.rows.filter((r) => r.a !== r.b).map((r) => r.key)).toEqual(['sales.margin.view', 'sales.return.edit', 'sales.cancel_order.release']);
+      expect(compared.rows.filter((r) => r.a !== r.b).map((r) => r.key)).toEqual(['sales.margin.view', 'sales.return.edit', 'sales.cancel_order.release', 'wms.view']);
       const catalogue = await api.get<{ total: number; modules: { label: string }[] }>('config/permissions/catalogue');
-      expect(catalogue.total).toBe(54);
-      expect(catalogue.modules.map((m) => m.label)).toEqual(['Purchase', 'Sales', 'Core', 'Configuration']);
+      expect(catalogue.total).toBe(55);
+      expect(catalogue.modules.map((m) => m.label)).toEqual(['Purchase', 'Sales', 'Core', 'Configuration', 'WMS']);
     });
   });
 

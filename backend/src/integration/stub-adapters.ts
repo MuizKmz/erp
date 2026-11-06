@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import type { Env } from '../config/env';
 import { PrismaService } from '../platform/prisma/prisma.service';
 import { FinanceStubController } from './finance-stub.controller';
-import { STOCK_PORT, type StockLevel, type StockPort } from './integration.ports';
+import { STOCK_PORT, WMS_CLIENT, type StockLevel, type StockPort } from './integration.ports';
+import { WmsClient } from './wms-client';
 import { WmsStockAdapter } from './wms-stock.adapter';
 
 /** Stock on hand from inv_stock_snapshot until the Inventory module is connected. */
@@ -34,15 +35,21 @@ export class StubStockAdapter implements StockPort {
   controllers: [FinanceStubController],
   providers: [
     {
-      // A client with a WMS sets WMS_URL; everyone else keeps the snapshot.
-      provide: STOCK_PORT,
-      inject: [ConfigService, PrismaService],
-      useFactory: (config: ConfigService<Env, true>, prisma: PrismaService): StockPort => {
+      // A client with a WMS sets WMS_URL.
+      provide: WMS_CLIENT,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>): WmsClient | null => {
         const wms = config.get('WMS', { infer: true });
-        return wms ? new WmsStockAdapter(wms) : new StubStockAdapter(prisma);
+        return wms ? new WmsClient(wms) : null;
       },
     },
+    {
+      // Everyone without a WMS keeps the snapshot.
+      provide: STOCK_PORT,
+      inject: [WMS_CLIENT, PrismaService],
+      useFactory: (wms: WmsClient | null, prisma: PrismaService): StockPort => (wms ? new WmsStockAdapter(wms) : new StubStockAdapter(prisma)),
+    },
   ],
-  exports: [STOCK_PORT],
+  exports: [STOCK_PORT, WMS_CLIENT],
 })
 export class IntegrationModule {}

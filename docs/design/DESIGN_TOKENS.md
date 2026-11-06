@@ -34,6 +34,8 @@ Each module has its own sidebar colour so users always know where they are. Set 
 
 Configuration takes its slate from its launcher tile (`--tile-config #5B6170`), as Core took its indigo. Home tiles darkest first: `#3D4352`, `#4B5165`, `#5B6170`, `#6E7487`. Module chip: `#E7E9EE` with `#3D4352` text.
 
+The WMS module takes its teal from its launcher tile (`--tile-wms #0E7490`): side `#0E7490`, hover and pill `#0C6A82`, active and accent `#0B5E70`, primary `#0B6577`, line `#0E7490`, light `#ECFEFF`, light border `#BAE6F0`, chip `#CFF3F9` with `#0B5E70` text.
+
 Launcher uses a neutral grey background `#DFE2E8` with one coloured tile per module.
 
 ## Buttons (same in every module)
