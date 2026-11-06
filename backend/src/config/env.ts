@@ -25,6 +25,8 @@ export interface Env {
   OUTBOX_INTERVAL_MS: number;
   /** Dev only: pretend today is this date (YYYY-MM-DD) so screens match the mockups (29 Sep 2026). */
   DEV_TODAY: string | null;
+  /** A client's WMS, for live stock figures (WMS_URL, WMS_EMAIL, WMS_PASSWORD). Null: the stock snapshot. */
+  WMS: { url: string; email: string; password: string } | null;
 }
 
 function toInt(name: string, value: unknown, fallback: number, problems: string[]): number {
@@ -75,6 +77,11 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     problems.push(`DEV_TODAY must look like 2026-09-29 (got "${devToday}")`);
   }
 
+  const wmsUrl = typeof raw.WMS_URL === 'string' ? raw.WMS_URL.trim().replace(/\/+$/, '') : '';
+  const wmsEmail = typeof raw.WMS_EMAIL === 'string' ? raw.WMS_EMAIL.trim() : '';
+  const wmsPassword = typeof raw.WMS_PASSWORD === 'string' ? raw.WMS_PASSWORD : '';
+  if (wmsUrl && (!wmsEmail || !wmsPassword)) problems.push('WMS_EMAIL and WMS_PASSWORD must be set when WMS_URL is set');
+
   // A live server: sign-in on, HTTPS cookies, the real date, its own tenant, and no demo shortcuts.
   if (raw.NODE_ENV === 'production') {
     if (authMode !== 'jwt') problems.push('AUTH_MODE must be "jwt" when NODE_ENV=production');
@@ -100,6 +107,7 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     OUTBOX_DISPATCH: dispatch === 'on',
     OUTBOX_INTERVAL_MS: toInt('OUTBOX_INTERVAL_MS', raw.OUTBOX_INTERVAL_MS, 5000, problems),
     DEV_TODAY: devToday,
+    WMS: wmsUrl ? { url: wmsUrl, email: wmsEmail, password: wmsPassword } : null,
   };
 
   if (problems.length) {

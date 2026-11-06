@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { IsIn } from 'class-validator';
+import { IsIn, IsOptional } from 'class-validator';
 import { CurrentContext, RequirePermission } from '../../platform/context/context.decorators';
 import type { RequestContext } from '../../platform/context/request-context';
 import { CORE_PERMISSIONS as P } from '../core.permissions';
@@ -10,6 +10,11 @@ import { ImportsService, type ImportFile } from './imports.service';
 export class ImportKindDto {
   @IsIn(IMPORT_KINDS, { message: 'Pick what to import: customers, suppliers, items or price-list prices.' })
   kind!: ImportKind;
+
+  /** "true": customers and suppliers keep the codes in the file (a form field, so a string). */
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  keepCodes?: string;
 }
 
 /** Larger than the 2 MB a file may be, so the service can say so in words. */
@@ -30,13 +35,13 @@ export class CoreImportsController {
   @RequirePermission(P.IMPORT)
   @UseInterceptors(upload)
   check(@CurrentContext() ctx: RequestContext, @UploadedFile() file: ImportFile | undefined, @Body() dto: ImportKindDto) {
-    return this.imports.check(ctx, dto.kind, file);
+    return this.imports.check(ctx, dto.kind, file, { keepCodes: dto.keepCodes === 'true' });
   }
 
   @Post('load')
   @RequirePermission(P.IMPORT)
   @UseInterceptors(upload)
   load(@CurrentContext() ctx: RequestContext, @UploadedFile() file: ImportFile | undefined, @Body() dto: ImportKindDto) {
-    return this.imports.load(ctx, dto.kind, file);
+    return this.imports.load(ctx, dto.kind, file, { keepCodes: dto.keepCodes === 'true' });
   }
 }

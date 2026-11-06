@@ -180,7 +180,7 @@ export class DeliveriesQuery {
         deliveredThisMonth: { units: toQty(monthUnits), deliveries: month.length },
       },
       waiting: rows.map(({ balanceDec: _b, ...r }) => r),
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
     };
   }
 
@@ -314,7 +314,7 @@ export class DeliveriesQuery {
         comment: decidedStep?.comment ?? null,
       },
       attachments: files.map((f) => ({ id: f.id, fileName: f.fileName, mimeType: f.mimeType, kind: f.kind, downloadUrl: f.downloadUrl })),
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
       confirmedAt: d.confirmedAt?.toISOString() ?? null,
       confirmedByName: d.confirmedByName,
       links,

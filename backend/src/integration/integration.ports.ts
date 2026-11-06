@@ -18,7 +18,10 @@ export interface StockLevel {
 }
 
 export interface StockPort {
+  /** The stock figures are live. */
   readonly connected: boolean;
+  /** Stock moves reach the warehouse system too. False keeps the "queued" banners on receipts, deliveries and returns. */
+  readonly movementsConnected: boolean;
   listStock(tenantId: string, itemCodes?: string[]): Promise<StockLevel[]>;
 }
 

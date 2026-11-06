@@ -27,7 +27,12 @@ export interface Importer {
   permission: string;
   /** Numbering key for a new record's code, when the code comes from numbering. */
   numbering?: string;
-  plan(ctx: RequestContext, rows: Record<string, string>[]): Promise<PlannedRow[]>;
+  plan(ctx: RequestContext, rows: Record<string, string>[], options: ImportOptions): Promise<PlannedRow[]>;
+}
+
+export interface ImportOptions {
+  /** Customers and suppliers: an unknown code in the file adds a record with that code, for records from another system. */
+  keepCodes: boolean;
 }
 
 /** The class-validator messages of a DTO built from a row, the same checks the screens' requests get. */

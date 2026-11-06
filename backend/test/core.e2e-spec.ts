@@ -987,6 +987,36 @@ describe('Core (end to end)', () => {
     };
     const results = (a: ImportAnswer) => a.rows.map((r) => [r.status, r.result]);
 
+    it('keeps codes from another system only when asked, and leaves the next number alone', async () => {
+      const csv = 'Code,Name,Payment term,Currency\nSUP-KEPT-1,Kept Supplier,30 days,MYR\nS-9999,Looks Like Ours,30 days,MYR\n';
+      const send = async (step: 'check' | 'load', keepCodes: boolean) => {
+        const base = `${(await api.app.getUrl()).replace('[::1]', '127.0.0.1')}/api/v1`;
+        const form = new FormData();
+        form.append('kind', 'suppliers');
+        form.append('keepCodes', String(keepCodes));
+        form.append('file', new Blob([csv], { type: 'text/csv' }), 'suppliers.csv');
+        const res = await fetch(`${base}/core/imports/${step}`, { method: 'POST', headers: { 'x-dev-user': 'ADM' }, body: form });
+        return (await res.json()) as ImportAnswer;
+      };
+      const before = await api.prisma.sysNumberSequence.findFirstOrThrow({ where: { tenantId: TENANT_ID, docType: 'SUPPLIER' } });
+
+      const off = await send('check', false);
+      expect(off.rows.map((r) => r.status)).toEqual(['problem', 'problem']);
+      expect(off.rows[0]!.result).toContain('SUP-KEPT-1 is not in Master Data');
+
+      const checked = await send('check', true);
+      expect(checked.rows[0]).toMatchObject({ status: 'new', code: 'SUP-KEPT-1' });
+      expect(checked.rows[1]).toMatchObject({ status: 'problem' });
+      expect(checked.rows[1]!.result).toContain('numbers are given out by Core');
+      expect(await api.prisma.mdmSupplier.count({ where: { tenantId: TENANT_ID, code: 'SUP-KEPT-1' } })).toBe(0);
+
+      const loaded = await send('load', true);
+      expect(loaded.counts).toMatchObject({ added: 1, problem: 1 });
+      expect(await api.prisma.mdmSupplier.findFirst({ where: { tenantId: TENANT_ID, code: 'SUP-KEPT-1' } })).toMatchObject({ name: 'Kept Supplier', status: 'ACTIVE' });
+      const after = await api.prisma.sysNumberSequence.findFirstOrThrow({ where: { tenantId: TENANT_ID, docType: 'SUPPLIER' } });
+      expect(after.nextValue).toBe(before.nextValue);
+    });
+
     it('offers customers, suppliers, items and price-list prices, with their template columns', async () => {
       const { kinds } = await api.get<{ kinds: { kind: string; label: string; columns: string[] }[] }>('core/imports/kinds', 'AR');
       expect(kinds.map((k) => k.label)).toEqual(['Customers', 'Suppliers', 'Items', 'Price-list prices']);

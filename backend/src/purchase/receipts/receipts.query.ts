@@ -168,7 +168,7 @@ export class ReceiptsQuery {
         late: { count: late.length, worst: late[0] ? { poNo: late[0].poNo, days: late[0].lateDays } : null },
         waitingForInventory: { count: queuedReceipts },
       },
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
     };
   }
 
@@ -261,7 +261,7 @@ export class ReceiptsQuery {
           receivedBeforeQty: toQty(l.receivedQty),
           openQty: toQty(openQty(l)),
         })),
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
     };
   }
 
@@ -344,7 +344,7 @@ export class ReceiptsQuery {
       }),
       attachments: files.map((f) => ({ id: f.id, fileName: f.fileName, mimeType: f.mimeType, kind: f.kind, downloadUrl: f.downloadUrl })),
       stock: stock.get(receipt.id)!,
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
       links,
       activity,
       allowedActions: this.actions(ctx, receipt),

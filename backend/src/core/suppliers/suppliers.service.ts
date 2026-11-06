@@ -68,15 +68,18 @@ export class SuppliersService {
     private readonly query: SuppliersQuery,
   ) {}
 
-  /** A new supplier gets the next S-#### number. Buyers may add suppliers; contract prices need core.supplier.contract. */
-  async create(ctx: RequestContext, dto: CreateSupplierDto) {
+  /**
+   * A new supplier gets the next S-#### number, or `keptCode` when the import brings it from another system.
+   * Buyers may add suppliers; contract prices need core.supplier.contract.
+   */
+  async create(ctx: RequestContext, dto: CreateSupplierDto, keptCode?: string) {
     const tenantId = ctx.tenantId;
     const preview = await this.preview(ctx, dto, null, []);
     if (preview.permission) throw new PermissionDeniedError(preview.permission);
     if (preview.errors.length) throw new ValidationFailedError(preview.errors);
     const contracts = this.contracts(dto);
     const id = await this.prisma.$transaction(async (tx) => {
-      const code = await this.numbering.next(tx, tenantId, CORE_DOC_TYPE.SUPPLIER);
+      const code = keptCode ?? (await this.numbering.next(tx, tenantId, CORE_DOC_TYPE.SUPPLIER));
       const row = await tx.mdmSupplier.create({ data: { tenantId, code, ...this.data(dto), status: 'ACTIVE', createdBy: ctx.user.code, updatedBy: ctx.user.code } });
       await this.writeContracts(tx, tenantId, code, contracts);
       await this.records.record(tx, ctx, {

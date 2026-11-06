@@ -206,7 +206,7 @@ export class CashPurchasesQuery {
           }
         : null,
       attachments: files.map((f) => ({ id: f.id, fileName: f.fileName, mimeType: f.mimeType, kind: f.kind, downloadUrl: f.downloadUrl })),
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
       activity,
       allowedActions: this.actions(ctx, row),
     };

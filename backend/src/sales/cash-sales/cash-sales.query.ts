@@ -165,7 +165,7 @@ export class CashSalesQuery {
         total: toMoney(c.total),
       },
       stockWarning: short.length ? short.join(', ') : null,
-      inventoryConnected: this.stock.connected,
+      inventoryConnected: this.stock.movementsConnected,
       releasedAt: c.releasedAt?.toISOString() ?? null,
       links,
       activity,

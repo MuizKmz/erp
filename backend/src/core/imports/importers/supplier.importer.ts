@@ -7,8 +7,8 @@ import { CORE_PERMISSIONS as P } from '../../core.permissions';
 import { CreateSupplierDto, UpdateSupplierDto } from '../../suppliers/dto/supplier.dto';
 import type { ContractPrice } from '../../suppliers/suppliers.rules';
 import { SuppliersService } from '../../suppliers/suppliers.service';
-import { duplicateOf, parseYesNo } from '../imports.rules';
-import { finder, outcome, problem, validateDto, type Importer, type PlannedRow } from './importer';
+import { duplicateOf, keptCodeProblem, parseYesNo } from '../imports.rules';
+import { finder, outcome, problem, validateDto, type Importer, type ImportOptions, type PlannedRow } from './importer';
 
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 const contractOf = (c: MdmContractPrice): ContractPrice => ({ itemCode: c.itemCode, unitPrice: c.unitPrice, validFrom: isoDay(c.validFrom), validTo: c.validTo ? isoDay(c.validTo) : null });
@@ -47,7 +47,7 @@ export class SupplierImporter implements Importer {
     private readonly suppliers: SuppliersService,
   ) {}
 
-  async plan(ctx: RequestContext, rows: Record<string, string>[]): Promise<PlannedRow[]> {
+  async plan(ctx: RequestContext, rows: Record<string, string>[], options: ImportOptions): Promise<PlannedRow[]> {
     const tenantId = ctx.tenantId;
     const codes = rows.map((r) => r.code!.trim().toUpperCase() || null);
     const known = codes.filter((c): c is string => !!c);
@@ -69,9 +69,13 @@ export class SupplierImporter implements Importer {
         continue;
       }
       const before = code ? supplier.get(code) : undefined;
+      const kept = code && !before && options.keepCodes ? code : null;
       if (code && !before) {
-        planned.push(problem(`${code} is not in Master Data. Leave the code empty to add a new supplier.`));
-        continue;
+        const refused = options.keepCodes ? keptCodeProblem(code, 'S-') : `${code} is not in Master Data. Leave the code empty to add a new supplier.`;
+        if (refused) {
+          planned.push(problem(refused));
+          continue;
+        }
       }
       const beforeContracts = before ? contracts.filter((c) => c.supplierCode === before.code).map(contractOf) : [];
       const plain: Record<string, unknown> = before ? requestOf(before, beforeContracts) : { isWalkIn: false, currency: 'MYR', idType: 'BRN', contractPrices: [] };
@@ -106,7 +110,7 @@ export class SupplierImporter implements Importer {
       if (plain.paymentTermDays === undefined) plain.paymentTermDays = 30;
 
       const display = {
-        code: before?.code ?? '',
+        code: before?.code ?? kept ?? '',
         name: String(plain.name ?? ''),
         supplies: String(plain.category ?? ''),
         paymentTerm: terms.find((t) => t.days === plain.paymentTermDays)?.name ?? v('paymentTerm'),
@@ -124,11 +128,11 @@ export class SupplierImporter implements Importer {
       const preview = await this.suppliers.preview(ctx, checked.dto, before ?? null, beforeContracts);
       planned.push({
         ...outcome(preview, !before, 'supplier'),
-        code: before?.code ?? null,
+        code: before?.code ?? kept,
         display,
         apply: before
           ? async () => (await this.suppliers.update(ctx, before.id, checked.dto as UpdateSupplierDto)).code
-          : async () => (await this.suppliers.create(ctx, checked.dto as CreateSupplierDto)).code,
+          : async () => (await this.suppliers.create(ctx, checked.dto as CreateSupplierDto, kept ?? undefined)).code,
       });
     }
     return planned;

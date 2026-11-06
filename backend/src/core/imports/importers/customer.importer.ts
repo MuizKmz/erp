@@ -7,8 +7,8 @@ import { CORE_DOC_TYPE } from '../../core.constants';
 import { CORE_PERMISSIONS as P } from '../../core.permissions';
 import { CreateCustomerDto, UpdateCustomerDto } from '../../customers/dto/customer.dto';
 import { CustomersService } from '../../customers/customers.service';
-import { duplicateOf, parseAmount } from '../imports.rules';
-import { amountText, finder, outcome, problem, validateDto, type Importer, type PlannedRow } from './importer';
+import { duplicateOf, keptCodeProblem, parseAmount } from '../imports.rules';
+import { amountText, finder, outcome, problem, validateDto, type Importer, type ImportOptions, type PlannedRow } from './importer';
 
 /** A stored customer as the form's request would send it, so blank cells leave it as it is. */
 function requestOf(c: MdmCustomer): Record<string, unknown> {
@@ -50,7 +50,7 @@ export class CustomerImporter implements Importer {
     @Inject(MASTER_DATA_PORT) private readonly masterData: MasterDataPort,
   ) {}
 
-  async plan(ctx: RequestContext, rows: Record<string, string>[]): Promise<PlannedRow[]> {
+  async plan(ctx: RequestContext, rows: Record<string, string>[], options: ImportOptions): Promise<PlannedRow[]> {
     const tenantId = ctx.tenantId;
     const where = { tenantId };
     const codes = rows.map((r) => r.code!.trim().toUpperCase() || null);
@@ -81,9 +81,13 @@ export class CustomerImporter implements Importer {
         continue;
       }
       const before = code ? customer.get(code) : undefined;
+      const kept = code && !before && options.keepCodes ? code : null;
       if (code && !before) {
-        planned.push(problem(`${code} is not in Master Data. Leave the code empty to add a new customer.`));
-        continue;
+        const refused = options.keepCodes ? keptCodeProblem(code, 'C-') : `${code} is not in Master Data. Leave the code empty to add a new customer.`;
+        if (refused) {
+          planned.push(problem(refused));
+          continue;
+        }
       }
       const plain: Record<string, unknown> = before ? requestOf(before) : { taxMode: 'EXCLUSIVE', idType: 'BRN' };
       const errors: string[] = [];
@@ -119,7 +123,7 @@ export class CustomerImporter implements Importer {
       text('taxMode', 'taxMode', (s) => s.toUpperCase());
 
       const display = {
-        code: before?.code ?? '',
+        code: before?.code ?? kept ?? '',
         name: String(plain.name ?? ''),
         branch: String(plain.branchCode ?? v('branch')),
         priceList: priceLists.find((p) => p.code === plain.priceListCode)?.name ?? v('priceList'),
@@ -139,11 +143,11 @@ export class CustomerImporter implements Importer {
       const result = outcome(preview, !before, 'customer');
       planned.push({
         ...result,
-        code: before?.code ?? null,
+        code: before?.code ?? kept,
         display,
         apply: before
           ? async () => (await this.customers.update(ctx, before.id, checked.dto as UpdateCustomerDto)).code
-          : async () => (await this.customers.create(ctx, checked.dto as CreateCustomerDto)).code,
+          : async () => (await this.customers.create(ctx, checked.dto as CreateCustomerDto, kept ?? undefined)).code,
       });
     }
     return planned;
