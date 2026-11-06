@@ -20,7 +20,7 @@ import {
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { poApprovalNeed, type PoApprovalNeed } from '../shared/approval-limit.rules';
 import { LinkedDocsService } from '../shared/linked-docs.service';
-import { PUR_ENTITY, SYSTEM_USER } from '../shared/purchase.constants';
+import { approverLabel, PUR_ENTITY, SYSTEM_USER } from '../shared/purchase.constants';
 import { PurchaseSettingsService } from '../shared/purchase-settings.service';
 import type { OrderListQueryDto } from './dto/order.dto';
 import { allowedOrderActions, orderStatusLabel, rfqRequirement, type OrderStatus, type RfqCheck } from './order.rules';
@@ -163,7 +163,7 @@ export class OrdersQuery {
       where: { tenantId, entityType: PUR_ENTITY.ORDER, entityId: { in: orderIds }, status: 'PENDING' },
       include: { steps: { where: { status: 'WAITING' } } },
     });
-    return new Map(requests.map((r) => [r.entityId, r.steps.map((s) => s.approverName ?? s.approverRole).join(', ')]));
+    return new Map(requests.map((r) => [r.entityId, r.steps.map(approverLabel).join(', ')]));
   }
 
   // ── Approval need and RFQ rule ────────────────────────────────────────────
@@ -308,7 +308,7 @@ export class OrdersQuery {
   ) {
     const latest = history[0];
     const steps = (latest?.steps ?? []).map((s) => ({
-      approverName: s.approverName ?? s.approverRole,
+      approverName: approverLabel(s),
       approverRole: s.approverRole,
       status: s.status,
       decidedByName: s.decidedByName,
@@ -371,7 +371,7 @@ export class OrdersQuery {
       version: order.version,
       required: need.required,
       reason: need.reason,
-      approver: first ? { role: first.approverRole, defaultCode: first.approverCode, defaultName: first.approverName } : null,
+      approver: first ? { role: first.approverRole, defaultCode: first.approverCode, defaultName: approverLabel(first) } : null,
       candidates,
       second: need.second,
       steps: need.steps,

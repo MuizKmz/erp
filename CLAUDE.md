@@ -825,7 +825,7 @@ npm run client:install -- path\to\client.json   # prisma/client.example.json sho
 ```
 
 - **Creates:** the tenant, company, first branch, starter roles, one administrator, document numbers from 1, sign-in, Purchase and Sales settings at the standard defaults, email templates, one enquiry type (General), and the walk-in customer C-CASH with its price list.
-- **Does not create:** items, suppliers, other customers, units, tax codes or warehouses. The client adds or imports them in Core. Approvers on Approval Rules start empty.
+- **Does not create:** items, suppliers, other customers, units, tax codes or warehouses. The client adds or imports them in Core. Approval rules name a role and no person, so a request goes to whoever holds that role; there is no screen yet to name one person. Locations are not created, and there is no screen or API for them yet, so a goods receipt cannot be confirmed until they exist (they come with the WMS, stage 2).
 - **Administrator:** has no password. The command prints a single-use set-password link (valid 72 hours), and two-factor is set up at first sign-in.
 - **Safe to run by mistake:** it deletes nothing and refuses a tenant code that already exists.
 - **Server settings:** `AUTH_MODE` has no default. With `NODE_ENV=production` the server only starts with `AUTH_MODE=jwt`, `COOKIE_SECURE=on`, its own `DEV_TENANT_CODE`, and `DEV_TODAY` and `DEMO_ADMIN_2FA_BYPASS_CODE` empty.

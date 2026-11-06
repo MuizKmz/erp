@@ -9,7 +9,7 @@ import { ClockService } from '../../platform/clock/clock.service';
 import { PURCHASE_PERMISSIONS as P } from '../purchase.permissions';
 import { renderTemplate } from '../shared/email-template.rules';
 import { PurchaseSettingsService } from '../shared/purchase-settings.service';
-import { PUR_ROLE } from '../shared/purchase.constants';
+import { PUR_ROLE, PUR_ROLE_LABEL } from '../shared/purchase.constants';
 import type { SaveApprovalRulesDto, SaveDocumentTypesDto, SaveEmailTemplateDto } from './dto/settings.dto';
 import {
   formatNumber,
@@ -31,11 +31,7 @@ const CONDITION_LABEL: Record<string, string> = {
   CHARGE_NOT_ON_PO: 'charge is not on the PO',
   BLOCKED_OVER_AMOUNT: 'blocked over RM',
 };
-const ROLE_LABEL: Record<string, string> = {
-  [PUR_ROLE.MANAGER]: 'Purchasing Manager',
-  [PUR_ROLE.BRANCH_MANAGER]: 'Branch Manager',
-  [PUR_ROLE.FINANCE_DIRECTOR]: 'Finance Director',
-};
+const ROLE_LABEL = PUR_ROLE_LABEL;
 const SEQUENCE_ORDER = ['PRQ', 'RFQ', 'PO', 'GRN', 'PI', 'CP', 'PDN', 'PRT', 'PCO'];
 const rm = (v: string | null) => (v === null ? null : dec(v));
 

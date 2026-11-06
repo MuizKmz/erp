@@ -55,5 +55,15 @@ export const PUR_ROLE = {
   REQUESTER: 'REQUESTER',
 } as const;
 
+/** Roles in words, for when an approval rule names a role and leaves the person open (a new install). */
+export const PUR_ROLE_LABEL: Record<string, string> = {
+  [PUR_ROLE.MANAGER]: 'Purchasing Manager',
+  [PUR_ROLE.BRANCH_MANAGER]: 'Branch Manager',
+  [PUR_ROLE.FINANCE_DIRECTOR]: 'Finance Director',
+};
+
+/** Who an approval step waits for: the person if the rule names one, otherwise the role in words. */
+export const approverLabel = (step: { approverName: string | null; approverRole: string }): string => step.approverName ?? PUR_ROLE_LABEL[step.approverRole] ?? step.approverRole;
+
 /** Acting user for things the system does by itself (e.g. auto-drafting a buy-to-order PO). */
 export const SYSTEM_USER = { code: 'SYSTEM', name: 'System' } as const;
