@@ -10,7 +10,12 @@ const SCREENS = [
 
 /** The read-only WMS view. The launcher opens it only where a WMS is connected. */
 export const wmsRoutes: RouteRecordRaw[] = [
-  { path: '/wms', redirect: '/wms/inventory' },
+  {
+    path: '/wms',
+    name: 'wms-home',
+    component: () => import('./views/WmsHomeView.vue'),
+    meta: { code: 'W00', title: 'WMS home', module: 'wms', layout: 'module-home' },
+  },
   ...SCREENS.map(
     (s): RouteRecordRaw => ({
       path: `/wms/${s.path}`,

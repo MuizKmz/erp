@@ -542,6 +542,10 @@
   --mod-tile-4: #6a6ee0;
   --mod-tile-5: #8285e8;
 }
+[data-module='wms'] {
+  --mod-tile-4: #1b87a6;
+  --mod-tile-5: #2f9ab8;
+}
 [data-module='config'] {
   --mod-tile-4: #6e7487;
 }

@@ -174,6 +174,7 @@ Opens from the launcher's WMS tile where a client's WMS is connected (`WMS_URL`)
 
 | Code | Screen | Mockup | Route | API |
 |---|---|---|---|---|
+| W00 | WMS home (a tile per screen, KPI cards, charts; no separate mockup, it follows the other module homes) | none | `/wms` | GET /api/v1/wms/dashboard · GET, PUT, DELETE /api/v1/wms/dashboard/board |
 | W01 | Inventory | `WmsInventory.html` | `/wms/inventory` | GET /api/v1/wms/inventory |
 | W02 | Stock Location | `WmsStockLocation.html` | `/wms/stock-location` | GET /api/v1/wms/stock-locations |
 | W03 | EPC Lookup | `WmsEpcLookup.html` | `/wms/epc-lookup` (`?code=`) | GET /api/v1/wms/epc/:code (EPC or serial number) |

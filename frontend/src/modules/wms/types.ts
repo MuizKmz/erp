@@ -107,3 +107,13 @@ export interface ShippingAnswer extends ListResponse<ShippingRow> {
   options: { customers: { code: string; name: string }[] }
   source: WmsSource
 }
+
+export interface WmsDashboard {
+  kpis: {
+    units: { count: number; warehouses: number; items: number }
+    reorder: { count: number; outOfStock: number }
+    toScan: { count: number; units: number }
+    toShip: { count: number; units: number }
+  }
+  source: WmsSource
+}
