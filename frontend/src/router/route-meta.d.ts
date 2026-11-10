@@ -24,5 +24,10 @@ declare module 'vue-router' {
     mockup?: string
     /** Open without signing in (the sign-in pages) */
     public?: boolean
+    /**
+     * The permission that opens this page. Left out: the module's view permission (purchase.view …).
+     * null: any signed-in person (My account).
+     */
+    permission?: string | null
   }
 }

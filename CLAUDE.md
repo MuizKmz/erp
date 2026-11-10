@@ -856,3 +856,14 @@ npm run client:install -- path\to\client.json   # prisma/client.example.json sho
 - **Settings:** `WMS_URL`, `WMS_EMAIL`, `WMS_PASSWORD`, and `WMS_WEB_URL` for the *Open in WMS* button. Without `WMS_URL` the tile stays *Coming soon*.
 - **Limits:** the WMS lists tags, receivings and shipments whole, so these screens filter and page in memory. That is fine for now; paging in the WMS is needed at real volumes. Tag history is the WMS's summary dates, not every scan. A shipment names no warehouse, so Shipping has no warehouse filter (the mockup was changed to match).
 - **Client data never goes in this repo:** tests and mockups use neutral codes. A client's demo data lives outside the repo.
+
+---
+
+# Module access (10 Nov 2026)
+
+**Status:** built, asked for by the user. A person who opens a module or page their roles do not allow gets one calm page instead of a module full of errors.
+
+- **Launcher:** `GET /me/modules` marks a built module the person cannot view as `NO_ACCESS` (tag "No access", no route), from each module's catalogue `viewKey`. "Coming soon" stays for modules not built (MES, and WMS where none is connected).
+- **No-access page:** `modules/common/NoAccessView.vue`, shown by `App.vue` in place of the page when the route's permission is missing. A route needs its module's view permission (`modules/common/access.ts`); `meta.permission` overrides it (the security log and audit trail), and `null` opens it to anyone signed in (My account). The address stays, the page names the permission in words (`/me` → `permissionLabels`), and switching user re-checks at once.
+- **Toasts:** a refused permission reads "Not allowed", and the same message shows once even when a page fails several loads at the same time.
+- **Tests:** `test/configuration.e2e-spec.ts` (tiles and labels), `test/wms.e2e-spec.ts`.

@@ -103,7 +103,7 @@ describe('WMS read-only view (end to end, fake WMS)', () => {
   it('opens the WMS tile only for someone allowed to see it', async () => {
     const tile = async (user: string) => (await api.get<{ items: { code: string; state: string; route: string | null }[] }>('me/modules', user)).items.find((m) => m.code === 'wms');
     expect(await tile('ADM')).toMatchObject({ state: 'OPEN', route: '/wms' });
-    expect(await tile('AR')).toMatchObject({ state: 'EXISTING', route: null });
+    expect(await tile('AR')).toMatchObject({ state: 'NO_ACCESS', tag: 'No access', route: null });
   });
 
   it('refuses a sales agent, who may only see their own customers', async () => {

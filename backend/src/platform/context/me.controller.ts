@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Env } from '../../config/env';
 import { ClockService } from '../clock/clock.service';
 import { CurrentContext } from './context.decorators';
+import { PermissionCatalogue } from './permission-catalogue';
 import { PermissionRegistry } from './permission.registry';
 import { USER_DIRECTORY, type RequestContext, type UserDirectory } from './request-context';
 import { TenantService } from './tenant.service';
@@ -21,6 +22,7 @@ const MODULES = [
 export class MeController {
   constructor(
     private readonly registry: PermissionRegistry,
+    private readonly catalogue: PermissionCatalogue,
     private readonly clock: ClockService,
     private readonly tenants: TenantService,
     @Inject(USER_DIRECTORY) private readonly directory: UserDirectory,
@@ -40,17 +42,32 @@ export class MeController {
       /** The user's branches with their names, for the branch switch (default first). */
       branches: ctx.user.branchCodes.map((code) => ({ code, name: branches.find((b) => b.code === code)?.name ?? code })),
       permissions: this.registry.permissionsFor(ctx.user.roles),
+      /** Every permission in words ("Purchase · View"), so a page can say which one a person is missing. */
+      permissionLabels: Object.fromEntries(this.catalogue.modules().flatMap((m) => m.permissions.map((p) => [p.key, `${p.object} · ${p.action}`]))),
       today: this.clock.today(),
       now: this.clock.now().toISOString(),
       timeZone: this.clock.timeZone,
     };
   }
 
-  /** Modules the user can open from the launcher. */
+  /**
+   * The launcher tiles for this person. A module they cannot view reads NO_ACCESS with no route, so its tile never opens
+   * a module that would only refuse them. The WMS tile exists only where a WMS is connected.
+   */
   @Get('modules')
   modules(@CurrentContext() ctx: RequestContext) {
-    // The WMS tile opens the read-only view only where a WMS is connected and the user may see it.
-    const wmsOpen = !!this.config.get('WMS', { infer: true }) && this.registry.has(ctx.user.roles, 'wms.view');
-    return { items: MODULES.map((m) => (m.code === 'wms' && wmsOpen ? { ...m, tag: 'Read only', state: 'OPEN', route: '/wms' } : m)) };
+    const viewKey = new Map(this.catalogue.modules().map((m) => [m.module, m.viewKey]));
+    const canView = (code: string) => {
+      const key = viewKey.get(code);
+      return !key || this.registry.has(ctx.user.roles, key);
+    };
+    const wmsConnected = !!this.config.get('WMS', { infer: true });
+    return {
+      items: MODULES.map((m) => {
+        const tile = m.code === 'wms' && wmsConnected ? { ...m, tag: 'Read only', state: 'OPEN', route: '/wms' } : m;
+        if (tile.state !== 'OPEN' || canView(tile.code)) return tile;
+        return { ...tile, tag: 'No access', state: 'NO_ACCESS', route: null };
+      }),
+    };
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, type Component } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import { ArrowRight, ChartLine, ClipboardCheck, Database, Factory, Star, Sun, Warehouse } from '@lucide/vue'
+import { ArrowRight, ChartLine, ClipboardCheck, Database, Factory, Lock, Star, Sun, Warehouse } from '@lucide/vue'
 import { accountApi, sessionApi, type ModuleTile } from '@/api/session'
 import AccountMenu from '@/components/erp/AccountMenu.vue'
 import NoticeBanner from '@/components/erp/NoticeBanner.vue'
@@ -9,7 +9,10 @@ import { useSession } from '@/composables/useSession'
 import { MODULES } from '@/modules/registry'
 import { formatLongDate, greeting } from '@/utils/format'
 
-/** 00 · Choose a module. A tile opens only when its module is built in this app; the rest say "Coming soon". */
+/**
+ * 00 · Choose a module. A tile opens only when its module is built in this app and the person may view it; the others
+ * say "No access" (built, not in their roles) or "Coming soon".
+ */
 const toast = useToast()
 const { state, user, today, now, isJwt } = useSession()
 
@@ -34,9 +37,13 @@ const FALLBACK: ModuleTile[] = [
 
 const tiles = ref<ModuleTile[]>(FALLBACK)
 
-/** Built modules first, keeping the server's order within each group. */
+/** Modules the person can open first, then those not in their roles, then those coming later. */
 const isBuilt = (t: ModuleTile) => !!t.route && t.code in MODULES
-const sortedTiles = computed(() => [...tiles.value.filter(isBuilt), ...tiles.value.filter((t) => !isBuilt(t))])
+const sortedTiles = computed(() => [
+  ...tiles.value.filter(isBuilt),
+  ...tiles.value.filter((t) => !isBuilt(t) && t.state === 'NO_ACCESS'),
+  ...tiles.value.filter((t) => !isBuilt(t) && t.state !== 'NO_ACCESS'),
+])
 const builtTiles = computed(() => tiles.value.filter(isBuilt))
 
 // Approvals waiting for the current user, per built module (shown on its tile).
@@ -181,7 +188,14 @@ const year = computed(() => today.value.slice(0, 4))
               <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-(--tile-color)/10 text-(--tile-color)">
                 <component :is="TILE_STYLE[tile.code].icon" :size="24" aria-hidden="true" />
               </span>
-              <span class="rounded-full bg-erp-track px-2.5 py-0.5 text-xs font-semibold text-erp-muted">Coming soon</span>
+              <span
+                v-if="tile.state === 'NO_ACCESS'"
+                class="flex items-center gap-1 rounded-full bg-erp-track px-2.5 py-0.5 text-xs font-semibold text-erp-muted"
+                title="Not part of your role. Ask your administrator if you need it."
+              >
+                <Lock :size="12" aria-hidden="true" />No access
+              </span>
+              <span v-else class="rounded-full bg-erp-track px-2.5 py-0.5 text-xs font-semibold text-erp-muted">Coming soon</span>
             </div>
             <div class="flex flex-col gap-1">
               <span class="text-lg font-bold text-erp-subtle">{{ tile.name }}</span>

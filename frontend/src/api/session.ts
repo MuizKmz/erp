@@ -35,6 +35,8 @@ export interface Me {
   /** The user's branches with their names, default first (top bar's branch switch). */
   branches: { code: string; name: string }[]
   permissions: string[]
+  /** Every permission in words: { 'purchase.view': 'Purchase · View' } (the no-access page). */
+  permissionLabels: Record<string, string>
   /** Business date, YYYY-MM-DD (DEV_TODAY pins it to 29 Sep 2026 in the demo). */
   today: string
   /** Server "now" as ISO, shifted to `today` when DEV_TODAY is set. */
@@ -96,7 +98,8 @@ export interface ModuleTile {
   code: 'core' | 'purchase' | 'sales' | 'mes' | 'wms' | 'config'
   name: string
   tag: string
-  state: 'OPEN' | 'EXISTING' | 'LATER'
+  /** NO_ACCESS: the module is built, but not part of this person's roles. */
+  state: 'OPEN' | 'EXISTING' | 'LATER' | 'NO_ACCESS'
   route: string | null
 }
 

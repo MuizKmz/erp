@@ -8,6 +8,8 @@ import { onApiError } from '@/api/http'
 import ModuleHomeLayout from '@/components/erp/ModuleHomeLayout.vue'
 import ModuleLayout from '@/components/erp/ModuleLayout.vue'
 import { useSession } from '@/composables/useSession'
+import { requiredPermission } from '@/modules/common/access'
+import NoAccessView from '@/modules/common/NoAccessView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,8 +17,21 @@ const toast = useToast()
 const session = useSession()
 
 // Every API error becomes a toast unless the caller asked for silence (validation errors also show inline).
+// A page loading several things at once can fail the same way several times: the same message shows once.
+const recentToasts = new Map<string, number>()
 onApiError((error) => {
-  toast.add({ severity: 'error', summary: error.status === 409 ? 'Not allowed' : 'Something went wrong', detail: error.message, life: 6000 })
+  const summary = error.status === 409 || error.status === 403 ? 'Not allowed' : 'Something went wrong'
+  const key = `${summary}|${error.message}`
+  const now = Date.now()
+  if ((recentToasts.get(key) ?? 0) > now - 5000) return
+  recentToasts.set(key, now)
+  toast.add({ severity: 'error', summary, detail: error.message, life: 6000 })
+})
+
+// A page the person's roles do not open shows the no-access page instead, checked again on every user switch.
+const blocked = computed(() => {
+  const permission = requiredPermission(route)
+  return !!permission && !!session.state.me && !session.can(permission)
 })
 
 onMounted(() => void session.start())
@@ -60,7 +75,8 @@ const pageKey = computed(() => `${session.state.version}:${route.path}`)
   </div>
 
   <template v-else-if="showPage">
-    <component :is="layout" v-if="layout">
+    <NoAccessView v-if="blocked" :key="pageKey" />
+    <component :is="layout" v-else-if="layout">
       <RouterView :key="pageKey" />
     </component>
     <RouterView v-else :key="pageKey" />

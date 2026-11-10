@@ -33,9 +33,25 @@ describe('Configuration (end to end)', () => {
   }, 300_000);
 
   describe('A1 · Module, schema and shell', () => {
-    it('opens Configuration from the launcher', async () => {
-      const modules = await api.get<{ items: { code: string; state: string; route: string | null }[] }>('me/modules', 'LMY');
+    it('opens Configuration from the launcher, for those who may view it', async () => {
+      const modules = await api.get<{ items: { code: string; state: string; route: string | null }[] }>('me/modules', 'ADM');
       expect(modules.items.find((m) => m.code === 'config')).toMatchObject({ state: 'OPEN', route: '/config' });
+    });
+
+    it('marks a module the person cannot view as No access, with no route', async () => {
+      const tiles = (await api.get<{ items: { code: string; state: string; tag: string; route: string | null }[] }>('me/modules', 'AR')).items;
+      const tile = (code: string) => tiles.find((m) => m.code === code);
+      expect(tile('sales')).toMatchObject({ state: 'OPEN', route: '/sales' });
+      expect(tile('core')).toMatchObject({ state: 'OPEN', route: '/core' });
+      expect(tile('purchase')).toMatchObject({ state: 'NO_ACCESS', tag: 'No access', route: null });
+      expect(tile('config')).toMatchObject({ state: 'NO_ACCESS', route: null });
+      expect(tile('mes')).toMatchObject({ state: 'LATER' });
+    });
+
+    it('names every permission in words, for the no-access page', async () => {
+      const me = await api.get<{ permissionLabels: Record<string, string> }>('me', 'AR');
+      expect(me.permissionLabels['purchase.view']).toBe('Purchase · View');
+      expect(me.permissionLabels['config.audit.view']).toBe('Audit trail · View');
     });
 
     it('shows the A01 numbers and what needs attention, to the Administrator only', async () => {
