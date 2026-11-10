@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BrandMark from './BrandMark.vue'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Bell, LogOut } from '@lucide/vue'
@@ -36,7 +37,7 @@ const year = computed(() => (today.value ? today.value.slice(0, 4) : ''))
       <header class="flex h-14 items-center justify-between gap-4 rounded-2xl border border-erp-border bg-erp-card/95 px-4 shadow-sm md:px-5">
         <div class="flex items-center gap-3">
           <RouterLink to="/" class="flex items-center gap-3 text-erp-text no-underline" title="All modules">
-            <div class="flex h-[34px] w-[34px] items-center justify-center rounded-lg bg-brand-dark text-base font-extrabold text-erp-on-dark">Z</div>
+            <BrandMark :size="38" />
             <div class="text-lg font-bold">Zora <span class="text-erp-link">Pro</span> ERP</div>
           </RouterLink>
           <ModuleSwitcher :module="module" variant="chip" />

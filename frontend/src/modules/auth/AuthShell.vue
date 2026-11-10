@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BrandMark from '@/components/erp/BrandMark.vue'
 /** The frame of the sign-in pages (CfgSignIn.html, CfgTwoFactor.html): the dark bar with the logo and one centred card. */
 withDefaults(defineProps<{ width?: 'narrow' | 'wide' }>(), { width: 'narrow' })
 </script>
@@ -6,7 +7,7 @@ withDefaults(defineProps<{ width?: 'narrow' | 'wide' }>(), { width: 'narrow' })
 <template>
   <div data-module="config" class="flex min-h-screen flex-col bg-launcher-bg">
     <header class="flex h-14 shrink-0 items-center gap-3 bg-launcher-bar px-7">
-      <div class="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-erp-card text-[15px] font-extrabold text-launcher-bar">Z</div>
+      <BrandMark :size="34" />
       <div class="text-base font-bold text-erp-on-dark">Zora Pro ERP</div>
     </header>
     <main class="flex grow justify-center px-4 pt-[72px] pb-10">

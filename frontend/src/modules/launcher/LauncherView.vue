@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BrandMark from '@/components/erp/BrandMark.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { ArrowRight, Lock, Star } from '@lucide/vue'
@@ -106,7 +107,7 @@ const year = computed(() => today.value.slice(0, 4))
     <div class="sticky top-0 z-20 px-4 pt-3 pb-2 backdrop-blur-sm md:px-6">
       <header class="flex h-14 items-center justify-between gap-4 rounded-2xl border border-erp-border bg-erp-card/95 px-4 shadow-sm md:px-5">
         <div class="flex min-w-0 items-center gap-3">
-          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-dark text-base font-extrabold text-erp-on-dark">Z</div>
+          <BrandMark :size="38" />
           <div class="truncate text-[15px] font-bold">Zora <span class="text-erp-link">Pro</span> ERP</div>
           <span v-if="state.tenantName" class="hidden rounded-full bg-erp-track px-2.5 py-0.5 text-xs font-semibold text-erp-subtle sm:inline">
             {{ state.tenantName }}
