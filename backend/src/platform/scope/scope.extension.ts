@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import type { RequestContext } from '../context/request-context';
 import { scopedContext } from './data-scope';
 import type { ScopeRegistry } from './scope.registry';
-import { SCOPED_OPERATIONS, scopeWhere, viewBranchOf, withScope, type ScopeFacts } from './scope.rules';
+import { SCOPED_OPERATIONS, SINGLE_RECORD_OPERATIONS, scopeWhere, viewBranchOf, withScope, type ScopeFacts } from './scope.rules';
 
 /** The user's limits, read with the plain client (unscoped) so working them out never scopes itself. */
 async function factsOf(base: PrismaClient, ctx: RequestContext, viewBranch: string | undefined): Promise<ScopeFacts> {
@@ -34,7 +34,8 @@ export function withDataScope<T extends PrismaClient>(base: T, registry: ScopeRe
             const scoped = rule ? scopedContext() : null;
             if (!rule || !scoped) return query(args);
             scoped.store.facts ??= factsOf(base, scoped.context, viewBranchOf(scoped.store.request));
-            const extra = scopeWhere(rule, await scoped.store.facts);
+            const facts = await scoped.store.facts;
+            const extra = scopeWhere(rule, SINGLE_RECORD_OPERATIONS.has(operation) ? { ...facts, viewBranch: undefined } : facts);
             if (!extra) return query(args);
             const a = (args ?? {}) as { where?: Record<string, unknown> };
             return query({ ...a, where: withScope(a.where, extra) } as typeof args);

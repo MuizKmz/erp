@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import BranchFilter from '@/components/erp/BranchFilter.vue'
+import { computed, onMounted, ref } from 'vue'
 import DashboardBoard from '@/components/erp/DashboardBoard.vue'
 import KpiCard from '@/components/erp/KpiCard.vue'
 import { useViewBranch } from '@/composables/useViewBranch'
@@ -13,7 +12,6 @@ import type { PurchaseDashboard } from '../types'
 // Which of the person's branches the cards and charts count (?branch= in the URL; empty = all of them).
 const view = useViewBranch()
 /** A list link that keeps the branch chosen here. */
-const withBranch = (path: string) => (view.code.value ? `${path}?branch=${view.code.value}` : path)
 
 const data = ref<PurchaseDashboard | null>(null)
 const loading = ref(true)
@@ -23,7 +21,7 @@ async function load() {
   loading.value = true
   failed.value = false
   try {
-    data.value = await purchaseApi.dashboard(view.query.value)
+    data.value = await purchaseApi.dashboard()
   } catch {
     failed.value = true
   } finally {
@@ -31,7 +29,6 @@ async function load() {
   }
 }
 onMounted(load)
-watch(() => view.code.value, () => void load())
 
 // Group tiles, darkest first (Purchase Transaction, Supplier Billing, Operation Policies)
 const TILE_SHADES = ['bg-mod-tile-1', 'bg-mod-tile-2', 'bg-mod-tile-3']
@@ -77,10 +74,9 @@ const kpis = computed(() => {
     </RouterLink>
   </div>
 
-  <DashboardBoard path="/purchase/dashboard/board" :query="view.query.value">
+  <DashboardBoard path="/purchase/dashboard/board">
     <template #scope>
       <span class="text-xs font-semibold text-erp-subtle">{{ view.showing.value }}</span>
-      <BranchFilter class="h-8 w-auto py-0 text-xs" placeholder="All my branches" :model-value="view.code.value" @update:model-value="view.set" />
     </template>
     <template #kpis>
       <div v-if="failed" class="erp-card flex items-center justify-between px-5 py-4 text-[13px]">
@@ -88,9 +84,9 @@ const kpis = computed(() => {
         <button type="button" class="erp-btn erp-btn-secondary" @click="load">Try again</button>
       </div>
       <div class="grid grid-cols-4 gap-4 max-lg:grid-cols-2">
-        <KpiCard label="Open purchase orders" :value="data?.kpis.openOrders.count ?? ''" :sub="kpis?.openOrders" :to="withBranch('/purchase/orders')" :loading="loading" />
-        <KpiCard label="Waiting to be received" :value="data?.kpis.waitingToReceive.count ?? ''" :sub="kpis?.waiting" :to="withBranch('/purchase/receipts')" :loading="loading" />
-        <KpiCard label="Supplier invoices to match" :value="data?.kpis.invoicesToMatch.count ?? ''" :sub="kpis?.invoices" :to="withBranch('/purchase/invoices')" :loading="loading" />
+        <KpiCard label="Open purchase orders" :value="data?.kpis.openOrders.count ?? ''" :sub="kpis?.openOrders" to="/purchase/orders" :loading="loading" />
+        <KpiCard label="Waiting to be received" :value="data?.kpis.waitingToReceive.count ?? ''" :sub="kpis?.waiting" to="/purchase/receipts" :loading="loading" />
+        <KpiCard label="Supplier invoices to match" :value="data?.kpis.invoicesToMatch.count ?? ''" :sub="kpis?.invoices" to="/purchase/invoices" :loading="loading" />
         <KpiCard
           label="Waiting for your approval"
           :value="data?.kpis.waitingForMe.count ?? ''"

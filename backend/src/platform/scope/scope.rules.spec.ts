@@ -47,6 +47,8 @@ describe('data scope rules (FR-SEC-020 to 033)', () => {
     expect(viewBranchOf({ query: { branch: ['HQ', 'PNG'] } })).toBeUndefined();
     expect(viewBranchOf({ query: {} })).toBeUndefined();
     expect(viewBranchOf(undefined)).toBeUndefined();
+    expect(viewBranchOf({ query: {}, headers: { 'x-view-branch': 'png' } })).toBe('PNG');
+    expect(viewBranchOf({ query: { branch: 'HQ' }, headers: { 'x-view-branch': 'PNG' } })).toBe('HQ');
   });
 
   it('says nothing for a table without a branch or agent rule', () => {

@@ -110,7 +110,7 @@ async function exportCsv() {
         </template>
       </PageHeader>
 
-      <FilterBar :columns="view.several.value ? 5 : 4">
+      <FilterBar :columns="view.canFilter.value ? 5 : 4">
         <input v-model="buyerText" class="erp-input" placeholder="Filter by buyer" aria-label="Filter by buyer" />
         <select class="erp-input" aria-label="Filter by payment" :value="list.params.value.method" @change="list.setFilter('method', ($event.target as HTMLSelectElement).value)">
           <option value="">Filter by payment</option>

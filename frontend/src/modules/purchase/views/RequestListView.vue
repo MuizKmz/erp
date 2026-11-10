@@ -192,7 +192,7 @@ const footer = computed(() => {
         <option v-for="d in departments" :key="d" :value="d">{{ d }}</option>
       </select>
       <select
-        class="erp-input"
+ v-if="!view.fromTopBar.value"        class="erp-input"
         aria-label="Filter by branch"
         :value="list.params.value.branch"
         @change="list.setFilter('branch', ($event.target as HTMLSelectElement).value)"

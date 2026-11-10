@@ -8,7 +8,7 @@ import type { ScopeFacts } from './scope.rules';
  * scheduled work) there is no store, so nothing is scoped: that is the *system*.
  */
 interface ScopeStore {
-  request?: { context?: RequestContext; query?: unknown };
+  request?: { context?: RequestContext; query?: unknown; headers?: unknown };
   /** Set by asSystem(): a business rule that must see every row (credit exposure, record usage). */
   system: boolean;
   /** Worked out on the first scoped read of the request. */

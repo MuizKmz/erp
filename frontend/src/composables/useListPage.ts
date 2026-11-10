@@ -1,6 +1,7 @@
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter, type LocationQueryValue } from 'vue-router'
 import type { ListQuery, ListResponse } from '@/api/list'
+import { useViewBranch } from './useViewBranch'
 
 /**
  * List pages keep their state — status tab, filters, page — in the URL query, so Back and Refresh
@@ -16,7 +17,10 @@ export function useListPage<R extends ListResponse<unknown>>(options: {
   const route = useRoute()
   const router = useRouter()
   const path = route.path
-  // `branch` on every list: the Branch filter (useViewBranch) narrows what the server returns.
+  // `branch` on every list: the Branch filter (useViewBranch) narrows what the server returns. On Purchase and Sales
+  // documents the top bar decides while it shows one branch (x-view-branch), so a branch left in the URL is ignored.
+  const topBar = useViewBranch().fromTopBar
+  const documents = /^\/(purchase|sales)\//.test(path)
   const keys = [...new Set(['status', 'q', 'sort', 'dateFrom', 'dateTo', 'branch', ...(options.filterKeys ?? [])])]
 
   const one = (v: LocationQueryValue | LocationQueryValue[] | undefined): string =>
@@ -26,6 +30,7 @@ export function useListPage<R extends ListResponse<unknown>>(options: {
   const params = computed<Params>(() => {
     const p: Record<string, string> = {}
     for (const key of keys) p[key] = one(route.query[key])
+    if (documents && topBar.value) p.branch = ''
     return {
       ...p,
       status: p.status || 'all',

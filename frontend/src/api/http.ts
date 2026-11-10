@@ -4,6 +4,7 @@
  * - Sign-in mode (AUTH_MODE=jwt): sends the access token, refreshes it once when it runs out (the refresh token is an
  *   httpOnly cookie), and reports a lost sign-in so the app opens the sign-in page
  * - Dev mode: sends the dev user (x-dev-user) and branch (x-branch)
+ * - Both modes: the one branch the top bar shows (x-view-branch); the server narrows lists to it
  * - Turns error responses into ApiError and shows them as a toast (unless `silent`)
  */
 
@@ -52,6 +53,7 @@ const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1'
 
 let devUserCode = ''
 let devBranchCode = ''
+let viewBranchCode = ''
 let accessToken: string | null = null
 let errorListener: ((error: ApiError) => void) | null = null
 let signedOutListener: ((message: string) => void) | null = null
@@ -65,6 +67,11 @@ export function setDevUser(code: string): void {
 /** Dev mode: the branch to work in (x-branch); empty = the user's default branch. */
 export function setDevBranch(code: string): void {
   devBranchCode = code
+}
+
+/** The one branch the top bar shows (x-view-branch), or '' for all of the person's branches. Both modes. */
+export function setViewBranch(code: string): void {
+  viewBranchCode = code
 }
 
 /** Sign-in mode: the access token, kept in memory only (never in localStorage). */
@@ -105,8 +112,9 @@ async function readError(response: Response): Promise<ApiErrorBody> {
 
 /** Who is asking: the access token in sign-in mode, the dev user and branch in dev mode. */
 function authHeaders(): Record<string, string> {
-  if (accessToken) return { Authorization: `Bearer ${accessToken}` }
-  return { ...(devUserCode && { 'x-dev-user': devUserCode }), ...(devBranchCode && { 'x-branch': devBranchCode }) }
+  const view: Record<string, string> = viewBranchCode ? { 'x-view-branch': viewBranchCode } : {}
+  if (accessToken) return { Authorization: `Bearer ${accessToken}`, ...view }
+  return { ...(devUserCode && { 'x-dev-user': devUserCode }), ...(devBranchCode && { 'x-branch': devBranchCode }), ...view }
 }
 
 /** One refresh at a time, shared by every request that found its token run out. */

@@ -2,17 +2,17 @@
 import { useViewBranch } from '@/composables/useViewBranch'
 
 /**
- * Picks one of the person's own branches for a home or a list ("All my branches" when empty). Hidden for someone with
- * a single branch. Lists keep the mockups' "Filter by branch" wording.
+ * Narrows one list to one of the person's own branches. Shown only while the top bar shows all their branches (hidden
+ * for someone with a single branch, and when the top bar already shows one). Lists keep the mockups' wording.
  */
 withDefaults(defineProps<{ modelValue: string; placeholder?: string }>(), { placeholder: 'Filter by branch' })
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
-const { branches, several } = useViewBranch()
+const { branches, canFilter } = useViewBranch()
 </script>
 
 <template>
   <select
-    v-if="several"
+    v-if="canFilter"
     class="erp-input"
     aria-label="Filter by branch"
     :value="modelValue"

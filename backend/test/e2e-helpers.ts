@@ -25,7 +25,7 @@ export function reseed(): void {
 export interface Api {
   app: INestApplication;
   prisma: PrismaService;
-  call<T = any>(method: string, route: string, user: string, body?: unknown): Promise<{ status: number; body: T }>;
+  call<T = any>(method: string, route: string, user: string, body?: unknown, headers?: Record<string, string>): Promise<{ status: number; body: T }>;
   get<T = any>(route: string, user?: string): Promise<T>;
   /** Finds a document id by number through its list endpoint, e.g. idOf('sales/orders', 'SO-0002'). */
   idOf(resource: string, docNo: string, user?: string): Promise<string>;
@@ -45,10 +45,10 @@ export async function startApi(): Promise<Api> {
   const base = `${(await app.getUrl()).replace('[::1]', '127.0.0.1')}/api/v1`;
   const dispatcher = app.get(OutboxDispatcher);
 
-  const call: Api['call'] = async (method, route, user, body) => {
+  const call: Api['call'] = async (method, route, user, body, headers = {}) => {
     const res = await fetch(`${base}/${route}`, {
       method,
-      headers: { 'content-type': 'application/json', 'x-dev-user': user },
+      headers: { 'content-type': 'application/json', 'x-dev-user': user, ...headers },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     return { status: res.status, body: (await res.json().catch(() => null)) as never };

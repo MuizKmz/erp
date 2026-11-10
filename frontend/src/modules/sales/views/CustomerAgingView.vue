@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useViewBranch } from '@/composables/useViewBranch'
 import { computed } from 'vue'
 import BarRows from '@/components/erp/BarRows.vue'
 import FilterSelect from '@/components/erp/FilterSelect.vue'
@@ -12,6 +13,7 @@ import { formatDate, formatDayMonth, formatRm } from '@/utils/format'
 import { salesReportsApi } from '../api/sales'
 
 /** S05 · Customer aging (SRS RPT-023): what each customer owes today, by how long it has been owed. */
+const view = useViewBranch()
 const { data: report, loading, filters, setFilter } = useReport(['branch', 'agent', 'group', 'steps', 'basis'], salesReportsApi.customerAging)
 
 const STEPS = [
@@ -63,7 +65,7 @@ function exportCsv() {
   </PageHeader>
 
   <div class="grid grid-cols-5 gap-3 print:hidden max-lg:grid-cols-2">
-    <FilterSelect label="Branch" all="all" :model-value="filters.branch ?? ''" :options="options.branches" @update:model-value="setFilter('branch', $event)" />
+    <FilterSelect v-if="!view.fromTopBar.value" label="Branch" all="all" :model-value="filters.branch ?? ''" :options="options.branches" @update:model-value="setFilter('branch', $event)" />
     <FilterSelect label="Sales agent" all="all" :model-value="filters.agent ?? ''" :options="options.agents" @update:model-value="setFilter('agent', $event)" />
     <FilterSelect label="Customer group" all="all" :model-value="filters.group ?? ''" :options="options.groups" @update:model-value="setFilter('group', $event)" />
     <FilterSelect label="Aging" :model-value="filters.steps || '4'" :options="STEPS" @update:model-value="setFilter('steps', $event === '4' ? '' : $event)" />

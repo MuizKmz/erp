@@ -218,7 +218,7 @@ const footer = computed(() => {
         <option v-for="b in buyers" :key="b.code" :value="b.code">{{ b.name }}</option>
       </select>
       <select
-        class="erp-input"
+ v-if="!view.fromTopBar.value"        class="erp-input"
         aria-label="Filter by branch"
         :value="list.params.value.branch"
         @change="list.setFilter('branch', ($event.target as HTMLSelectElement).value)"

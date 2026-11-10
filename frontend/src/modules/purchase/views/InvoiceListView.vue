@@ -153,7 +153,7 @@ async function exportCsv() {
       </template>
     </PageHeader>
 
-    <FilterBar :columns="view.several.value ? 5 : 4">
+    <FilterBar :columns="view.canFilter.value ? 5 : 4">
       <input v-model="supplierText" class="erp-input" placeholder="Filter by supplier" aria-label="Filter by supplier" />
       <input v-model="invoiceNoText" class="erp-input" placeholder="Filter by their invoice no" aria-label="Filter by their invoice no" />
       <select class="erp-input" aria-label="Filter by match result" :value="list.params.value.match" @change="list.setFilter('match', ($event.target as HTMLSelectElement).value)">

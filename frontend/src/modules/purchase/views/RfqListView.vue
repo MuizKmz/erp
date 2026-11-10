@@ -140,7 +140,7 @@ const statusLabel = (r: RfqListItem) => (r.status === 'CLOSED' && r.closeReason 
       </template>
     </PageHeader>
 
-    <FilterBar :columns="view.several.value ? 5 : 4">
+    <FilterBar :columns="view.canFilter.value ? 5 : 4">
       <input v-model="itemText" class="erp-input" placeholder="Filter by item" aria-label="Filter by item" />
       <input v-model="supplierText" class="erp-input" placeholder="Filter by supplier" aria-label="Filter by supplier" />
       <select class="erp-input" aria-label="Filter by buyer" :value="list.params.value.buyer" @change="list.setFilter('buyer', ($event.target as HTMLSelectElement).value)">

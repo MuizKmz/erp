@@ -1,5 +1,5 @@
 import { computed, reactive, readonly } from 'vue'
-import { ApiError, onSignedOut, refreshAccess, setAccessToken, setDevBranch, setDevUser } from '@/api/http'
+import { ApiError, onSignedOut, refreshAccess, setAccessToken, setDevBranch, setDevUser, setViewBranch } from '@/api/http'
 import { authApi, sessionApi, type AuthMode, type AuthModeInfo, type DevUser, type Issued, type Me, type TwoFactorSetup } from '@/api/session'
 
 /**
@@ -12,6 +12,8 @@ import { authApi, sessionApi, type AuthMode, type AuthModeInfo, type DevUser, ty
 
 const STORAGE_KEY = 'zora.devUser'
 const BRANCH_KEY = 'zora.devBranch'
+/** 'one' when the top bar shows the active branch only; anything else shows all of the person's branches. */
+const VIEW_KEY = 'zora.branchView'
 
 function readStored(key: string): string {
   try {
@@ -49,14 +51,26 @@ const state = reactive({
   tenantName: '' as string,
   /** server now − browser now, so the top-bar clock follows DEV_TODAY */
   clockOffsetMs: 0,
+  /**
+   * The top bar shows all of the person's branches (the default), or only the branch they work in. Shown on every home,
+   * list and report; new documents always carry the active branch.
+   */
+  viewAll: readStored(VIEW_KEY) !== 'one',
   /** Bumps on every user or branch switch; pages are keyed on it so they reload their data. */
   version: 0,
 })
+
+/** The branch every request narrows to: the active one when the top bar shows one branch, else none. */
+function applyView(): void {
+  const several = (state.me?.branches.length ?? 0) > 1
+  setViewBranch(!state.viewAll && several ? (state.me?.branchCode ?? '') : '')
+}
 
 async function loadMe(): Promise<void> {
   if (state.mode === 'dev') setDevUser(state.userCode)
   const me = await sessionApi.me()
   state.me = me
+  applyView()
   state.tenantName = me.tenantName || state.tenantName
   state.clockOffsetMs = new Date(me.now).getTime() - Date.now()
 }
@@ -117,6 +131,7 @@ async function switchUser(code: string): Promise<void> {
   store(STORAGE_KEY, code)
   setDevBranch('')
   store(BRANCH_KEY, '')
+  setView(true)
   await loadMe()
   state.version += 1
 }
@@ -186,9 +201,34 @@ async function signOut(): Promise<void> {
   }
 }
 
-/** Work in another of the user's branches (FR-SEC-021): a new access token, or the x-branch header in dev mode. */
+/**
+ * Show and work in one of the user's branches (FR-SEC-021): every home, list and report narrows to it and new documents
+ * carry it. A new access token, or the x-branch header in dev mode.
+ */
 async function switchBranch(code: string): Promise<void> {
-  if (code === state.me?.branchCode) return
+  if (code === state.me?.branchCode && !state.viewAll) return
+  setView(false)
+  if (code !== state.me?.branchCode) await setActiveBranch(code)
+  else applyView()
+  state.version += 1
+}
+
+/** Show all of the user's branches; new documents go to their default branch (listed first). */
+async function showAllBranches(): Promise<void> {
+  if (state.viewAll) return
+  setView(true)
+  const fallback = state.me?.branches[0]?.code
+  if (fallback && fallback !== state.me?.branchCode) await setActiveBranch(fallback)
+  else applyView()
+  state.version += 1
+}
+
+function setView(all: boolean): void {
+  state.viewAll = all
+  store(VIEW_KEY, all ? '' : 'one')
+}
+
+async function setActiveBranch(code: string): Promise<void> {
   if (state.mode === 'jwt') {
     setAccessToken((await authApi.switchBranch(code)).accessToken)
   } else {
@@ -196,7 +236,6 @@ async function switchBranch(code: string): Promise<void> {
     store(BRANCH_KEY, code)
   }
   await loadMe()
-  state.version += 1
 }
 
 export function useSession() {
@@ -211,6 +250,7 @@ export function useSession() {
     cancelTwoFactor,
     signOut,
     switchBranch,
+    showAllBranches,
     isJwt: computed(() => state.mode === 'jwt'),
     user: computed(() => state.me?.user ?? null),
     today: computed(() => state.me?.today ?? ''),

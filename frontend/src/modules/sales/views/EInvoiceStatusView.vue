@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useViewBranch } from '@/composables/useViewBranch'
 import { computed } from 'vue'
 import FilterSelect from '@/components/erp/FilterSelect.vue'
 import KpiCard from '@/components/erp/KpiCard.vue'
@@ -14,6 +15,7 @@ import { salesReportsApi } from '../api/sales'
 import type { EInvoiceState } from '../types'
 
 /** S05 · e-Invoice status (SRS FR-EIV-010): every document that needs an LHDN e-Invoice, and where it stands. */
+const view = useViewBranch()
 const { data: report, loading, filters, setFilter } = useReport(['period', 'branch', 'type', 'show'], salesReportsApi.eInvoiceStatus)
 
 const TYPES = [
@@ -60,7 +62,7 @@ function exportCsv() {
 
   <div class="grid grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))] gap-3 print:hidden max-lg:grid-cols-2">
     <FilterSelect label="Period" all="all months" :model-value="filters.period === 'all' ? '' : (filters.period ?? '')" :options="options.periods" @update:model-value="setFilter('period', $event)" />
-    <FilterSelect label="Branch" all="all" :model-value="filters.branch ?? ''" :options="options.branches" @update:model-value="setFilter('branch', $event)" />
+    <FilterSelect v-if="!view.fromTopBar.value" label="Branch" all="all" :model-value="filters.branch ?? ''" :options="options.branches" @update:model-value="setFilter('branch', $event)" />
     <FilterSelect label="Type" all="all" :model-value="filters.type ?? ''" :options="TYPES" @update:model-value="setFilter('type', $event)" />
     <FilterSelect label="Show" :model-value="filters.show ?? ''" :options="SHOW" @update:model-value="setFilter('show', $event)" />
   </div>

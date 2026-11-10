@@ -1,5 +1,6 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useViewBranch } from './useViewBranch'
 
 /**
  * A report page's filters and data. The filters live in the URL query, so back and refresh keep them (CLAUDE.md →
@@ -12,7 +13,9 @@ export function useReport<T>(keys: readonly string[], fetch: (query: Record<stri
   const data = ref(null) as Ref<T | null>
   const loading = ref(false)
 
-  const read = (key: string) => (typeof route.query[key] === 'string' ? (route.query[key] as string) : '')
+  // While the top bar shows one branch it decides (x-view-branch): a branch left in the URL is ignored.
+  const topBar = useViewBranch().fromTopBar
+  const read = (key: string) => (key === 'branch' && topBar.value ? '' : typeof route.query[key] === 'string' ? (route.query[key] as string) : '')
   const filters = computed(() => Object.fromEntries(keys.map((k) => [k, read(k)])) as Record<string, string>)
   const signature = computed(() => JSON.stringify(filters.value))
 

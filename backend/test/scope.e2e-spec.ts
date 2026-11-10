@@ -191,4 +191,22 @@ describe('Data scopes (end to end)', () => {
     const board = await api.call('GET', 'sales/dashboard/board?branch=PNG', 'NA');
     expect(board.status).toBe(200);
   });
+
+  it('narrows lists and homes to the top bar’s branch (x-view-branch), while a record of another branch still opens', async () => {
+    const top = { 'x-view-branch': 'PNG' };
+    for (const route of [...Object.values(PURCHASE), ...Object.values(SALES)]) {
+      const byQuery = await api.call('GET', `${route}?pageSize=100&branch=PNG`, 'ADM');
+      const byHeader = await api.call('GET', `${route}?pageSize=100`, 'ADM', undefined, top);
+      expect([route, byHeader.body.total]).toEqual([route, byQuery.body.total]);
+      // The list's own Branch filter wins over the top bar.
+      const hq = await api.call('GET', `${route}?pageSize=100&branch=HQ`, 'ADM');
+      expect([route, (await api.call('GET', `${route}?pageSize=100&branch=HQ`, 'ADM', undefined, top)).body.total]).toEqual([route, hq.body.total]);
+    }
+    const count = async (headers: Record<string, string>) => (await api.call('GET', 'purchase/dashboard', 'AZ', undefined, headers)).body.kpis.openOrders.count as number;
+    expect(await count(top)).toBe((await api.call('GET', 'purchase/dashboard?branch=PNG', 'AZ')).body.kpis.openOrders.count);
+    // An HQ order opens while the top bar shows Penang; a branch the person does not work in still stays hidden.
+    const hqOrder = await firstWhere('purPurchaseOrder', { branchCode: 'HQ' });
+    expect((await api.call('GET', `purchase/orders/${hqOrder!.id}`, 'ADM', undefined, top)).status).toBe(200);
+    expect((await api.call('GET', `purchase/orders/${hqOrder!.id}`, 'TWL', undefined, { 'x-view-branch': 'HQ' })).status).toBe(404);
+  }, 120_000);
 });

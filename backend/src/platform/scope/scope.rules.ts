@@ -65,12 +65,14 @@ export function scopeWhere(rule: ScopeRule, facts: ScopeFacts): Where | null {
 }
 
 /**
- * The branch a request asks to show: `?branch=HQ` (nothing when it is not one plain code). Any method: it only ever
- * narrows, and a dashboard's save answers with its charts recalculated for the same branch.
+ * The branch a request asks to show: the page's own `?branch=HQ` (a list's Branch filter while the top bar shows all
+ * branches), else the top bar's choice in the `x-view-branch` header. Nothing when it is not one plain code. Any method:
+ * it only ever narrows, and a dashboard's save answers with its charts recalculated for the same branch.
  */
-export function viewBranchOf(request: { query?: unknown } | undefined): string | undefined {
-  const branch = (request?.query as Record<string, unknown> | undefined)?.branch;
-  return typeof branch === 'string' && branch.trim() ? branch.trim() : undefined;
+export function viewBranchOf(request: { query?: unknown; headers?: unknown } | undefined): string | undefined {
+  const plain = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : undefined);
+  const fromQuery = plain((request?.query as Record<string, unknown> | undefined)?.branch);
+  return fromQuery ?? plain((request?.headers as Record<string, unknown> | undefined)?.['x-view-branch'])?.toUpperCase();
 }
 
 /** Adds the scope to a query's where. Keeps the caller's unique fields at the top, so findUnique still works. */
@@ -91,3 +93,9 @@ export const SCOPED_OPERATIONS: ReadonlySet<string> = new Set([
   'aggregate',
   'groupBy',
 ]);
+
+/**
+ * Reads of one record. The view branch never narrows them: a link to a document of another of the person's branches
+ * still opens (their branch scope still applies).
+ */
+export const SINGLE_RECORD_OPERATIONS: ReadonlySet<string> = new Set(['findFirst', 'findFirstOrThrow', 'findUnique', 'findUniqueOrThrow']);

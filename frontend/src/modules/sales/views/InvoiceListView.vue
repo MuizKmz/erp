@@ -132,7 +132,7 @@ const source = (i: InvoiceListItem) => (i.isMigrated ? 'migrated' : i.kind === '
           <option value="">Filter by sales agent</option>
           <option v-for="a in agents" :key="a.code" :value="a.code">{{ a.name }}</option>
         </select>
-        <select class="erp-input" aria-label="Filter by branch" :value="list.params.value.branch" @change="list.setFilter('branch', ($event.target as HTMLSelectElement).value)">
+        <select v-if="!view.fromTopBar.value" class="erp-input" aria-label="Filter by branch" :value="list.params.value.branch" @change="list.setFilter('branch', ($event.target as HTMLSelectElement).value)">
           <option value="">Filter by branch</option>
           <option v-for="b in branches" :key="b.code" :value="b.code">{{ b.name }}</option>
         </select>
