@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, type Component } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import { ArrowRight, ChartLine, ClipboardCheck, Database, Factory, Lock, Star, Sun, Warehouse } from '@lucide/vue'
+import { ArrowRight, Lock, Star } from '@lucide/vue'
 import { accountApi, sessionApi, type ModuleTile } from '@/api/session'
 import AccountMenu from '@/components/erp/AccountMenu.vue'
 import NoticeBanner from '@/components/erp/NoticeBanner.vue'
 import { useSession } from '@/composables/useSession'
 import { MODULES } from '@/modules/registry'
+import { isBuilt, TILE_STYLE } from '@/modules/tiles'
 import { formatLongDate, greeting } from '@/utils/format'
 
 /**
@@ -15,16 +16,6 @@ import { formatLongDate, greeting } from '@/utils/format'
  */
 const toast = useToast()
 const { state, user, today, now, isJwt } = useSession()
-
-/** Tile colour (a theme token), icon and one-line purpose per module. */
-const TILE_STYLE: Record<ModuleTile['code'], { icon: Component; color: string; description: string }> = {
-  core: { icon: Database, color: 'var(--tile-core)', description: 'Items, customers, suppliers, tax and price lists.' },
-  purchase: { icon: ClipboardCheck, color: 'var(--tile-purchase)', description: 'Requests, quotes, orders, goods receipt and supplier bills.' },
-  sales: { icon: ChartLine, color: 'var(--tile-sales)', description: 'Enquiries, quotations, sales orders and delivery.' },
-  mes: { icon: Factory, color: 'var(--tile-mes)', description: 'Production orders and shop-floor tracking.' },
-  wms: { icon: Warehouse, color: 'var(--tile-wms)', description: 'Warehouse locations, picking and stock moves.' },
-  config: { icon: Sun, color: 'var(--tile-config)', description: 'Users, roles and company settings.' },
-}
 
 const FALLBACK: ModuleTile[] = [
   { code: 'core', name: 'Core', tag: '', state: 'OPEN', route: '/core' },
@@ -38,7 +29,6 @@ const FALLBACK: ModuleTile[] = [
 const tiles = ref<ModuleTile[]>(FALLBACK)
 
 /** Modules the person can open first, then those not in their roles, then those coming later. */
-const isBuilt = (t: ModuleTile) => !!t.route && t.code in MODULES
 const sortedTiles = computed(() => [
   ...tiles.value.filter(isBuilt),
   ...tiles.value.filter((t) => !isBuilt(t) && t.state === 'NO_ACCESS'),

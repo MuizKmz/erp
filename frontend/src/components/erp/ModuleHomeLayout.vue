@@ -9,6 +9,7 @@ import { moduleDef } from '@/modules/registry'
 import { formatLongDate } from '@/utils/format'
 import AccountMenu from './AccountMenu.vue'
 import BranchSwitch from './BranchSwitch.vue'
+import ModuleSwitcher from './ModuleSwitcher.vue'
 
 /** The module home frame: white header, content, footer (PurHome.html). No sidebar here. */
 const route = useRoute()
@@ -34,10 +35,11 @@ const year = computed(() => (today.value ? today.value.slice(0, 4) : ''))
     <div class="sticky top-0 z-20 px-4 pt-3 pb-2 backdrop-blur-sm md:px-6">
       <header class="flex h-14 items-center justify-between gap-4 rounded-2xl border border-erp-border bg-erp-card/95 px-4 shadow-sm md:px-5">
         <div class="flex items-center gap-3">
-          <div class="flex h-[34px] w-[34px] items-center justify-center rounded-lg bg-brand-dark text-base font-extrabold text-erp-on-dark">Z</div>
-          <div class="text-lg font-bold">Zora <span class="text-erp-link">Pro</span> ERP</div>
-          <span class="inline-block rounded-xl bg-mod-chip-bg px-2.5 py-[3px] text-xs font-semibold text-mod-chip-text">{{ module.label }} module</span>
-          <RouterLink to="/" class="erp-link pl-2 text-[13px] font-semibold">‹ All modules</RouterLink>
+          <RouterLink to="/" class="flex items-center gap-3 text-erp-text no-underline" title="All modules">
+            <div class="flex h-[34px] w-[34px] items-center justify-center rounded-lg bg-brand-dark text-base font-extrabold text-erp-on-dark">Z</div>
+            <div class="text-lg font-bold">Zora <span class="text-erp-link">Pro</span> ERP</div>
+          </RouterLink>
+          <ModuleSwitcher :module="module" variant="chip" />
         </div>
         <div class="flex items-center gap-5">
           <RouterLink

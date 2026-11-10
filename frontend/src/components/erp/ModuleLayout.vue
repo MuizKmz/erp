@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Bell, House, LayoutGrid, LogOut } from '@lucide/vue'
+import { Bell, House, LogOut } from '@lucide/vue'
 import { useApprovalsCount } from '@/composables/useApprovalsCount'
 import { useModuleTheme } from '@/composables/useModuleTheme'
 import { useCrumb } from '@/composables/usePageCrumb'
@@ -11,6 +11,7 @@ import type { MenuGroup } from '@/modules/purchase/menu'
 import { formatTime, formatTopBarDate } from '@/utils/format'
 import AccountMenu from './AccountMenu.vue'
 import BranchSwitch from './BranchSwitch.vue'
+import ModuleSwitcher from './ModuleSwitcher.vue'
 import PageSearch from './PageSearch.vue'
 
 /**
@@ -111,17 +112,15 @@ const railActive = 'bg-erp-on-dark/20 text-erp-on-dark ring-1 ring-erp-on-dark/1
       class="fixed top-3 bottom-3 left-3 z-40 flex w-14 flex-col overflow-hidden rounded-2xl border border-erp-on-dark/5 bg-mod-side text-erp-on-dark shadow-2xl"
     >
       <div class="flex justify-center py-3">
-        <RouterLink
-          to="/"
-          aria-label="All modules"
-          :class="[railButton, railIdle]"
-          @mouseenter="showTip($event, 'All modules')"
+        <ModuleSwitcher
+          :module="module"
+          variant="rail"
+          :trigger-class="[railButton, railIdle]"
+          @mouseenter="showTip($event, 'Switch module')"
           @mouseleave="hideTip"
-          @focus="showTip($event, 'All modules')"
+          @focus="showTip($event, 'Switch module')"
           @blur="hideTip"
-        >
-          <LayoutGrid :size="18" aria-hidden="true" />
-        </RouterLink>
+        />
       </div>
 
       <div class="mx-3 border-t border-erp-on-dark/10" />
