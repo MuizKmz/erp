@@ -8,7 +8,7 @@ import type { ListQuery, ListResponse } from '@/api/list'
  * filter rewrites the query, and the watcher reloads the data.
  */
 export function useListPage<R extends ListResponse<unknown>>(options: {
-  /** Extra query keys this list understands besides page, pageSize, status, q, sort, dateFrom, dateTo. */
+  /** Extra query keys this list understands besides page, pageSize, status, q, sort, dateFrom, dateTo, branch. */
   filterKeys?: string[]
   pageSize?: number
   fetch: (query: ListQuery) => Promise<R>
@@ -16,7 +16,8 @@ export function useListPage<R extends ListResponse<unknown>>(options: {
   const route = useRoute()
   const router = useRouter()
   const path = route.path
-  const keys = ['status', 'q', 'sort', 'dateFrom', 'dateTo', ...(options.filterKeys ?? [])]
+  // `branch` on every list: the Branch filter (useViewBranch) narrows what the server returns.
+  const keys = [...new Set(['status', 'q', 'sort', 'dateFrom', 'dateTo', 'branch', ...(options.filterKeys ?? [])])]
 
   const one = (v: LocationQueryValue | LocationQueryValue[] | undefined): string =>
     (Array.isArray(v) ? v[0] : v) ?? ''

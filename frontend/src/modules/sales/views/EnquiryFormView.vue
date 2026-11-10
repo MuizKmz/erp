@@ -281,7 +281,7 @@ const myBranches = computed(() => branches.value.filter((b) => user.value?.branc
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="isNew ? 'New enquiry' : `Enquiry ${enquiry?.docNo ?? ''}`" document>
+    <PageHeader :title="isNew ? 'New enquiry' : `Enquiry ${enquiry?.docNo ?? ''}`" document :branch="enquiry?.branch.code">
       <template #chip>
         <StatusChip v-if="enquiry" :status="enquiry.status" :label="enquiry.statusLabel" :group="GROUP[enquiry.status]" />
         <StatusChip v-else status="DRAFT" label="Draft" />

@@ -78,7 +78,7 @@ export class EnquiriesQuery {
     ]);
     return toListResponse(
       rows.map((e) => ({
-        id: e.id, docNo: e.docNo, docDate: iso(e.docDate), customerName: e.customerName, isProspect: e.isProspect, contactName: e.contactName,
+        id: e.id, docNo: e.docNo, branchCode: e.branchCode, docDate: iso(e.docDate), customerName: e.customerName, isProspect: e.isProspect, contactName: e.contactName,
         status: e.status, statusLabel: LABEL[e.status as EnqStatus], agentName: e.agentName,
         typeName: types.find((t) => t.code === e.enquiryTypeCode)?.name ?? e.enquiryTypeCode,
         sourceName: sources.find((s) => s.code === e.sourceCode)?.name ?? e.sourceCode,

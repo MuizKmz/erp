@@ -5,6 +5,7 @@ import DatePicker from 'primevue/datepicker'
 import { useToast } from 'primevue/usetoast'
 import { Plus } from '@lucide/vue'
 import DataList from '@/components/erp/DataList.vue'
+import BranchFilter from '@/components/erp/BranchFilter.vue'
 import FilterBar from '@/components/erp/FilterBar.vue'
 import NextSteps from '@/components/erp/NextSteps.vue'
 import PageHeader from '@/components/erp/PageHeader.vue'
@@ -12,6 +13,7 @@ import Pager from '@/components/erp/Pager.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
 import StatusTabs from '@/components/erp/StatusTabs.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatDateTime, formatDayMonth, formatMoney } from '@/utils/format'
 import { lookupsApi, rfqsApi } from '../api/purchase'
@@ -23,6 +25,8 @@ const toast = useToast()
 const { can, today } = useSession()
 
 const list = useListPage({ filterKeys: ['item', 'supplier', 'buyer'], fetch: rfqsApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 
 const TABS = [
@@ -136,7 +140,7 @@ const statusLabel = (r: RfqListItem) => (r.status === 'CLOSED' && r.closeReason 
       </template>
     </PageHeader>
 
-    <FilterBar>
+    <FilterBar :columns="view.several.value ? 5 : 4">
       <input v-model="itemText" class="erp-input" placeholder="Filter by item" aria-label="Filter by item" />
       <input v-model="supplierText" class="erp-input" placeholder="Filter by supplier" aria-label="Filter by supplier" />
       <select class="erp-input" aria-label="Filter by buyer" :value="list.params.value.buyer" @change="list.setFilter('buyer', ($event.target as HTMLSelectElement).value)">
@@ -155,6 +159,7 @@ const statusLabel = (r: RfqListItem) => (r.status === 'CLOSED' && r.closeReason 
         @update:model-value="onDateRange"
         @clear-click="onDateRange(null)"
       />
+      <BranchFilter :model-value="list.params.value.branch ?? ''" @update:model-value="(v) => list.setFilter('branch', v)" />
     </FilterBar>
 
     <StatusTabs :tabs="TABS" :counts="list.data.value?.statusCounts" :active="list.params.value.status" @select="list.setStatus" />
@@ -218,6 +223,9 @@ const statusLabel = (r: RfqListItem) => (r.status === 'CLOSED' && r.closeReason 
             </template>
           </span>
         </template>
+      </Column>
+      <Column v-if="view.several.value && !view.code.value" header="Branch">
+        <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
       </Column>
       <Column header="Status">
         <template #body="{ data }: { data: RfqListItem }"><StatusChip :status="data.status" :label="statusLabel(data)" /></template>

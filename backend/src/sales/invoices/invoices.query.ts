@@ -160,6 +160,7 @@ export class InvoicesQuery {
       return {
         id: r.id,
         docNo: r.docNo,
+        branchCode: r.branchCode,
         docDate: iso(r.docDate),
         kind: r.kind,
         salesOrderId: r.salesOrderId,

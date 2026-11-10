@@ -1,4 +1,4 @@
-import { poApprovalNeed, type PoLimitRule } from './approval-limit.rules';
+import { inheritLimitRules, poApprovalNeed, type PoLimitRule } from './approval-limit.rules';
 
 const RULES: PoLimitRule[] = [
   {
@@ -51,5 +51,35 @@ describe('poApprovalNeed', () => {
   it('a branch without a rule needs no approval and says so', () => {
     const need = poApprovalNeed({ branchCode: 'KL', branchName: 'KL Branch', total: '99999', rules: RULES });
     expect(need).toMatchObject({ required: false, reason: 'No approval limit is set for KL Branch.' });
+  });
+});
+
+describe('inheritLimitRules', () => {
+  const tree = [
+    { code: 'HQ', parentCode: null },
+    { code: 'PNG', parentCode: 'HQ' },
+    { code: 'KDM', parentCode: 'HQ' },
+    { code: 'KDM2', parentCode: 'KDM' },
+    { code: 'SOLO', parentCode: null },
+  ];
+
+  it('gives a branch without its own limit the limit of the nearest branch above it', () => {
+    const rules = inheritLimitRules(RULES, tree);
+    expect(rules.find((r) => r.branchCode === 'KDM')).toMatchObject({ thresholdAmount: '10000', approverRole: 'PURCHASE_MANAGER', inheritedFrom: 'HQ' });
+    expect(rules.find((r) => r.branchCode === 'KDM2')).toMatchObject({ thresholdAmount: '10000', inheritedFrom: 'HQ' });
+    expect(rules.find((r) => r.branchCode === 'PNG')).toMatchObject({ thresholdAmount: '5000', inheritedFrom: null });
+  });
+
+  it('a new showroom under HQ needs approval over HQ’s limit, and the Finance Director over RM 50,000', () => {
+    const rules = inheritLimitRules(RULES, tree);
+    const need = poApprovalNeed({ branchCode: 'KDM', branchName: 'Kota Damansara', total: '60000', rules });
+    expect(need.required).toBe(true);
+    expect(need.steps.map((s) => s.approverRole)).toEqual(['PURCHASE_MANAGER', 'FINANCE_DIRECTOR']);
+  });
+
+  it('leaves a top branch with no limit and none above it as it is, and never loops on a broken tree', () => {
+    const rules = inheritLimitRules(RULES, [...tree, { code: 'A', parentCode: 'B' }, { code: 'B', parentCode: 'A' }]);
+    expect(rules.some((r) => r.branchCode === 'SOLO' || r.branchCode === 'A' || r.branchCode === 'B')).toBe(false);
+    expect(rules).toHaveLength(4);
   });
 });

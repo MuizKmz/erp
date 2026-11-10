@@ -2,10 +2,10 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import type { RequestContext } from '../context/request-context';
 import { scopedContext } from './data-scope';
 import type { ScopeRegistry } from './scope.registry';
-import { SCOPED_OPERATIONS, scopeWhere, withScope, type ScopeFacts } from './scope.rules';
+import { SCOPED_OPERATIONS, scopeWhere, viewBranchOf, withScope, type ScopeFacts } from './scope.rules';
 
 /** The user's limits, read with the plain client (unscoped) so working them out never scopes itself. */
-async function factsOf(base: PrismaClient, ctx: RequestContext): Promise<ScopeFacts> {
+async function factsOf(base: PrismaClient, ctx: RequestContext, viewBranch: string | undefined): Promise<ScopeFacts> {
   const roles = await base.sysRole.findMany({
     where: { tenantId: ctx.tenantId, code: { in: ctx.user.roles } },
     select: { agentScopeCustomers: true, agentScopeDocuments: true },
@@ -15,7 +15,7 @@ async function factsOf(base: PrismaClient, ctx: RequestContext): Promise<ScopeFa
   const own = agentDocuments
     ? await base.mdmCustomer.findMany({ where: { tenantId: ctx.tenantId, defaultAgentCode: ctx.user.code }, select: { code: true } })
     : [];
-  return { branches: ctx.user.branchCodes, userCode: ctx.user.code, agentCustomers, agentDocuments, agentCustomerCodes: own.map((c) => c.code) };
+  return { branches: ctx.user.branchCodes, viewBranch, userCode: ctx.user.code, agentCustomers, agentDocuments, agentCustomerCodes: own.map((c) => c.code) };
 }
 
 /**
@@ -33,7 +33,7 @@ export function withDataScope<T extends PrismaClient>(base: T, registry: ScopeRe
             const rule = SCOPED_OPERATIONS.has(operation) ? registry.ruleFor(model) : undefined;
             const scoped = rule ? scopedContext() : null;
             if (!rule || !scoped) return query(args);
-            scoped.store.facts ??= factsOf(base, scoped.context);
+            scoped.store.facts ??= factsOf(base, scoped.context, viewBranchOf(scoped.store.request));
             const extra = scopeWhere(rule, await scoped.store.facts);
             if (!extra) return query(args);
             const a = (args ?? {}) as { where?: Record<string, unknown> };

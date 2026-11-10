@@ -17,6 +17,7 @@ import StatusChip from '@/components/erp/StatusChip.vue'
 import StatusTabs from '@/components/erp/StatusTabs.vue'
 import { notifyApprovalsChanged } from '@/composables/useApprovalsCount'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatMoney, formatQty } from '@/utils/format'
 import { lookupsApi, ordersApi } from '../api/purchase'
@@ -30,6 +31,8 @@ const confirm = useConfirm()
 const { can, today } = useSession()
 
 const list = useListPage({ filterKeys: ['supplier', 'buyer', 'branch'], fetch: ordersApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 
 const TABS = [
@@ -302,6 +305,9 @@ const footer = computed(() => {
           <QtyProgress v-else-if="Number(data.billedQty) > 0" :done="data.billedQty" :total="data.orderedQty" />
           <span v-else class="text-erp-muted">—</span>
         </template>
+      </Column>
+      <Column v-if="view.several.value && !view.code.value" header="Branch">
+        <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
       </Column>
       <Column header="Status">
         <template #body="{ data }: { data: OrderListItem }">

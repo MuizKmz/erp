@@ -6,7 +6,9 @@ import DataList from '@/components/erp/DataList.vue'
 import KpiCard from '@/components/erp/KpiCard.vue'
 import Pager from '@/components/erp/Pager.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
+import BranchFilter from '@/components/erp/BranchFilter.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatDayMonth, formatQty } from '@/utils/format'
 import { receiptsApi } from '../api/purchase'
@@ -29,6 +31,8 @@ onMounted(async () => {
 const kpis = computed(() => waiting.value?.kpis)
 
 const list = useListPage({ fetch: receiptsApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 
 const STOCK: Record<StockState, { text: string; class: string }> = {
@@ -174,6 +178,7 @@ async function exportCsv() {
     <div class="flex items-center justify-between">
       <h2 class="m-0 text-[15px] font-bold">Goods receipts</h2>
       <div class="flex gap-2">
+        <BranchFilter class="w-auto" :model-value="list.params.value.branch ?? ''" @update:model-value="(v) => list.setFilter('branch', v)" />
         <button type="button" class="erp-btn erp-btn-import" @click="importLater">Import</button>
         <button type="button" class="erp-btn erp-btn-export" @click="exportCsv">Export</button>
       </div>
@@ -210,6 +215,9 @@ async function exportCsv() {
       <Column header="Received by" field="receivedByName" />
       <Column header="Stock">
         <template #body="{ data }: { data: ReceiptListItem }"><span class="whitespace-nowrap" :class="STOCK[data.stock].class">{{ STOCK[data.stock].text }}</span></template>
+      </Column>
+      <Column v-if="view.several.value && !view.code.value" header="Branch">
+        <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
       </Column>
       <Column header="Status">
         <template #body="{ data }: { data: ReceiptListItem }"><StatusChip :status="chip(data).status" :label="chip(data).label" /></template>

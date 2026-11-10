@@ -275,7 +275,7 @@ const lineError = (i: number) => errors.value[`lines[${i}].qty`]
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="title" document>
+    <PageHeader :title="title" document :branch="row?.branchCode">
       <template #chip>
         <StatusChip v-if="row" :status="row.status" :group="CHIP[row.status].group" :label="CHIP[row.status].label" />
         <StatusChip v-else status="DRAFT" label="New" />

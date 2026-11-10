@@ -91,6 +91,7 @@ export class CashPurchasesQuery {
       rows.map((r) => ({
         id: r.id,
         docNo: r.docNo,
+        branchCode: r.branchCode,
         docDate: isoDate(r.docDate),
         supplierName: r.supplierName,
         summary: r.summary,

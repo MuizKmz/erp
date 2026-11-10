@@ -5,6 +5,7 @@ import DatePicker from 'primevue/datepicker'
 import { useToast } from 'primevue/usetoast'
 import { Plus } from '@lucide/vue'
 import DataList from '@/components/erp/DataList.vue'
+import BranchFilter from '@/components/erp/BranchFilter.vue'
 import FilterBar from '@/components/erp/FilterBar.vue'
 import KpiCard from '@/components/erp/KpiCard.vue'
 import MoneyText from '@/components/erp/MoneyText.vue'
@@ -13,6 +14,7 @@ import Pager from '@/components/erp/Pager.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
 import StatusTabs from '@/components/erp/StatusTabs.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatRm } from '@/utils/format'
 import { salesCashSalesApi } from '../api/sales'
@@ -23,6 +25,8 @@ const toast = useToast()
 const { can, today } = useSession()
 
 const list = useListPage({ filterKeys: ['buyer', 'method', 'counter'], fetch: salesCashSalesApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 const kpis = computed(() => list.data.value?.kpis)
 const TABS = [
@@ -106,7 +110,7 @@ async function exportCsv() {
         </template>
       </PageHeader>
 
-      <FilterBar>
+      <FilterBar :columns="view.several.value ? 5 : 4">
         <input v-model="buyerText" class="erp-input" placeholder="Filter by buyer" aria-label="Filter by buyer" />
         <select class="erp-input" aria-label="Filter by payment" :value="list.params.value.method" @change="list.setFilter('method', ($event.target as HTMLSelectElement).value)">
           <option value="">Filter by payment</option>
@@ -120,6 +124,7 @@ async function exportCsv() {
           <option v-for="c in list.data.value?.counters ?? []" :key="c" :value="c">{{ c }}</option>
         </select>
         <DatePicker v-model="dateRange" selection-mode="range" date-format="d M yy" :placeholder="datePlaceholder" :manual-input="false" show-button-bar fluid class="erp-date" @update:model-value="onDateRange" @clear-click="onDateRange(null)" />
+        <BranchFilter :model-value="list.params.value.branch ?? ''" @update:model-value="(v) => list.setFilter('branch', v)" />
       </FilterBar>
 
       <StatusTabs :tabs="TABS" :counts="list.data.value?.statusCounts" :active="list.params.value.status" @select="list.setStatus" />
@@ -144,6 +149,9 @@ async function exportCsv() {
           <template #body="{ data }: { data: CashListItem }">
             <span :class="data.ownPending ? 'font-semibold text-attention' : 'text-erp-subtle'">{{ data.eInvoice }}</span>
           </template>
+        </Column>
+        <Column v-if="view.several.value && !view.code.value" header="Branch">
+          <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
         </Column>
         <Column header="Status">
           <template #body="{ data }: { data: CashListItem }">

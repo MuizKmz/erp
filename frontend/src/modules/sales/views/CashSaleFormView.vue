@@ -246,7 +246,7 @@ const released = computed(() => cs.value?.status === 'RELEASED')
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="isNew ? 'New cash sale' : `Cash sale ${cs?.docNo ?? ''}`" document>
+    <PageHeader :title="isNew ? 'New cash sale' : `Cash sale ${cs?.docNo ?? ''}`" document :branch="cs?.branchCode">
       <template #chip><StatusChip :status="cs?.status ?? 'DRAFT'" :label="released ? 'Released' : 'Draft'" :group="released ? 'done' : 'draft'" /></template>
       <template #subtitle>Walk-in customer · {{ cs?.counterName ?? 'showroom counter' }}</template>
       <template #actions>

@@ -116,6 +116,13 @@ const err = (field: string) => errors.value[field]
               </tbody>
             </table>
           </div>
+          <p v-for="g in data.inheritedLimits" :key="g.from" class="m-0 text-xs text-erp-muted">
+            {{ g.branches.join(', ') }} {{ g.branches.length === 1 ? 'has' : 'have' }} no PO limit of {{ g.branches.length === 1 ? 'its' : 'their' }} own, so
+            {{ g.branches.length === 1 ? 'it follows' : 'they follow' }} the {{ g.from }} limit.
+          </p>
+          <p v-if="data.unlimited?.length" class="m-0 text-xs font-semibold text-note-warn-text">
+            {{ data.unlimited.join(', ') }}: no PO limit, so purchase orders there are released without approval.
+          </p>
         </section>
 
         <section class="erp-card flex flex-col gap-3 px-5 py-4">

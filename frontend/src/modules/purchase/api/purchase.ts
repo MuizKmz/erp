@@ -63,7 +63,7 @@ import type {
 export type OrderList = ListResponse<OrderListItem> & { summary: { count: number; total: string } }
 
 export const purchaseApi = {
-  dashboard: () => api<PurchaseDashboard>('/purchase/dashboard'),
+  dashboard: (query: Record<string, string> = {}) => api<PurchaseDashboard>('/purchase/dashboard', { query }),
   approvalsCount: () => api<{ waitingForMe: number }>('/purchase/approvals/count', { silent: true }),
 }
 

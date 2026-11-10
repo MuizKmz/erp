@@ -16,6 +16,7 @@ import Pager from '@/components/erp/Pager.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
 import StatusTabs from '@/components/erp/StatusTabs.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate } from '@/utils/format'
 import { salesLookupsApi, salesQuotationsApi } from '../api/sales'
@@ -28,6 +29,8 @@ const confirm = useConfirm()
 const { can, today } = useSession()
 
 const list = useListPage({ filterKeys: ['customer', 'agent', 'branch'], fetch: salesQuotationsApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 
 const TABS = [
@@ -313,6 +316,9 @@ async function exportCsv() {
           <span v-else-if="data.salesOrder" class="whitespace-nowrap text-erp-muted">{{ data.salesOrder.no }}</span>
           <span v-else class="text-erp-muted">—</span>
         </template>
+      </Column>
+      <Column v-if="view.several.value && !view.code.value" header="Branch">
+        <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
       </Column>
       <Column header="Status">
         <template #body="{ data }: { data: QuotationListItem }"><StatusChip :status="data.status" :label="data.label" :group="groupOf(data)" /></template>

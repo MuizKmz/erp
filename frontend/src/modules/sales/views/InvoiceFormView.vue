@@ -290,7 +290,7 @@ const belowList = (l: EditLine) => Boolean(l.listPrice && l.unitPrice && Number(
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="isNew ? 'Blank invoice' : `Invoice ${inv?.docNo ?? ''}`" document>
+    <PageHeader :title="isNew ? 'Blank invoice' : `Invoice ${inv?.docNo ?? ''}`" document :branch="inv?.branch.code">
       <template #chip>
         <StatusChip :status="statusChip.status" :label="statusChip.label" :group="statusChip.group" />
         <StatusChip v-if="paymentChip" status="PAYMENT" :label="paymentChip.label" :group="paymentChip.group" />

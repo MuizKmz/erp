@@ -236,7 +236,7 @@ const historyNote = (h: { unitPrice: string; note: string | null }, index: numbe
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="title" :subtitle="subtitle" document>
+    <PageHeader :title="title" :subtitle="subtitle" document :branch="request?.branch.code">
       <template #chip>
         <StatusChip v-if="request" :status="request.status" />
         <StatusChip v-else status="DRAFT" label="New" />

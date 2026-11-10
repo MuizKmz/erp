@@ -133,11 +133,13 @@ export class PrismaMasterDataAdapter implements MasterDataPort {
   }
 
   async listBranches(tenantId: string): Promise<MdBranch[]> {
-    return this.prisma.sysBranch.findMany({
+    const rows = await this.prisma.sysBranch.findMany({
       where: { tenantId },
       orderBy: { code: 'asc' },
-      select: { code: true, name: true, isActive: true },
+      select: { id: true, code: true, name: true, isActive: true, parentId: true },
     });
+    const codeOf = new Map(rows.map((r) => [r.id, r.code]));
+    return rows.map((r) => ({ code: r.code, name: r.name, isActive: r.isActive, parentCode: (r.parentId && codeOf.get(r.parentId)) || null }));
   }
 
   async listSuppliers(tenantId: string, codes?: string[]): Promise<MdSupplier[]> {

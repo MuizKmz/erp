@@ -9,7 +9,9 @@ import KpiCard from '@/components/erp/KpiCard.vue'
 import PageHeader from '@/components/erp/PageHeader.vue'
 import Pager from '@/components/erp/Pager.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
+import BranchFilter from '@/components/erp/BranchFilter.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatQty } from '@/utils/format'
 import { salesDeliveriesApi } from '../api/sales'
@@ -34,6 +36,9 @@ async function loadOverview() {
 onMounted(loadOverview)
 
 const list = useListPage({ filterKeys: [], fetch: salesDeliveriesApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
+const branchColumn = computed(() => view.several.value && !view.code.value)
 const rows = computed(() => list.data.value?.items ?? [])
 const showing = computed(() => {
   const d = list.data.value
@@ -206,16 +211,19 @@ async function exportCsv() {
     <section class="erp-card flex grow flex-col gap-3 px-5 py-[18px]">
       <div class="flex items-baseline justify-between gap-3">
         <h2 class="m-0 text-[15px] font-bold">Delivery orders</h2>
-        <span class="text-xs text-erp-muted">{{ showing }}</span>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-erp-muted">{{ showing }}</span>
+          <BranchFilter class="w-auto" :model-value="list.params.value.branch ?? ''" @update:model-value="(v) => list.setFilter('branch', v)" />
+        </div>
       </div>
       <div class="overflow-x-auto">
         <table class="erp-table">
           <thead>
-            <tr><th>DO no</th><th>Date</th><th>Customer</th><th>From order</th><th class="num">Qty</th><th>Vehicle · driver</th><th>Consignment note</th><th>Status</th></tr>
+            <tr><th>DO no</th><th>Date</th><th>Customer</th><th>From order</th><th class="num">Qty</th><th>Vehicle · driver</th><th>Consignment note</th><th v-if="branchColumn">Branch</th><th>Status</th></tr>
           </thead>
           <tbody>
-            <tr v-if="list.loading.value && !rows.length"><td colspan="8" class="text-center text-erp-muted">Loading…</td></tr>
-            <tr v-else-if="!rows.length"><td colspan="8" class="text-center text-erp-muted">No delivery orders yet.</td></tr>
+            <tr v-if="list.loading.value && !rows.length"><td :colspan="branchColumn ? 9 : 8" class="text-center text-erp-muted">Loading…</td></tr>
+            <tr v-else-if="!rows.length"><td :colspan="branchColumn ? 9 : 8" class="text-center text-erp-muted">No delivery orders yet.</td></tr>
             <tr v-for="d in rows" :key="d.id">
               <td>
                 <span v-if="d.isMigrated" class="font-semibold whitespace-nowrap">{{ d.docNo }}</span>
@@ -227,6 +235,7 @@ async function exportCsv() {
               <td class="num">{{ formatQty(d.qty) }}</td>
               <td class="whitespace-nowrap">{{ [d.vehicle, d.driver].filter(Boolean).join(' · ') || '—' }}</td>
               <td class="whitespace-nowrap">{{ d.consignmentNote ?? '—' }}</td>
+              <td v-if="branchColumn" class="whitespace-nowrap">{{ view.nameOf(d.branchCode) }}</td>
               <td><StatusChip :status="d.status" :label="d.statusLabel" :group="d.status === 'CONFIRMED' ? 'released' : 'draft'" /></td>
             </tr>
           </tbody>

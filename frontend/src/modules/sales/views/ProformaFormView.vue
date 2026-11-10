@@ -178,7 +178,7 @@ const GROUP: Record<ProformaStatus, 'draft' | 'released' | 'done' | 'partial' | 
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else-if="pf">
-    <PageHeader :title="`Proforma invoice ${pf.docNo}`" document>
+    <PageHeader :title="`Proforma invoice ${pf.docNo}`" document :branch="pf?.branchCode">
       <template #chip><StatusChip :status="pf.status" :label="pf.label" :group="GROUP[pf.status]" /></template>
       <template #subtitle>
         {{ pf.customer.name }} · from

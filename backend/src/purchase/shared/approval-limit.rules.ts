@@ -36,6 +36,31 @@ export interface PoApprovalNeed {
   second: { needed: boolean; over: string | null; text: string };
 }
 
+/**
+ * A branch without its own PO limit uses the limit of the nearest branch above it (a new showroom under HQ follows HQ's
+ * limit), so no branch is ever left without approval by being added later. The copy says where it came from.
+ */
+export function inheritLimitRules<R extends { branchCode: string | null }>(
+  rules: R[],
+  branches: { code: string; parentCode: string | null }[],
+): (R & { inheritedFrom: string | null })[] {
+  const own = new Map(rules.filter((r) => r.branchCode !== null).map((r) => [r.branchCode!, r]));
+  const parent = new Map(branches.map((b) => [b.code, b.parentCode]));
+  const result: (R & { inheritedFrom: string | null })[] = rules.map((r) => ({ ...r, inheritedFrom: null }));
+  for (const b of branches) {
+    if (own.has(b.code)) continue;
+    const seen = new Set([b.code]);
+    let up = parent.get(b.code) ?? null;
+    while (up && !own.has(up) && !seen.has(up)) {
+      seen.add(up);
+      up = parent.get(up) ?? null;
+    }
+    const from = up ? own.get(up) : undefined;
+    if (from) result.push({ ...from, branchCode: b.code, inheritedFrom: from.branchCode });
+  }
+  return result;
+}
+
 /** The rule for a branch, falling back to the all-branches rule. */
 export function pickRule(rules: PoLimitRule[], branchCode: string): PoLimitRule | undefined {
   return rules.find((r) => r.branchCode === branchCode) ?? rules.find((r) => r.branchCode === null);

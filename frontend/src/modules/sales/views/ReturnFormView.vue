@@ -213,7 +213,7 @@ const released = computed(() => sr.value?.status === 'RELEASED')
   </div>
 
   <template v-else-if="invoice">
-    <PageHeader :title="isNew ? 'New sales return' : `Sales return ${sr?.docNo ?? ''}`" document>
+    <PageHeader :title="isNew ? 'New sales return' : `Sales return ${sr?.docNo ?? ''}`" document :branch="sr?.branchCode">
       <template #chip><StatusChip :status="sr?.status ?? 'DRAFT'" :label="released ? 'Released' : 'Draft'" :group="released ? 'done' : 'draft'" /></template>
       <template #subtitle>
         From invoice

@@ -207,6 +207,7 @@ export class DeliveriesQuery {
       rows.map((d) => ({
         id: d.id,
         docNo: d.docNo,
+        branchCode: d.branchCode,
         docDate: iso(d.docDate),
         customerName: d.customerName,
         salesOrderId: d.salesOrderId,

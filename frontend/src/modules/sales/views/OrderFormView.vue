@@ -354,7 +354,7 @@ const belowList = (l: EditLine) => Boolean(l.item.listPrice && l.unitPrice && Nu
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="title" document>
+    <PageHeader :title="title" document :branch="order?.branch.code">
       <template #chip>
         <StatusChip v-if="chip" :status="chip.status" :label="chip.label" />
         <StatusChip v-else status="DRAFT" label="New" />

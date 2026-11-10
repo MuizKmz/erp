@@ -129,6 +129,7 @@ const deliverLines = computed(() => (inv.value?.customer.deliveryAddress ?? '').
             <div v-else />
             <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
               <dt class="text-erp-subtle">Invoice date</dt><dd class="m-0 text-right">{{ formatDate(inv.docDate) }}</dd>
+              <dt class="text-erp-subtle">Branch</dt><dd class="m-0 text-right">{{ inv.branch.name }}</dd>
               <dt class="text-erp-subtle">Terms</dt><dd class="m-0 text-right">{{ inv.creditTermDays }} days</dd>
               <dt class="text-erp-subtle">Due date</dt><dd class="m-0 text-right">{{ formatDate(inv.dueDate ?? '') || '—' }}</dd>
               <template v-if="inv.order"><dt class="text-erp-subtle">Sales order</dt><dd class="m-0 text-right">{{ inv.order.no }}</dd></template>

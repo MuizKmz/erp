@@ -172,6 +172,7 @@ export class InvoicesQuery {
           return {
             id: r.id,
             docNo: r.docNo,
+            branchCode: r.branchCode,
             docDate: isoDate(r.docDate),
             supplierName: r.supplierName,
             supplierInvoiceNo: r.supplierInvoiceNo,
@@ -342,6 +343,7 @@ export class InvoicesQuery {
     return {
       id: invoice.id,
       docNo: invoice.docNo,
+      branchCode: invoice.branchCode,
       docDate: isoDate(invoice.docDate),
       status: invoice.status,
       statusLabel: state.label,

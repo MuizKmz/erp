@@ -75,6 +75,7 @@ export class CashSalesQuery {
       rows.map((c) => ({
         id: c.id,
         docNo: c.docNo,
+        branchCode: c.branchCode,
         docDate: iso(c.docDate),
         buyer: c.buyerName?.trim() || 'Walk-in',
         summary: c.summary,

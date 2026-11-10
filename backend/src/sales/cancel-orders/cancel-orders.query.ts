@@ -90,6 +90,7 @@ export class CancelOrdersQuery {
       rows.map((c) => ({
         id: c.id,
         docNo: c.docNo,
+        branchCode: c.branchCode,
         docDate: iso(c.docDate),
         salesOrderId: c.salesOrderId,
         salesOrderNo: c.salesOrderNo,
@@ -213,6 +214,7 @@ export class CancelOrdersQuery {
     return {
       id: c.id,
       docNo: c.docNo,
+      branchCode: c.branchCode,
       docDate: iso(c.docDate),
       status: c.status,
       isMigrated: c.isMigrated,

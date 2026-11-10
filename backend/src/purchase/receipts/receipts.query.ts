@@ -200,6 +200,7 @@ export class ReceiptsQuery {
         return {
           id: r.id,
           docNo: r.docNo,
+          branchCode: r.branchCode,
           docDate: isoDate(r.docDate),
           poId: r.poId,
           poNo: r.poNo,

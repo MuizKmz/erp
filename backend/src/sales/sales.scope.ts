@@ -9,6 +9,7 @@ const document = (model: string, ownerField?: string): ScopeRule => ({
   model,
   module: 'sales',
   branchField: 'branchCode',
+  viewFilter: true,
   agent: { kind: 'document', customerField: 'customerCode', ...(ownerField && { ownerField }) },
 });
 

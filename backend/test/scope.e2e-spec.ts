@@ -164,4 +164,31 @@ describe('Data scopes (end to end)', () => {
     const ordered = async (u: string) => (await api.get<{ kpis: { ordered: { amount: string } } }>('sales/reports/by-item', u)).kpis.ordered.amount;
     expect([await ordered('NA'), await ordered('AR'), await ordered('LWJ'), await ordered('FO')]).toEqual(['274098.00', '134860.00', '113498.00', '25740.00']);
   }, 120_000);
+
+  it('narrows every document list to the branch a page asks for, never beyond the person’s own (Branch filter)', async () => {
+    for (const route of [...Object.values(PURCHASE), ...Object.values(SALES)]) {
+      const total = async (user: string, query = '') => {
+        const res = await api.call('GET', `${route}?pageSize=100${query}`, user);
+        expect(res.status).toBe(200);
+        return res.body as { total: number; items: { branchCode: string }[] };
+      };
+      const all = await total('ADM');
+      const hq = await total('ADM', '&branch=HQ');
+      const png = await total('ADM', '&branch=PNG');
+      expect([route, hq.total + png.total]).toEqual([route, all.total]);
+      expect(png.items.every((i) => i.branchCode === 'PNG')).toBe(true);
+      expect(all.items.every((i) => typeof i.branchCode === 'string')).toBe(true);
+      // A branch the person does not work in shows nothing; it never widens the scope.
+      expect((await total(route.startsWith('purchase/') ? 'TWL' : 'LWJ', '&branch=HQ')).total).toBe(0);
+    }
+  }, 120_000);
+
+  it('narrows the homes and their charts to the branch chosen', async () => {
+    const count = async (query: string) => (await api.call('GET', `purchase/dashboard${query}`, 'AZ')).body.kpis.openOrders.count as number;
+    const [all, hq, png] = [await count(''), await count('?branch=HQ'), await count('?branch=PNG')];
+    expect(hq + png).toBe(all);
+    expect(png).toBeLessThan(all);
+    const board = await api.call('GET', 'sales/dashboard/board?branch=PNG', 'NA');
+    expect(board.status).toBe(200);
+  });
 });

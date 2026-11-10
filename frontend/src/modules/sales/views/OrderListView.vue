@@ -17,6 +17,7 @@ import QtyProgress from '@/components/erp/QtyProgress.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
 import StatusTabs from '@/components/erp/StatusTabs.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatQty } from '@/utils/format'
 import { salesLookupsApi, salesOrdersApi } from '../api/sales'
@@ -29,6 +30,8 @@ const confirm = useConfirm()
 const { can, today } = useSession()
 
 const list = useListPage({ filterKeys: ['customer', 'agent', 'branch'], fetch: salesOrdersApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 
 const TABS = [
@@ -266,6 +269,9 @@ const chipOf = (o: OrderListItem) => (o.balanceCancelled ? { status: 'CANCELLED'
       </Column>
       <Column v-if="show('invoiced')" header="Invoiced (RM)" class="erp-col-num">
         <template #body="{ data }: { data: OrderListItem }"><MoneyText :value="data.invoicedAmount" /></template>
+      </Column>
+      <Column v-if="view.several.value && !view.code.value" header="Branch">
+        <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
       </Column>
       <Column header="Status">
         <template #body="{ data }: { data: OrderListItem }"><StatusChip :status="chipOf(data).status" :label="chipOf(data).label" /></template>

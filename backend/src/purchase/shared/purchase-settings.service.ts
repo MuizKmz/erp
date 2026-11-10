@@ -3,7 +3,7 @@ import { MASTER_DATA_PORT, type MasterDataPort } from '../../master-data/master-
 import { ConfigurationError } from '../../platform/http/errors';
 import { PrismaService } from '../../platform/prisma/prisma.service';
 import { CASH_PURCHASE_LIMIT } from '../cash-purchases/cash-purchase.rules';
-import type { PoLimitRule } from './approval-limit.rules';
+import { inheritLimitRules, type PoLimitRule } from './approval-limit.rules';
 
 /** Operation Policies (P24) as the Purchase services need them. */
 @Injectable()
@@ -19,12 +19,14 @@ export class PurchaseSettingsService {
     return row;
   }
 
-  /** PO approval limits, with approver names from Master Data. */
+  /** PO approval limits, with approver names from Master Data; a branch without its own limit uses the one above it. */
   async poLimitRules(tenantId: string): Promise<PoLimitRule[]> {
-    const [rules, users] = await Promise.all([
+    const [own, users, branches] = await Promise.all([
       this.prisma.purApprovalRule.findMany({ where: { tenantId, docType: 'PO', isActive: true }, orderBy: { sortOrder: 'asc' } }),
       this.masterData.listUsers(tenantId),
+      this.masterData.listBranches(tenantId),
     ]);
+    const rules = inheritLimitRules(own, branches);
     const name = (code: string | null) => (code ? (users.find((u) => u.code === code)?.name ?? code) : null);
     return rules.map((r) => ({
       branchCode: r.branchCode,

@@ -27,6 +27,8 @@ export interface MdBranch {
   code: string;
   name: string;
   isActive: boolean;
+  /** The branch above it in the company's tree, or null for a top branch. */
+  parentCode: string | null;
 }
 
 export interface MdSupplier {

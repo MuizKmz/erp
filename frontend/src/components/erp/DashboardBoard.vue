@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
@@ -11,10 +11,10 @@ import IndicatorCard from '@/components/erp/IndicatorCard.vue'
  * A module home's dashboard (SRS RPT-035 to RPT-039): the toolbar, the module's fixed KPI cards (slot), and the
  * charts this person picked, saved on the server so they follow the person to any computer. Module-neutral.
  */
-const props = defineProps<{ path: string }>()
+const props = defineProps<{ path: string; query?: Record<string, string> }>()
 const toast = useToast()
 const confirm = useConfirm()
-const boards = boardsApi(props.path)
+const boards = boardsApi(props.path, () => props.query ?? {})
 
 const board = ref<Board | null>(null)
 const loading = ref(true)
@@ -34,6 +34,8 @@ async function load() {
   }
 }
 onMounted(load)
+// The home's Branch picker: the same charts, recalculated for the branch chosen.
+watch(() => JSON.stringify(props.query ?? {}), () => void load())
 
 const keys = computed(() => board.value?.cards.map((c) => c.key) ?? [])
 const full = computed(() => Boolean(board.value && keys.value.length >= board.value.maxCards))
@@ -107,6 +109,7 @@ const KIND: Record<IndicatorKind, { label: string; icon: typeof Table2 }> = {
     <div class="flex items-center gap-2.5">
       <span class="text-sm font-bold">Dashboard</span>
       <span v-if="board" class="text-xs text-erp-muted">{{ board.isDefault ? 'Default charts' : 'Your charts · saved to your account' }}</span>
+      <slot name="scope" />
     </div>
     <div class="flex items-center gap-2">
       <div class="flex overflow-hidden rounded-lg border border-erp-input" role="group" aria-label="Dashboard columns">

@@ -221,7 +221,7 @@ const belowReorder = computed(() => Boolean(stock.value?.reorderLevel && compare
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="row ? `Cash purchase ${row.docNo}` : 'New cash purchase'" document>
+    <PageHeader :title="row ? `Cash purchase ${row.docNo}` : 'New cash purchase'" document :branch="row?.branch.code">
       <template #chip>
         <StatusChip v-if="row" :status="row.status" :group="row.status === 'RELEASED' ? 'done' : 'draft'" />
         <StatusChip v-else status="DRAFT" label="New" />

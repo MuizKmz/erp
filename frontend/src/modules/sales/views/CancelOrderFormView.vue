@@ -208,7 +208,7 @@ const cancelPct = computed(() => (totals.value.ordered ? (Math.min(totals.value.
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="isNew ? 'New cancellation' : `Cancel order balance ${co?.docNo ?? ''}`" subtitle="Closes the part of a sales order that will never be delivered" document>
+    <PageHeader :title="isNew ? 'New cancellation' : `Cancel order balance ${co?.docNo ?? ''}`" subtitle="Closes the part of a sales order that will never be delivered" document :branch="co?.branchCode">
       <template #chip>
         <StatusChip :status="co?.status ?? 'DRAFT'" :label="released ? 'Released' : 'Draft'" :group="released ? 'done' : 'draft'" />
       </template>

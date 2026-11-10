@@ -58,10 +58,11 @@ export interface Board {
 }
 
 /** The board API of one module home: "/sales/dashboard/board". */
-export function boardsApi(path: string) {
+/** `query()` is sent with every call (the home's Branch picker), so the charts that come back follow it. */
+export function boardsApi(path: string, query: () => Record<string, string> = () => ({})) {
   return {
-    get: () => api<Board>(path),
-    save: (cols: 2 | 3, cards: string[]) => api<Board>(path, { method: 'PUT', body: { cols, cards } }),
-    reset: () => api<Board>(path, { method: 'DELETE' }),
+    get: () => api<Board>(path, { query: query() }),
+    save: (cols: 2 | 3, cards: string[]) => api<Board>(path, { method: 'PUT', body: { cols, cards }, query: query() }),
+    reset: () => api<Board>(path, { method: 'DELETE', query: query() }),
   }
 }

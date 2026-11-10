@@ -311,7 +311,7 @@ const chip = computed(() => {
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else-if="po">
-    <PageHeader :title="title" document>
+    <PageHeader :title="title" document :branch="receipt?.branch.code">
       <template #chip><StatusChip :status="chip.status" :label="chip.label" /></template>
       <template #subtitle>
         Against

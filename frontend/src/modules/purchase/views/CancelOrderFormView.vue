@@ -227,7 +227,7 @@ const items = computed(() => [...new Set(form.lines.filter((l) => compareQty(l.c
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="title" subtitle="Closes the part of a purchase order the supplier will never deliver" document>
+    <PageHeader :title="title" subtitle="Closes the part of a purchase order the supplier will never deliver" document :branch="row?.branchCode">
       <template #chip>
         <StatusChip v-if="row" :status="row.status" :group="row.status === 'RELEASED' ? 'done' : 'draft'" />
         <StatusChip v-else status="DRAFT" label="New" />

@@ -63,7 +63,7 @@ import type {
 } from '../types'
 
 export const salesApi = {
-  dashboard: () => api<SalesDashboard>('/sales/dashboard'),
+  dashboard: (query: Record<string, string> = {}) => api<SalesDashboard>('/sales/dashboard', { query }),
   approvalsCount: () => api<{ waitingForMe: number }>('/sales/approvals/count', { silent: true }),
 }
 

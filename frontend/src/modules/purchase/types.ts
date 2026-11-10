@@ -757,6 +757,7 @@ export interface MatchColumn {
 export interface InvoiceDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: InvoiceStatus
   statusLabel: string
@@ -905,6 +906,7 @@ export interface CancelOrderTemplate {
 export interface CancelOrderDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: 'DRAFT' | 'RELEASED'
   isMigrated: boolean
@@ -1001,6 +1003,7 @@ export interface ReturnTemplate {
 export interface ReturnDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: ReturnStatus
   isMigrated: boolean
@@ -1076,6 +1079,7 @@ export interface DebitCheck {
 export interface DebitNoteDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: DebitNoteStatus
   isMigrated: boolean
@@ -1250,6 +1254,10 @@ export interface ApprovalRulesSettings {
   history: SettingChange[]
   people: { label: string; name: string }[]
   canEdit: boolean
+  /** Branches without their own PO limit follow the limit of the branch above them. */
+  inheritedLimits: { from: string; branches: string[] }[]
+  /** Active branches with no PO limit at all, theirs or one above them. */
+  unlimited: string[]
 }
 
 export interface ApprovalRulesInput {

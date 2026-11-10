@@ -409,7 +409,7 @@ const overLimit = (l: EditLine) => Number(l.discountPct || 0) > Number(quote.val
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="title" document>
+    <PageHeader :title="title" document :branch="quote?.branch.code">
       <template #chip>
         <StatusChip :status="chip.status" :label="chip.label" :group="chip.group" />
         <span v-if="quote" class="text-[13px] font-semibold text-erp-subtle">Revision {{ quote.revision }}</span>

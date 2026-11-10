@@ -185,6 +185,7 @@ export class ReturnsQuery {
       rows.map((r) => ({
         id: r.id,
         docNo: r.docNo,
+        branchCode: r.branchCode,
         docDate: iso(r.docDate),
         customerName: r.customerName,
         invoiceId: invoices.find((i) => i.id === r.invoiceId && !i.isMigrated) ? r.invoiceId : null,
@@ -269,6 +270,7 @@ export class ReturnsQuery {
     return {
       id: r.id,
       docNo: r.docNo,
+      branchCode: r.branchCode,
       docDate: iso(r.docDate),
       status: r.status,
       isMigrated: r.isMigrated,

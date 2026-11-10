@@ -1,4 +1,4 @@
-import { scopeWhere, withScope, type ScopeFacts, type ScopeRule } from './scope.rules';
+import { scopeWhere, viewBranchOf, withScope, type ScopeFacts, type ScopeRule } from './scope.rules';
 
 describe('data scope rules (FR-SEC-020 to 033)', () => {
   const po: ScopeRule = { model: 'PurPurchaseOrder', module: 'purchase', branchField: 'branchCode' };
@@ -30,6 +30,23 @@ describe('data scope rules (FR-SEC-020 to 033)', () => {
     const customersOnly = { ...aina, agentDocuments: false };
     expect(scopeWhere(invoice, customersOnly)).toEqual({ branchCode: { in: ['HQ'] } });
     expect(scopeWhere(customer, { ...aina, agentCustomers: false })).toEqual({ OR: [{ branchCode: { in: ['HQ'] } }, { visibleToAllBranches: true }] });
+  });
+
+  it('narrows documents to the branch a page asks to show, never wider than the user’s own (Branch picker)', () => {
+    const doc: ScopeRule = { ...po, viewFilter: true };
+    expect(scopeWhere(doc, { ...lmy, viewBranch: 'PNG' })).toEqual({ branchCode: { in: ['PNG'] } });
+    expect(scopeWhere(doc, { ...aina, viewBranch: 'PNG' })).toEqual({ branchCode: { in: [] } });
+    expect(scopeWhere(po, { ...lmy, viewBranch: 'PNG' })).toEqual({ branchCode: { in: ['HQ', 'PNG'] } });
+    // A customer keeps its own scope, so its name still shows on a document of the chosen branch.
+    expect(scopeWhere(customer, { ...lmy, viewBranch: 'PNG' })).toEqual({ OR: [{ branchCode: { in: ['HQ', 'PNG'] } }, { visibleToAllBranches: true }] });
+  });
+
+  it('reads the branch to show from ?branch=, one plain code only', () => {
+    expect(viewBranchOf({ query: { branch: ' PNG ' } })).toBe('PNG');
+    expect(viewBranchOf({ query: { branch: '' } })).toBeUndefined();
+    expect(viewBranchOf({ query: { branch: ['HQ', 'PNG'] } })).toBeUndefined();
+    expect(viewBranchOf({ query: {} })).toBeUndefined();
+    expect(viewBranchOf(undefined)).toBeUndefined();
   });
 
   it('says nothing for a table without a branch or agent rule', () => {

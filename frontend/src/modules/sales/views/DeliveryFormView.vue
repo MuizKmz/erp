@@ -242,7 +242,7 @@ const showCreditFailed = computed(() => Boolean(delivery.value && !confirmed.val
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else-if="delivery">
-    <PageHeader :title="confirmed ? `Delivery order ${delivery.docNo}` : `Confirm delivery ${delivery.docNo}`" document>
+    <PageHeader :title="confirmed ? `Delivery order ${delivery.docNo}` : `Confirm delivery ${delivery.docNo}`" document :branch="delivery?.branchCode">
       <template #chip><StatusChip :status="delivery.status" :label="delivery.statusLabel" :group="confirmed ? 'released' : 'draft'" /></template>
       <template #subtitle>
         From

@@ -213,7 +213,7 @@ const released = computed(() => dn.value?.status === 'RELEASED')
   <div v-if="loading" class="erp-card px-6 py-10 text-center text-[13px] text-erp-muted">Loading…</div>
 
   <template v-else>
-    <PageHeader :title="isNew ? 'New debit note' : `Debit note ${dn?.docNo ?? ''}`" document>
+    <PageHeader :title="isNew ? 'New debit note' : `Debit note ${dn?.docNo ?? ''}`" document :branch="dn?.branchCode">
       <template #chip><StatusChip :status="dn?.status ?? 'DRAFT'" :label="released ? 'Released' : 'Draft'" :group="released ? 'done' : 'draft'" /></template>
       <template #subtitle>
         <template v-if="invoice">

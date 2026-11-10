@@ -7,6 +7,7 @@ import { BusinessRuleError, NotFoundError, ValidationFailedError } from '../../p
 import { PrismaService, type Tx } from '../../platform/prisma/prisma.service';
 import { ClockService } from '../../platform/clock/clock.service';
 import { PURCHASE_PERMISSIONS as P } from '../purchase.permissions';
+import { inheritLimitRules } from '../shared/approval-limit.rules';
 import { renderTemplate } from '../shared/email-template.rules';
 import { PurchaseSettingsService } from '../shared/purchase-settings.service';
 import { PUR_ROLE, PUR_ROLE_LABEL } from '../shared/purchase.constants';
@@ -83,7 +84,9 @@ export class SettingsService {
     const approver = (role: string | null, code: string | null, branchCode: string | null) => {
       if (!role) return null;
       const label = ROLE_LABEL[role] ?? role;
-      return role === PUR_ROLE.BRANCH_MANAGER ? `${label} · ${branchName(branchCode)}` : `${label} · ${userName(code)}`;
+      if (role === PUR_ROLE.BRANCH_MANAGER) return `${label} · ${branchName(branchCode)}`;
+      // No person named: whoever holds the role approves, so the role alone (never "null").
+      return code ? `${label} · ${userName(code)}` : label;
     };
 
     const people = [
@@ -98,7 +101,20 @@ export class SettingsService {
       return { label, name: userName(code ?? null) ?? '—' };
     });
 
+    // Active branches without their own PO limit, and the branch whose limit they follow.
+    const activeBranches = branches.filter((b) => b.isActive);
+    const followed = inheritLimitRules(rules.filter((r) => r.docType === 'PO'), activeBranches).filter((r) => r.inheritedFrom);
+    const inheritedLimits = [...new Set(followed.map((r) => r.inheritedFrom!))].map((from) => ({
+      from: branchName(from),
+      branches: followed.filter((r) => r.inheritedFrom === from).map((r) => branchName(r.branchCode)),
+    }));
+    const unlimited = activeBranches
+      .filter((b) => !rules.some((r) => r.docType === 'PO' && r.branchCode === b.code) && !followed.some((r) => r.branchCode === b.code))
+      .map((b) => branchName(b.code));
+
     return {
+      inheritedLimits,
+      unlimited,
       rules: rules.map((r) => ({
         id: r.id,
         docType: r.docType,

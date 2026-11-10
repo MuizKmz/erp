@@ -13,6 +13,7 @@ import Pager from '@/components/erp/Pager.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
 import StatusTabs from '@/components/erp/StatusTabs.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatRm } from '@/utils/format'
 import { salesInvoicesApi, salesLookupsApi } from '../api/sales'
@@ -23,6 +24,8 @@ const toast = useToast()
 const { can, today } = useSession()
 
 const list = useListPage({ filterKeys: ['customer', 'agent', 'branch'], fetch: salesInvoicesApi.list })
+// The person's branches: the Branch column appears for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 const kpis = computed(() => list.data.value?.kpis)
 
@@ -174,6 +177,9 @@ const source = (i: InvoiceListItem) => (i.isMigrated ? 'migrated' : i.kind === '
         </Column>
         <Column header="Due date">
           <template #body="{ data }: { data: InvoiceListItem }"><span class="whitespace-nowrap">{{ data.dueDate && data.payment.key !== 'DRAFT' && data.payment.key !== 'PENDING' ? formatDate(data.dueDate) : '—' }}</span></template>
+        </Column>
+        <Column v-if="view.several.value && !view.code.value" header="Branch">
+          <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
         </Column>
         <Column header="Payment">
           <template #body="{ data }: { data: InvoiceListItem }"><StatusChip :status="data.payment.key" :label="data.payment.label" :group="PAYMENT_GROUP[data.payment.key]" /></template>

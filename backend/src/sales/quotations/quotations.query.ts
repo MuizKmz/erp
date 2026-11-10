@@ -107,7 +107,7 @@ export class QuotationsQuery {
         rows.map((r) => {
           const expired = isExpired(r.status, iso(r.validUntil), today);
           return {
-            id: r.id, docNo: r.docNo, revision: r.revision, docDate: iso(r.docDate), validUntil: iso(r.validUntil), customerName: r.customerName, agentName: r.agentName,
+            id: r.id, docNo: r.docNo, branchCode: r.branchCode, revision: r.revision, docDate: iso(r.docDate), validUntil: iso(r.validUntil), customerName: r.customerName, agentName: r.agentName,
             total: toMoney(r.total), salesOrder: r.salesOrderNo ? { no: r.salesOrderNo, id: orders.find((o) => o.docNo === r.salesOrderNo)?.id ?? null } : null,
             status: r.status, label: quotationLabel(r.status as QtStatus, r.revision, expired), expired, isMigrated: r.isMigrated, version: r.version,
             allowedActions: this.actions(ctx, r, limits.pct),

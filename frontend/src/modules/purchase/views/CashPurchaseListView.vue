@@ -14,6 +14,7 @@ import SideCard from '@/components/erp/SideCard.vue'
 import StatusChip from '@/components/erp/StatusChip.vue'
 import StatusTabs from '@/components/erp/StatusTabs.vue'
 import { useListPage } from '@/composables/useListPage'
+import { useViewBranch } from '@/composables/useViewBranch'
 import { useSession } from '@/composables/useSession'
 import { formatDate, formatMoney, formatRm, percentOf } from '@/utils/format'
 import { cashPurchasesApi, lookupsApi } from '../api/purchase'
@@ -24,6 +25,8 @@ const toast = useToast()
 const { can, today } = useSession()
 
 const list = useListPage({ filterKeys: ['supplier', 'paidBy', 'branch'], fetch: cashPurchasesApi.list })
+// The person's branches: the Branch filter and column appear for someone working in more than one.
+const view = useViewBranch()
 const rows = computed(() => list.data.value?.items ?? [])
 const TABS = [
   { key: 'all', label: 'All' },
@@ -129,6 +132,9 @@ async function exportCsv() {
           <span v-else-if="data.receipt === 'MISSING'" class="font-semibold whitespace-nowrap text-note-error-text">Missing</span>
           <span v-else class="text-erp-muted">Old system</span>
         </template>
+      </Column>
+      <Column v-if="view.several.value && !view.code.value" header="Branch">
+        <template #body="{ data }">{{ view.nameOf(data.branchCode) }}</template>
       </Column>
       <Column header="Status">
         <template #body="{ data }: { data: CashPurchaseListItem }"><StatusChip :status="data.status" :group="data.status === 'RELEASED' ? 'done' : 'draft'" /></template>

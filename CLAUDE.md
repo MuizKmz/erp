@@ -634,14 +634,18 @@ Everything above still applies: stack, database and API conventions, the working
 - Branch statutory numbers for payroll (employer, EPF, SOCSO), with payroll.
 - Masking sensitive personal fields (FR-SEC-042) and payroll data rules (FR-SEC-040, 041), with payroll.
 
-## Noted for later: showing branch and company (user, 19 Oct 2026)
+## Showing branch and company (noted 19 Oct 2026, items 1–3 built 10 Nov 2026)
 
-Today the Purchase, Sales and Core homes and lists count **every branch the user works in, added together** (the data scope, A7). The top-bar branch only stamps new documents; it filters nothing. Shared master data (items, suppliers, price lists, tax codes, units, warehouses) is the same for every branch on purpose. Left for later, by the user's choice:
+The Purchase, Sales and Core homes and lists count **every branch the user works in, added together** (the data scope, A7), unless the page picks one. The top-bar branch only stamps new documents; it filters nothing. Shared master data (items, suppliers, price lists, tax codes, units, warehouses) is the same for every branch on purpose.
 
-1. **Home pages:** say which branches the numbers cover ("Showing: HQ, Penang") and offer a branch picker limited to the user's own branches.
-2. **Lists:** the same Branch filter and column on every document list (some lack it today, e.g. goods receipts, purchase invoices, returns, deliveries).
-3. **Documents:** show the issuing branch on the form header and the A4 printout.
+1. **Home pages (built):** the Purchase and Sales dashboard toolbar says which branches the numbers cover ("Showing: HQ, Penang") and has a branch picker limited to the user's own branches, default *All my branches*, kept in the URL (`?branch=`). The KPI cards, the charts and the KPI links follow it.
+2. **Lists (built):** every Purchase and Sales document list has a Branch filter and a Branch column, shown to someone who works in more than one branch (the column only while no branch is picked).
+3. **Documents (built):** the form header shows the issuing branch (same rule); the Sales invoice A4 printout always shows it.
 4. **Company:** only once there is a second company or Finance: books per company (ADR-19), the seller's legal name, TIN and SST numbers on printed invoices and e-Invoices, and reports grouped by company. Not on Purchase, Sales or Core screens while there is one company.
+
+- **How:** `?branch=` on any request narrows the data scope to that branch for the tables whose scope rule sets `viewFilter` (Purchase and Sales documents; `platform/scope/scope.rules.ts`). It never widens: a branch the user does not work in shows nothing. Customers keep their own scope, so a customer's name never goes missing on a document. Every home, list, report and chart that reads through the scope follows it with no code of its own.
+- **PO approval limits:** a branch without its own PO limit uses the limit of the nearest branch above it (`inheritLimitRules`), so a branch added later is never left without approval; Approval Rules (P24) says which branches follow which limit, and warns about any active branch with no limit at all.
+- **Tests:** `scope.rules.spec.ts`, `approval-limit.rules.spec.ts`, `test/scope.e2e-spec.ts` (every list: HQ + Penang = all; a Penang-only person asking for HQ gets nothing; the Purchase home).
 
 ## Must-read for Configuration
 

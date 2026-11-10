@@ -118,6 +118,7 @@ export class RfqsQuery {
           return {
             id: r.id,
             docNo: r.docNo,
+            branchCode: r.branchCode,
             docDate: isoDate(r.docDate),
             sentAt: r.sentAt?.toISOString() ?? null,
             summary: r.summary,

@@ -64,6 +64,7 @@ export class ProformasQuery {
     const all = (await this.deposits.withReceived(ctx.tenantId, rows)).map(({ proforma: p, received, status }) => ({
       id: p.id,
       docNo: p.docNo,
+      branchCode: p.branchCode,
       docDate: iso(p.docDate),
       customerName: p.customerName,
       salesOrderId: p.salesOrderId,
@@ -147,6 +148,7 @@ export class ProformasQuery {
     return {
       id: p.id,
       docNo: p.docNo,
+      branchCode: p.branchCode,
       docDate: iso(p.docDate),
       status,
       label: proformaLabel(status, p.usedOnInvoice),

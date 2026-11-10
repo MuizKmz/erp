@@ -15,6 +15,11 @@ export interface ScopeRule {
   /** A row with this flag on is seen from every branch (the customer's *visible to all branches*, FR-SEC-033). */
   allBranchesField?: string;
   /**
+   * The person may narrow this table to one of their own branches with `?branch=` on a read (the Branch picker on the
+   * homes and lists). Documents only: a customer keeps its branch scope, so its name never goes missing on a document.
+   */
+  viewFilter?: boolean;
+  /**
    * Sales-agent scope (FR-SEC-030, 031):
    * - `customer`: a customer row, seen when its agent field is the user (the role's *customers* switch).
    * - `document`: a document row, seen when its customer is one of the agent's customers (the role's *documents* switch);
@@ -27,6 +32,8 @@ export interface ScopeRule {
 export interface ScopeFacts {
   /** The user's branches. */
   branches: readonly string[];
+  /** The branch the page asked to show (`?branch=` on a read), for tables with a view filter. Never widens the scope. */
+  viewBranch?: string;
   /** The user's code, the agent of their customers. */
   userCode: string;
   /** Any role the user holds today is agent-scoped for customers / for documents (choice 8: any role counts). */
@@ -42,7 +49,8 @@ type Where = Record<string, unknown>;
 export function scopeWhere(rule: ScopeRule, facts: ScopeFacts): Where | null {
   const parts: Where[] = [];
   if (rule.branchField) {
-    const inBranch = { [rule.branchField]: { in: [...facts.branches] } };
+    const branches = rule.viewFilter && facts.viewBranch ? facts.branches.filter((b) => b === facts.viewBranch) : facts.branches;
+    const inBranch = { [rule.branchField]: { in: [...branches] } };
     parts.push(rule.allBranchesField ? { OR: [inBranch, { [rule.allBranchesField]: true }] } : inBranch);
   }
   if (rule.agent?.kind === 'customer' && facts.agentCustomers) {
@@ -54,6 +62,15 @@ export function scopeWhere(rule: ScopeRule, facts: ScopeFacts): Where | null {
   }
   if (!parts.length) return null;
   return parts.length === 1 ? parts[0]! : { AND: parts };
+}
+
+/**
+ * The branch a request asks to show: `?branch=HQ` (nothing when it is not one plain code). Any method: it only ever
+ * narrows, and a dashboard's save answers with its charts recalculated for the same branch.
+ */
+export function viewBranchOf(request: { query?: unknown } | undefined): string | undefined {
+  const branch = (request?.query as Record<string, unknown> | undefined)?.branch;
+  return typeof branch === 'string' && branch.trim() ? branch.trim() : undefined;
 }
 
 /** Adds the scope to a query's where. Keeps the caller's unique fields at the top, so findUnique still works. */

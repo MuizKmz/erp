@@ -359,7 +359,7 @@ const difference = computed(() => (invoice.value ? subQty(invoice.value.totals.b
 
   <!-- ── Record a new supplier invoice ──────────────────────────────────── -->
   <template v-else-if="isNew">
-    <PageHeader title="Record supplier invoice" document>
+    <PageHeader title="Record supplier invoice" document :branch="invoice?.branchCode">
       <template #chip><StatusChip status="DRAFT" label="New" /></template>
       <template #subtitle>Pick the supplier and the purchase order, then type what their invoice says. The three-way match runs when you record it.</template>
       <template #actions>

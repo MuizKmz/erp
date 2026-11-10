@@ -524,6 +524,7 @@ export interface DeliveryOverview {
 export interface DeliveryListItem {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   customerName: string
   salesOrderId: string | null
@@ -762,6 +763,7 @@ export interface ProformaKpis {
 export interface ProformaDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: ProformaStatus
   label: string
@@ -850,6 +852,7 @@ export interface CancelOrderLines {
 export interface CancelDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: 'DRAFT' | 'RELEASED'
   isMigrated: boolean
@@ -953,6 +956,7 @@ export interface ReturnInvoiceView {
 export interface ReturnDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: 'DRAFT' | 'RELEASED'
   isMigrated: boolean
@@ -1012,6 +1016,7 @@ export interface DebitInvoiceView {
 export interface DebitDetail {
   id: string
   docNo: string
+  branchCode: string
   docDate: string
   status: 'DRAFT' | 'RELEASED'
   isMigrated: boolean

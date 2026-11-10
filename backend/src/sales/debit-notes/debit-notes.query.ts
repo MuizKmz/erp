@@ -108,6 +108,7 @@ export class DebitNotesQuery {
         return {
           id: d.id,
           docNo: d.docNo,
+          branchCode: d.branchCode,
           docDate: iso(d.docDate),
           customerName: d.customerName,
           invoiceId: invoices.find((i) => i.id === d.invoiceId && !i.isMigrated) ? d.invoiceId : null,
@@ -143,6 +144,7 @@ export class DebitNotesQuery {
     return {
       id: d.id,
       docNo: d.docNo,
+      branchCode: d.branchCode,
       docDate: iso(d.docDate),
       status: d.status,
       isMigrated: d.isMigrated,

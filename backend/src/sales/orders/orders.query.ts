@@ -107,6 +107,7 @@ export class OrdersQuery {
       rows.map((o) => ({
         id: o.id,
         docNo: o.docNo,
+        branchCode: o.branchCode,
         docDate: iso(o.docDate),
         customerName: o.customerName,
         isBuyToOrder: o.orderTypeCode === 'BTO',
